@@ -93,7 +93,7 @@ function targetOf(e: Pick<Exercise, 'repMin' | 'repMax' | 'loadType'>): string {
 
 const rules = [
   'Stop 1 to 3 reps short of failure. Take the last set of small lifts to 0 or 1 left.',
-  'Rest 2 to 3 minutes on big lifts, 60 to 90 seconds on small ones. The timer handles it.',
+  'Rest 2 to 3 minutes on big lifts, 60 to 90 seconds on small ones.',
   'Hit the top of the rep range on every set, and the next session suggests the bump.',
   'Every 6 to 8 weeks, or after two stalled weeks, halve the sets for a week.',
   'Add 2 or 3 easy cardio sessions of 20 to 30 minutes. After lifting or on rest days.',
@@ -163,7 +163,10 @@ function PlanPage() {
     <div>
       <h1 className="font-condensed text-4xl font-semibold leading-none">Plan</h1>
       <p className="mt-2 text-muted-foreground">
-        {split.name}, {plan.days.length} {plan.days.length === 1 ? 'day' : 'days'}
+        {/* A template whose name already says its days ("Push / Pull / Legs, 3 days") is not told twice. */}
+        {/\d+ days$/.test(split.name) && split.days === plan.days.length
+          ? split.name
+          : `${split.name}, ${plan.days.length} ${plan.days.length === 1 ? 'day' : 'days'}`}
         {schedule === 'weekday' ? ' by weekday' : ''}
       </p>
 

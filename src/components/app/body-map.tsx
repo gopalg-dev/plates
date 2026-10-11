@@ -144,16 +144,18 @@ function Figure({ side, figure, done, target, picked, onPick, className }: Figur
                   >
                     {MUSCLE_LABEL[m]}
                   </text>
-                  <text
-                    x={at.lx}
-                    y={at.ly + 60}
-                    textAnchor={at.sideOf === 'left' ? 'start' : 'end'}
-                    fontSize={96}
-                    fill={paint.state === 'due' ? 'var(--destructive)' : 'var(--muted-foreground)'}
-                    style={{ fontVariantNumeric: 'tabular-nums' }}
-                  >
-                    {done[m]} of {target[m]}
-                  </text>
+                  {paint.state !== 'off' && (
+                    <text
+                      x={at.lx}
+                      y={at.ly + 60}
+                      textAnchor={at.sideOf === 'left' ? 'start' : 'end'}
+                      fontSize={96}
+                      fill={paint.state === 'due' ? 'var(--destructive)' : 'var(--muted-foreground)'}
+                      style={{ fontVariantNumeric: 'tabular-nums' }}
+                    >
+                      {done[m]} of {target[m]}
+                    </text>
+                  )}
                 </>
               )}
             </g>

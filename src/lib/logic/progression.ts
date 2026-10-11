@@ -182,7 +182,7 @@ export function suggestNext(
     if (light) {
       return {
         sets,
-        suggested: carry(done, targetSets, (s) => ({ weight: (s.weight ?? 0) + inc, reps: exercise.repMin })),
+        suggested: carry(done, targetSets, () => ({ weight: top + inc, reps: exercise.repMin })),
         hint: `${lastLine} Reps to spare; try ${fmtWeight(top + inc, units)}.`,
       }
     }

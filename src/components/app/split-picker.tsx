@@ -102,6 +102,9 @@ export function SplitPicker({
   onChange,
   ownDays,
   onOwnDaysChange,
+  ownPlan,
+  ownMode = 'build',
+  onOwnModeChange,
   className,
 }: {
   splits: SplitTemplate[]
@@ -110,8 +113,14 @@ export function SplitPicker({
   onChange: (id: SplitId) => void
   ownDays: DayType[]
   onOwnDaysChange: (days: DayType[]) => void
+  /** The plan of your own that already exists, if any: "Your own" then means going back to it. */
+  ownPlan?: { days: number }
+  /** With an existing plan: keep it, or start over from new days. */
+  ownMode?: 'keep' | 'build'
+  onOwnModeChange?: (mode: 'keep' | 'build') => void
   className?: string
 }) {
+  const keeping = ownPlan !== undefined && ownMode === 'keep'
   return (
     <RadioGroup value={value} onValueChange={(v) => onChange(v)} className={cn('gap-3', className)}>
       {splitInfos(splits).map((s) => (
@@ -127,15 +136,33 @@ export function SplitPicker({
             <span className="flex items-baseline justify-between gap-3">
               <span className="font-medium">Your own</span>
               <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
-                {ownDays.length} {ownDays.length === 1 ? 'day' : 'days'}
+                {keeping ? ownPlan.days : ownDays.length}{' '}
+                {(keeping ? ownPlan.days : ownDays.length) === 1 ? 'day' : 'days'}
               </span>
             </span>
             <span className="mt-0.5 block text-sm text-muted-foreground">
-              Pick a kind for each day. Each starts with five lifts to edit.
+              {keeping
+                ? 'Your plan, as you left it.'
+                : 'Pick a kind for each day. Each starts with five lifts to edit.'}
             </span>
           </span>
         </span>
-        {value === OWN_SPLIT && <OwnDaysEditor days={ownDays} onChange={onOwnDaysChange} className="mt-4 pl-7" />}
+        {value === OWN_SPLIT && !keeping && (
+          <OwnDaysEditor days={ownDays} onChange={onOwnDaysChange} className="mt-4 pl-7" />
+        )}
+        {value === OWN_SPLIT && ownPlan && onOwnModeChange && (
+          <span className="mt-3 pl-7">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground"
+              onClick={() => onOwnModeChange(keeping ? 'build' : 'keep')}
+            >
+              {keeping ? 'Start over with new days' : 'Keep the plan I have'}
+            </Button>
+          </span>
+        )}
       </Label>
     </RadioGroup>
   )

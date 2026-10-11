@@ -488,8 +488,17 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
     if (entry) persist(exerciseId, entry.sets, immediate)
   }
 
+  /** Opens the next exercise with something left to do, once this one is finished with. */
+  function advanceFrom(exerciseId: string) {
+    const following = entries.find((e) => e.exerciseId !== exerciseId && e.sets.some((s) => !s.done))
+    setOpenId(following?.exerciseId ?? null)
+  }
+
   function changeSet(exerciseId: string, index: number, patch: Partial<LoggedSet>) {
     updateSets(exerciseId, (sets) => sets.map((s, i) => (i === index ? { ...s, ...patch } : s)))
+    // The reps-left answer on the last set is the last thing to do on a weight exercise.
+    const entry = entries.find((e) => e.exerciseId === exerciseId)
+    if (patch.left !== undefined && entry && entry.sets.every((s) => s.done)) advanceFrom(exerciseId)
   }
 
   function toggleDone(exerciseId: string, index: number) {
@@ -499,10 +508,8 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
     updateSets(exerciseId, (sets) => completeSet(entry, sets, index), true)
     if (!nowDone) return
     const allDone = entry.sets.every((s, i) => i === index || s.done)
-    if (allDone) {
-      const following = entries.find((e) => e.exerciseId !== exerciseId && e.sets.some((s) => !s.done))
-      setOpenId(following?.exerciseId ?? null)
-    }
+    // A weight exercise stays open after its last set so the reps-left question can be answered.
+    if (allDone && entry.loadType !== 'weight') advanceFrom(exerciseId)
   }
 
   function addSet(exerciseId: string) {

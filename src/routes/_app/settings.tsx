@@ -44,6 +44,7 @@ import {
   applySplitFn,
   createCustomPlanFn,
   deleteAccountFn,
+  getPlanSlotsFn,
   getSettingsFn,
   saveSettingsFn,
   setScheduleFn,
@@ -54,7 +55,10 @@ import { errorMessage } from '#/lib/format'
 
 export const Route = createFileRoute('/_app/settings')({
   head: () => ({ meta: [{ title: pageTitle('Settings') }] }),
-  loader: () => getSettingsFn(),
+  loader: async () => {
+    const [settings, slots] = await Promise.all([getSettingsFn(), getPlanSlotsFn()])
+    return { settings, slots }
+  },
   component: SettingsPage,
 })
 
@@ -64,7 +68,9 @@ const ageOptions: { value: TrainingAge; title: string; detail: string }[] = [
 ]
 
 function SettingsPage() {
-  const settings = Route.useLoaderData()
+  const { settings, slots } = Route.useLoaderData()
+  const ownPlan = slots.find((s) => s.split === OWN_SPLIT)
+  const [ownMode, setOwnMode] = useState<'keep' | 'build'>(ownPlan ? 'keep' : 'build')
   const router = useRouter()
   const { user } = Route.useRouteContext()
   const { splits } = useContent()
@@ -78,10 +84,14 @@ function SettingsPage() {
   const schedule: Schedule = settings.schedule ?? 'rolling'
 
   async function switchSplit() {
-    if (!pickedSplit || (pickedSplit === currentSplit && pickedSplit !== OWN_SPLIT)) return
+    const keeping = pickedSplit === OWN_SPLIT && ownPlan !== undefined && ownMode === 'keep'
+    if (!pickedSplit || (pickedSplit === currentSplit && (pickedSplit !== OWN_SPLIT || keeping))) return
     setSwitching(true)
     try {
-      if (pickedSplit === OWN_SPLIT) {
+      if (keeping) {
+        await applySplitFn({ data: { split: OWN_SPLIT } })
+        toast.success('Back on your own plan')
+      } else if (pickedSplit === OWN_SPLIT) {
         await createCustomPlanFn({ data: { types: ownDays } })
         toast.success(`Now on your own plan, ${ownDays.length} days`)
       } else {
@@ -277,6 +287,9 @@ function SettingsPage() {
                   onChange={setPickedSplit}
                   ownDays={ownDays}
                   onOwnDaysChange={setOwnDays}
+                  ownPlan={ownPlan ? { days: ownPlan.days } : undefined}
+                  ownMode={ownMode}
+                  onOwnModeChange={setOwnMode}
                 />
               </div>
               <DialogFooter className="border-t p-4">
@@ -290,11 +303,16 @@ function SettingsPage() {
                 >
                   Keep {split.name}
                 </Button>
-                {pickedSplit !== null && (pickedSplit !== currentSplit || pickedSplit === OWN_SPLIT) && (
-                  <Button onClick={switchSplit} disabled={switching}>
-                    {pickedSplit === OWN_SPLIT ? 'Build my plan' : `Switch to ${splitInfoOf(splits, pickedSplit).name}`}
-                  </Button>
-                )}
+                {pickedSplit !== null &&
+                  (pickedSplit !== currentSplit || (pickedSplit === OWN_SPLIT && !(ownPlan && ownMode === 'keep'))) && (
+                    <Button onClick={switchSplit} disabled={switching}>
+                      {pickedSplit === OWN_SPLIT
+                        ? ownPlan && ownMode === 'keep'
+                          ? 'Back to my plan'
+                          : 'Build my plan'
+                        : `Switch to ${splitInfoOf(splits, pickedSplit).name}`}
+                    </Button>
+                  )}
               </DialogFooter>
             </DialogContent>
           </Dialog>

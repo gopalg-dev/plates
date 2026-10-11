@@ -134,6 +134,7 @@ over any data logged before accounts existed.
 | `bun run typecheck` | TypeScript |
 | `bun run test` | Unit tests plus repository tests against the local Mongo in a `_test` database |
 | `bun run test:e2e` | Playwright flows on phone, tablet and desktop sizes, screenshots in `e2e/screenshots` |
+| `bun run test:explore` | a longer walkthrough as a user, time-travelling through the database; screenshots in `e2e/screenshots/explore` |
 | `bun run generate-routes` | Regenerate `src/routeTree.gen.ts` after adding a route file |
 
 The repository tests skip themselves when no MongoDB is reachable. The end-to-end run starts its own

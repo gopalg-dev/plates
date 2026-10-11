@@ -239,6 +239,32 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+48. Walkthrough as a user (user: "run through the platform like a real user on all different
+    viewports exploring every single feature… validating the logics which are linked with
+    multiple places… again and again until you find no bugs"). `e2e/explore.spec.ts`, run by
+    `bun run test:explore` (its own `playwright.explore.config.ts`; the regular suite ignores it):
+    signs up, builds a three-day plan of your own, logs a session with the logger's rules, checks
+    Stats against the logged numbers (hard sets, kilos, the map's labels, the Lifts table), moves
+    the session back a week through the database (and backdates the join, since days before
+    joining are out of reach on the calendar), checks the targets under two methods, switches
+    splits and comes back, plants weigh-ins and old sessions for the Today alerts, edits a set from
+    the calendar, flips units, training age and schedule, walks the library tags and detail, and
+    screenshots every look; thirty steps across phone, tablet and desktop. Found and fixed:
+    (a) marking the last set of a weight exercise done jumped to the next exercise at once, so the
+    reps-left question could never be answered: a weight exercise now stays open until the
+    reps-left tap, which then moves on (bodyweight and timed work still move at the last set);
+    (b) a plan of your own could be left for a template but never found again, since "Your own"
+    always built a fresh one: Settings now loads the plan slots (`getPlanSlotsFn`, `planSlots`),
+    the picker shows "Your plan, as you left it" with "Start over with new days" behind a button
+    (`ownPlan`, `ownMode`), the button reads "Back to my plan" and `applySplit('custom')` returns
+    the kept plan (throws when none); (c) with reps to spare the hint said "try 65 kg" while the
+    targets put each set a step above its own last weight: every set now targets the top weight
+    plus a step; (d) the Plan intro read "Push / Pull / Legs, 3 days, 3 days" for templates whose
+    name carries the day count; (e) the Rules list still mentioned the removed rest timer; (f) a
+    muscle the plan does not ask for no longer shows "0 of 0" on the map. Not bugs: the calendar
+    disables days before the join date; "Failed to fetch" in the dev console during the
+    walkthrough comes from full-page navigations aborting a loader fetch, which link navigation
+    never does.
 47. Feedback with little friction (user: "how do we collect feedback… generally feedback forms
     will ask for a lot of information so mostly users will skip them… decide where to provide the
     feedback form"). Decision: one place plus one moment, never page by page. The account menu has

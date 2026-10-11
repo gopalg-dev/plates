@@ -5,6 +5,8 @@ export const E2E_DB = 'workout_plan_v3_e2e'
 
 export default defineConfig({
   testDir: './e2e',
+  // The exploration walkthrough is run by hand: `bun run test:explore`.
+  testIgnore: /explore.spec.ts/,
   // The stats flow alone has sixty-odd steps across a calendar, a chart and two dialogs.
   timeout: 150_000,
   expect: { timeout: 10_000 },

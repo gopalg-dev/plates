@@ -602,6 +602,12 @@ test('settings change units, and start fresh wipes the data', async () => {
     await page.getByRole('menuitem', { name: 'Look' }).click()
     await page.getByRole('menuitemradio', { name }).click()
     await page.keyboard.press('Escape')
+    // On phones the sidebar sheet sits behind the menu; one Escape may close only the menu.
+    if ((page.viewportSize()?.width ?? 0) < 768) {
+      const sheet = page.getByRole('dialog', { name: 'Sidebar' })
+      await sheet.waitFor({ state: 'hidden', timeout: 2000 }).catch(() => page.keyboard.press('Escape'))
+      await sheet.waitFor({ state: 'hidden' })
+    }
   }
   await pickLook('Chalk')
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'chalk')
@@ -631,6 +637,9 @@ test('settings change units, and start fresh wipes the data', async () => {
   // A plan of your own: pick the kind of each day, add one, build.
   await page.getByRole('button', { name: 'Change split, on Upper / Lower' }).click()
   await page.getByRole('radio', { name: /^Your own/ }).click()
+  // The upload earlier left a plan of your own, so "Your own" offers it back first; start over instead.
+  await expect(page.getByText('Your plan, as you left it.')).toBeVisible()
+  await page.getByRole('button', { name: 'Start over with new days' }).click()
   await page.getByRole('button', { name: 'Add a day' }).click()
   await page.getByRole('combobox', { name: 'Day 5 type' }).click()
   await page.getByRole('option', { name: 'Arms' }).click()

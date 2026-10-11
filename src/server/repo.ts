@@ -195,11 +195,25 @@ export async function resetPlan(userId: string): Promise<Plan> {
  * or fresh from the template the first time. The plan being left stays for when they come back.
  */
 export async function applySplit(userId: string, split: SplitId): Promise<Plan> {
+  if (split === 'custom') {
+    // The plan of your own has no template: it can only be returned to, never started from here.
+    const own = await findPlan(userId, 'custom')
+    if (!own) throw new Error('No plan of your own yet')
+    await saveSettings(userId, { split })
+    return toPlan(own)
+  }
   // Read the template first: an unknown id throws before anything is written.
   const template = await splitTemplate(split)
   await saveSettings(userId, { split })
   const existing = await findPlan(userId, split)
   return existing ? toPlan(existing) : savePlanFor(userId, split, template)
+}
+
+/** Every split the user has a plan for, with its day count. */
+export async function planSlots(userId: string): Promise<{ split: PlanSource; days: number }[]> {
+  const { plans } = await cols()
+  const docs = await plans.find({ userId }, { projection: { split: 1, days: 1 } }).toArray()
+  return docs.map((d) => ({ split: d.split, days: d.days.length }))
 }
 
 /** Rolling or by weekday. Going by weekday gives every day without one a sensible weekday. */

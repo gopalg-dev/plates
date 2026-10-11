@@ -185,9 +185,20 @@ suite('plan', () => {
   })
 
   it('builds a plan of your own in the custom slot', async () => {
+    await expect(repo.applySplit(U, 'custom')).rejects.toThrow(/No plan of your own/)
     const plan = await repo.createCustomPlan(U, ['upper', 'lower', 'upper', 'lower'])
     expect(plan.days.map((d) => d.name)).toEqual(['Upper A', 'Lower A', 'Upper B', 'Lower B'])
     expect((await repo.getSettings(U)).split).toBe('custom')
+    expect(await repo.planSlots(U)).toEqual([{ split: 'custom', days: 4 }])
+    // Away to a template and back by name, with the plan as it was.
+    await repo.applySplit(U, 'ul4')
+    expect((await repo.applySplit(U, 'custom')).days.map((d) => d.name)).toEqual([
+      'Upper A',
+      'Lower A',
+      'Upper B',
+      'Lower B',
+    ])
+    expect((await repo.planSlots(U)).map((s) => s.split).sort()).toEqual(['custom', 'ul4'])
     // A template keeps its own plan beside it.
     expect((await repo.applySplit(U, 'ppl6')).days).toHaveLength(6)
     await repo.saveSettings(U, { split: 'custom' })

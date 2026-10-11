@@ -52,6 +52,11 @@ export const getSettingsFn = createServerFn({ method: 'GET' })
   .middleware([authed])
   .handler(({ context }) => repo.getSettings(context.userId))
 
+/** The splits this account has a plan for. Settings uses it to offer the plan of your own back. */
+export const getPlanSlotsFn = createServerFn({ method: 'GET' })
+  .middleware([authed])
+  .handler(({ context }) => repo.planSlots(context.userId))
+
 export const saveSettingsFn = createServerFn({ method: 'POST' })
   .middleware([authed])
   .validator(
