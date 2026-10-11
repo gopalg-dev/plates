@@ -92,6 +92,15 @@ export interface Settings {
   feedbackAt?: string
   /** Keep the screen on during a session. Unset reads as on. */
   keepAwake?: boolean
+  /** Reminders waved away on Today: when, and how many times in a row since the thing was last logged. */
+  nudges?: Partial<Record<NudgeKind, NudgeSnooze>>
+}
+
+/** The two reminders on Today: the scale and the tape. */
+export type NudgeKind = 'weight' | 'measure'
+export interface NudgeSnooze {
+  at: string
+  times: number
 }
 
 export interface LoggedSet {

@@ -239,18 +239,40 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+54. "Not now" on the reminders (user: "option to close this suggestion for weight and the
+    measurement as well. show it again in some other time, maybe after a day or next week, do
+    some research on this before implementation"). Research: a field study of snoozing on phones
+    (Weber et al. 2018, "Snooze!") found health and fitness prompts are deferred far less than
+    messages or social alerts, and deferrals cluster at short waits or "tomorrow"; habit-app
+    studies find reminders raise adherence but frequent ones fatigue and people come to lean on
+    them, so a prompt should return rather than vanish; reminder-app guidance keeps nagging for
+    high stakes (medication) only. No convention in the gym apps to copy (MacroFactor's weigh-in
+    reminder is a feature request; Hevy and Strong have none). Built: an X, "Not now", on the
+    Today card. `Settings.nudges[kind] = { at, times }`; `dismissNudgeFn` → `repo.dismissNudge`,
+    which counts `times` up when the previous wave-away is newer than the last log of that
+    thing, else starts at 1. `snoozeDays(kind, times)` is a quarter of the cadence, doubling,
+    capped at the cadence: the scale 1, 2, 4, 7 days; the tape 7, 14, 28. `nudgeFor` takes the
+    snoozes, ignores one older than the last log, and lets the next due reminder show when the
+    first is quiet (still one at a time). Today hides the card at once and reloads the data.
 53. The library's view from any row (user: "what if i want to know more about the exercise",
-    "without leaving the current page"). `ExerciseThumb` is a button, "About <name>", when the
-    name is in the library; it opens `LibraryDetail` (the still, the cues, what it works) as the
-    drawer or dialog the Library tab uses, over the page the row is on: Plan rows, the day preview
-    on Today, the rows of a session, and the session editor on Stats. A name the library does
-    not know keeps the grey tile and no tap. The session row moved the still out of the
-    accordion trigger (a button cannot hold a button) into a two-column grid beside it. The panel
-    is portaled, but React events bubble through portals, so the thumb wraps it in a
-    `display: contents` span that stops clicks, or a tap inside the view would count as a tap on
-    the Plan row beneath and open the editor. e2e locators that matched a row's button by the
-    exercise name alone now anchor at the start (`/^Barbell Row/`) or name the Edit button, since
-    "About Barbell Row" matches too.
+    "without leaving the current page", then "refactor it to the url param approach"). The app
+    layout (`src/routes/_app.tsx`) validates `?exercise=<library id>` and renders one
+    `ExerciseDialog` (`src/components/app/exercise-dialog.tsx`) under the outlet: it reads the
+    param with `useSearch({ strict: false })`, finds the entry in the loaded content and shows
+    `LibraryDetail` (the still, the cues, what it works) as the drawer or dialog the Library tab
+    uses, over whatever screen is open. `ExerciseThumb` is a `Link` to the current page with the
+    param added (`to: '.'`, `search: (prev) => ({ ...prev, exercise })`), labelled "About <name>",
+    wherever the name is in the library: Plan rows, the day preview on Today, the rows of a
+    session, the session editor on Stats. A name the library does not know keeps the grey tile.
+    The user's reasoning, which holds: one dialog in the layout instead of one per row, nothing
+    to stop events through portals, a reload or a shared link reopens it, and the browser's back
+    closes it. History: the link pushes with `state: { fromRow: true }`, so closing calls
+    `history.back()` and the stack is left as it was; opened by a typed URL or a reload there is
+    no such entry, so closing replaces the URL without the param. The session row keeps the still
+    outside the accordion trigger (a button cannot hold a link). The Library tab and the plan
+    editor's picker keep their own views, which carry Previous, Next and "Use this". e2e locators
+    that matched a row's button by the exercise name alone are anchored at the start, since the
+    first version made the still a button that matched too; harmless now, kept.
 52. Sets on the Plan row against the editor (user: "under plan you can see 3x but under edit it
     shows 4"). The row shows `plannedSetsFor`, which under a year caps each exercise at 3 a
     session, while the editor shows the stored number. The editor's Sets field now says "Capped

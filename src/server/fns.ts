@@ -101,6 +101,11 @@ export const sendFeedbackFn = createServerFn({ method: 'POST' })
     }
   })
 
+export const dismissNudgeFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(z.object({ kind: z.enum(['weight', 'measure']) }))
+  .handler(({ data, context }) => repo.dismissNudge(context.userId, data.kind))
+
 export const dismissFeedbackFn = createServerFn({ method: 'POST' })
   .middleware([authed])
   .handler(({ context }) => repo.dismissFeedback(context.userId))

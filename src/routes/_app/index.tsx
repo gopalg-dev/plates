@@ -54,6 +54,7 @@ import {
 } from '#/components/ui/item'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { errorMessage, timeOfDay } from '#/lib/format'
+import type { NudgeKind } from '#/lib/types'
 import { EFFORTS, EFFORT_LABEL, type Effort } from '#/lib/logic/effort'
 import { nudgeFor } from '#/lib/logic/nudges'
 import { WEEKDAY_LONG, WEEKDAY_SHORT, weekdayView } from '#/lib/logic/schedule'
@@ -81,6 +82,7 @@ import {
   getTodayFn,
   saveSetsFn,
   startWorkoutFn,
+  dismissNudgeFn,
 } from '#/server/fns'
 import { pageTitle } from '#/lib/page-title'
 
@@ -228,7 +230,19 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
   const [starting, setStarting] = useState<string | null>(null)
   const [pickerOpen, setPickerOpen] = useState(false)
   const now = new Date()
-  const nudge = nudgeFor(data.lastBodyweightAt, data.lastMeasurementAt, now)
+  const nudge = nudgeFor(data.lastBodyweightAt, data.lastMeasurementAt, now, settings.nudges)
+  // "Not now" hides the reminder at once; the server remembers it, and the next reload shows the next one, if any.
+  const [waved, setWaved] = useState<NudgeKind | null>(null)
+  const wave = async (kind: NudgeKind) => {
+    setWaved(kind)
+    try {
+      await dismissNudgeFn({ data: { kind } })
+      onChanged()
+    } catch (err) {
+      setWaved(null)
+      toast.error(errorMessage(err, 'Could not save that.'))
+    }
+  }
 
   // Rolling: the next day in order. By weekday: the day on today's weekday, unless it is done already.
   const byWeekday = settings.schedule === 'weekday'
@@ -308,7 +322,7 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
         </ul>
       )}
 
-      {nudge && (
+      {nudge && nudge.kind !== waved && (
         <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border px-3 py-2.5">
           {nudge.kind === 'weight' ? (
             <Scale className="size-5 shrink-0 text-muted-foreground" aria-hidden />
@@ -319,12 +333,15 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
             <span className="font-medium">{nudge.title}</span>{' '}
             <span className="text-muted-foreground">{nudge.detail}</span>
           </p>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-1">
             {nudge.kind === 'weight' ? (
               <LogBodyweightDialog units={settings.units} onLogged={onChanged} />
             ) : (
               <LogMeasurementsDialog lengthUnit={settings.units === 'kg' ? 'cm' : 'in'} onLogged={onChanged} />
             )}
+            <Button variant="ghost" size="icon-sm" aria-label="Not now" onClick={() => void wave(nudge.kind)}>
+              <X aria-hidden />
+            </Button>
           </div>
         </div>
       )}

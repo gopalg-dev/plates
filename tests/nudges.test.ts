@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { daysBetween, nudgeFor } from '#/lib/logic/nudges'
+import { daysBetween, nudgeFor, snoozeDays } from '#/lib/logic/nudges'
 
 const now = new Date(2026, 9, 10, 18, 0, 0)
 
@@ -30,6 +30,26 @@ describe('nudgeFor', () => {
   it('asks for a tape after 28 days', () => {
     expect(nudgeFor(daysAgo(1), daysAgo(28), now)?.kind).toBe('measure')
     expect(nudgeFor(daysAgo(1), daysAgo(27), now)).toBeNull()
+  })
+
+  it('stays quiet after "Not now", and the next reminder shows instead', () => {
+    const today = { weight: { at: daysAgo(0), times: 1 } }
+    expect(nudgeFor(null, null, now, today)?.kind).toBe('measure')
+    expect(nudgeFor(daysAgo(10), daysAgo(1), now, today)).toBeNull()
+    // The first wait is a day: yesterday's wave-away is over, a second one is not.
+    expect(nudgeFor(daysAgo(10), daysAgo(1), now, { weight: { at: daysAgo(1), times: 1 } })?.kind).toBe('weight')
+    expect(nudgeFor(daysAgo(10), daysAgo(1), now, { weight: { at: daysAgo(1), times: 2 } })).toBeNull()
+    expect(nudgeFor(daysAgo(1), null, now, { measure: { at: daysAgo(6), times: 1 } })).toBeNull()
+    expect(nudgeFor(daysAgo(1), null, now, { measure: { at: daysAgo(7), times: 1 } })?.kind).toBe('measure')
+  })
+
+  it('forgets a wave-away older than the last log', () => {
+    expect(nudgeFor(daysAgo(7), daysAgo(1), now, { weight: { at: daysAgo(8), times: 3 } })?.kind).toBe('weight')
+  })
+
+  it('waits longer each time, up to the cadence', () => {
+    expect([1, 2, 3, 4, 9].map((n) => snoozeDays('weight', n))).toEqual([1, 2, 4, 7, 7])
+    expect([1, 2, 3, 4].map((n) => snoozeDays('measure', n))).toEqual([7, 14, 28, 28])
   })
 
   it('counts whole days', () => {

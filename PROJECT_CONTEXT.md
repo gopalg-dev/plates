@@ -308,8 +308,10 @@ no Inter/Geist. Checked.
 - [x] 29. Content in the database: the split templates and the exercise library in `splits` and
       `library`, seeded from the bundled copies when empty or by `bun run db:seed`, read once per
       visit through the shell route. Editable without a deploy. HANDOVER.md item 35.
+- [x] 39. "Not now" on Today's weigh-in and tape reminders: quiet for a day or a week, longer each
+      time, never gone for good. HANDOVER.md item 54.
 - [x] 38. The library's view of an exercise from its still on Plan, Today, a session and the session
-      editor, in place. HANDOVER.md item 53.
+      editor, in place: one dialog in the app layout, opened by ?exercise= in the URL. HANDOVER.md item 53.
 - [x] 37. Feedback: three faces and an optional line, from the account menu any time and at the foot of
       the finish summary after five sessions, then monthly. HANDOVER.md item 47.
 - [x] 36. Body map on the Sessions tab: front and back figures coloured by the week's hard sets against the

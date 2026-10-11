@@ -14,6 +14,7 @@ import { splitTemplate } from './content'
 import {
   MAX_DAYS,
   MAX_EXERCISES_PER_DAY,
+  type NudgeKind,
   type BodyweightLog,
   type DayType,
   type Exercise,
@@ -686,6 +687,23 @@ export async function addFeedback(userId: string, input: FeedbackInput): Promise
   const at = new Date().toISOString()
   await db.collection('feedback').insertOne({ userId, at, ...input })
   await saveSettings(userId, { feedbackAt: at })
+}
+
+/**
+ * A reminder on Today was waved away: quiet for a while, longer each time it is waved away again
+ * before the thing is logged (`snoozeDays` in `lib/logic/nudges.ts`). A log in between starts the count over.
+ */
+export async function dismissNudge(userId: string, kind: NudgeKind): Promise<void> {
+  const { measurements } = await cols()
+  const [settings, bodyweights, lastMeasure] = await Promise.all([
+    getSettings(userId),
+    listBodyweights(userId, 1),
+    measurements.findOne({ userId }, { sort: { date: -1 } }),
+  ])
+  const lastLog = kind === 'weight' ? (bodyweights.at(-1)?.date ?? null) : (lastMeasure?.date ?? null)
+  const prev = settings.nudges?.[kind]
+  const times = prev && (!lastLog || prev.at > lastLog) ? prev.times + 1 : 1
+  await saveSettings(userId, { nudges: { ...settings.nudges, [kind]: { at: new Date().toISOString(), times } } })
 }
 
 /** The prompt was waved away: ask again in a month, not tomorrow. */
