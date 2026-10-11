@@ -239,6 +239,14 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+51. Walkthrough, fourth pass: a past week on the Stats calendar points every number at that week
+    (the week section, the kilos, the map's labels, and "Back to this week"), and a template's
+    "Reset to the original plan" restores the template while the plan of your own keeps its swapped
+    alternate and its five-set bench. 19 steps per viewport, 57 in all. This pass found nothing in
+    the app; every failure on the way was the script's own arithmetic (the planted copy sits in
+    the same past week, the bench had five sets by then) or a heading matched twice ("This week"
+    is also in "Hard sets this week": match exact). Two of four passes found bugs, two found none,
+    which is where the round stops.
 50. Walkthrough, third pass (user: "we planned for recursive test runs"). Seven more steps in
     `e2e/explore.spec.ts`: the linear method's targets, Zen mode across a reload, the feedback
     prompt on the fifth session (and not on the sixth), the weekday schedule putting a day on

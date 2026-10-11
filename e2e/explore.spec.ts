@@ -422,6 +422,7 @@ test('weight every session: a completed session earns a step on every set', asyn
   await expect(page.getByRole('dialog', { name: 'Zen mode' })).toBeVisible()
   await snap('16-zen')
   await page.getByRole('dialog', { name: 'Zen mode' }).getByRole('button', { name: 'Exit zen' }).click()
+  await expect(page.getByRole('dialog', { name: 'Zen mode' })).not.toBeVisible()
   await expect(page.getByText('1 of 17 sets done')).toBeVisible()
   await page.getByRole('button', { name: 'Session options' }).click()
   await page.getByRole('menuitem', { name: 'Discard workout' }).click()
@@ -561,6 +562,59 @@ test('an empty search says so, and the export holds every logged set', async () 
     )
   })
   expect(rows).toBe(expected)
+})
+
+// ================================================================ pass four: weeks and resets
+
+test('picking a past week points every number at that week', async () => {
+  await open('/stats?tab=sessions')
+  // Oct 2 has no session; its week (Sep 28 to Oct 4) holds the first session, moved back a week.
+  await page.getByRole('button', { name: 'Oct 2, no session' }).click()
+  await expect(page.getByRole('heading', { name: 'Week of Sep 28', exact: true })).toBeVisible()
+  // That week holds the first session and one of the planted copies: twice the seven chest sets.
+  await expect(page.getByText('14 hard sets')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Chest: 14 of 8 sets' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Back: 0 of \d+ sets$/ })).toBeVisible()
+  await snap('20-past-week')
+  await page.getByRole('button', { name: 'Back to this week' }).click()
+  await expect(page.getByRole('heading', { name: 'This week', exact: true })).toBeVisible()
+  await expect(page.getByText('3 hard sets')).toBeVisible()
+})
+
+test('a template resets to its original, and the plan of your own is untouched by it', async () => {
+  await open('/settings')
+  await page.getByRole('button', { name: /^Change split, on Custom plan/ }).click()
+  await page.getByRole('radio', { name: /^Push \/ Pull \/ Legs, 3 days/ }).click()
+  await page.getByRole('button', { name: 'Switch to Push / Pull / Legs, 3 days' }).click()
+  await expect(page.getByText('Now on Push / Pull / Legs, 3 days')).toBeVisible()
+  await open('/plan')
+  await page
+    .getByRole('button', { name: /^Pull A/ })
+    .first()
+    .click()
+  await page.getByRole('button', { name: 'Edit Pull-ups' }).click()
+  await page.getByLabel('Sets', { exact: true }).fill('9')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByText('9 × 6-12')).toBeVisible()
+  await page.getByRole('button', { name: 'Reset to the original plan' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: /Reset/ }).click()
+  await expect(page.getByText('Plan reset')).toBeVisible()
+  await page
+    .getByRole('button', { name: /^Pull A/ })
+    .first()
+    .click()
+  await expect(page.getByText('4 × 6-12')).toBeVisible()
+  await snap('21-reset')
+  // Back to the plan of your own: the swapped alternate and the five-set bench are still there.
+  await open('/settings')
+  await page.getByRole('button', { name: /^Change split, on Push \/ Pull \/ Legs, 3 days/ }).click()
+  await page.getByRole('radio', { name: /^Your own/ }).click()
+  await page.getByRole('button', { name: 'Back to my plan' }).click()
+  await expect(page.getByText('Back on your own plan')).toBeVisible()
+  await open('/plan')
+  await expect(page.getByRole('button', { name: 'Reset to the original plan' })).toHaveCount(0)
+  await page.getByRole('button', { name: /^Pull/ }).first().click()
+  await expect(page.getByRole('button', { name: 'Edit Lat Pulldown' })).toBeVisible()
 })
 
 test('every look keeps the day colours and readable text', async () => {
