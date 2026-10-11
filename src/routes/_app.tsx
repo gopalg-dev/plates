@@ -41,12 +41,16 @@ import {
   useSidebar,
 } from '#/components/ui/sidebar'
 import { AppMark } from '#/components/app/app-mark'
+import { ExerciseDialog } from '#/components/app/exercise-dialog'
 import { FeedbackDialog } from '#/components/app/feedback-form'
 import { THEME_OPTIONS, readTheme, saveTheme, type Theme } from '#/lib/theme'
 import { useSignOut } from '#/lib/use-sign-out'
 import { getContentFn, getShellFn } from '#/server/fns'
 
 export const Route = createFileRoute('/_app')({
+  // ?exercise=<library id> opens the library's view of that exercise over any screen; see ExerciseDialog.
+  validateSearch: (search: Record<string, unknown>): { exercise?: string } =>
+    typeof search.exercise === 'string' && search.exercise ? { exercise: search.exercise } : {},
   // Signed out: sign in first. Signed in but not set up: three questions first.
   beforeLoad: async ({ location }) => {
     const shell = await getShellFn()
@@ -135,6 +139,7 @@ function AppLayout() {
         <main className="mx-auto w-full max-w-2xl px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-16">
           <Outlet />
         </main>
+        <ExerciseDialog />
       </SidebarInset>
 
       <nav

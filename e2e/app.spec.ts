@@ -100,6 +100,13 @@ test('first run: create an account, then setup one question at a time', async ()
   await expect(page.getByText('Tape day.')).toBeVisible()
   await expect(page.getByText('Weigh-in due.')).not.toBeVisible()
   await snap(page, '04-today-next-up')
+  // "Not now" keeps the tape reminder quiet for a week, across reloads; the fresh weigh-in asks for nothing.
+  await page.getByRole('button', { name: 'Not now' }).click()
+  await expect(page.getByText('Tape day.')).toHaveCount(0)
+  await open(page, '/')
+  await expect(page.getByRole('heading', { name: 'Pull A' })).toBeVisible()
+  await expect(page.getByText('Tape day.')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Not now' })).toHaveCount(0)
 })
 
 test('logs a workout with the set logger', async () => {
@@ -117,11 +124,19 @@ test('logs a workout with the set logger', async () => {
   await expect(page.getByText('1/4')).toBeVisible()
   await snap(page, '05-today-logging')
 
-  // The still opens the library's view of the exercise in place.
-  await page.getByRole('button', { name: 'About Barbell Row' }).click()
+  // The still opens the library's view of the exercise in place, through ?exercise= in the URL.
+  await page.getByRole('link', { name: 'About Barbell Row' }).click()
+  await expect(page).toHaveURL(/exercise=barbell-row/)
   await expect(page.getByRole('dialog', { name: 'Barbell Row' })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('dialog', { name: 'Barbell Row' })).toHaveCount(0)
+  await expect(page).not.toHaveURL(/exercise=/)
+  // The same URL typed in (or reloaded) opens it too, and closing it then drops the param in place.
+  await open(page, '/?exercise=barbell-row')
+  await expect(page.getByRole('dialog', { name: 'Barbell Row' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog', { name: 'Barbell Row' })).toHaveCount(0)
+  await expect(page).not.toHaveURL(/exercise=/)
 
   // Barbell Row: weight and reps, two sets.
   await page.getByRole('button', { name: /^Barbell Row/ }).click()
