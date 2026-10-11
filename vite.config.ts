@@ -14,6 +14,14 @@ export default defineConfig(({ mode }) => {
   return {
     resolve: { tsconfigPaths: true },
     // Nitro builds the server side for the host (Vercel picks its preset on its own builds); it sits between Start and React.
-    plugins: [devtools(), tailwindcss(), tanstackStart(), nitro(), viteReact()],
+    // The function runs in Mumbai, next to the Atlas cluster: every page is a handful of queries in a row, and from
+    // Vercel's default region each one crossed the planet (about two seconds a page; see HANDOVER.md item 55).
+    plugins: [
+      devtools(),
+      tailwindcss(),
+      tanstackStart(),
+      nitro({ vercel: { functions: { regions: ['bom1'] } } }),
+      viteReact(),
+    ],
   }
 })

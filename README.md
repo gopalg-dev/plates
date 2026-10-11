@@ -96,7 +96,8 @@ default build settings, and set these environment variables for Production:
 | `FEEDBACK_TO` | optional: an address that gets a copy of every piece of feedback sent from the app |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | only for Google sign-in, with `BETTER_AUTH_URL` + `/api/auth/callback/google` as a redirect URI |
 
-Node 24 or later. A change to a variable needs a redeploy. `bun run build` runs the same build
+The function region is set in `vite.config.ts` (`regions: ['bom1']`, Mumbai): put it where the database is, or
+every page pays a long round trip per query. Node 24 or later. A change to a variable needs a redeploy. `bun run build` runs the same build
 locally and `bun run preview` serves it.
 
 ## Accounts
