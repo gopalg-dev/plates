@@ -239,6 +239,19 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+34. Seeding and Vercel. `bun run db:seed` (`scripts/seed.ts`, bun) makes `seed@example.com`
+    (Better Auth's own document shapes: `user` with ObjectId `_id`, `account` with the password
+    through `hashPassword` from `better-auth/crypto`, `emailVerified: true`) and eight weeks of
+    sessions on a split, weigh-ins every three days drifting down, tape every four weeks;
+    deterministic. It only fills an empty database (user request: "a fresh db seed, not moving
+    all data"): any document in `user`, `settings`, `plan`, `workouts`, `bodyweights` or
+    `measurements` makes it stop without writing. It refuses a non-local `MONGODB_URI` without
+    `--yes`; it prints the host, never the connection string (the `.env` URI carries the
+    Atlas password). For Vercel: `nitro` is installed and `nitro()` sits between `tanstackStart()`
+    and `viteReact()` in `vite.config.ts`; `bun run build` passes locally; Vercel detects the
+    framework. The mail mark no longer reads `public/icon-192.png` from disk (no disk on
+    serverless): `src/server/app-mark.ts` holds it as base64, written by the render-icon script.
+    README has the environment variable table.
 33. The app is called **Plates** (user's pick, 2026-10-11; it was "Workout plan"). Renamed in the
     wordmark, tab titles, sign-in frame, mail subjects and sender name, the template file name
     (`plates-template-<id>.xlsx`), the export file name and the README. The package name and the

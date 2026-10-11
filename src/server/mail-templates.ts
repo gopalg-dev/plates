@@ -1,23 +1,15 @@
 // Server-only: the emails the app sends, in the app's own look.
 
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { APP_MARK_PNG } from './app-mark'
 import type { InlineImage } from './mail'
 
 /**
- * The mark, embedded in every mail: the favicon rendered to PNG (`public/icon-192.png`). Embedded
- * rather than linked, so it shows wherever the app runs, localhost included, and mail clients do
- * not take SVG. Read once.
+ * The mark, embedded in every mail: the favicon rendered to PNG and carried as base64 in the code,
+ * so it shows wherever the app runs (mail clients do not take SVG) and needs no file on disk, which
+ * a serverless host does not provide.
  */
-let mark: InlineImage | undefined
 function appMark(): InlineImage {
-  mark ??= {
-    cid: 'app-mark',
-    filename: 'plates.png',
-    contentType: 'image/png',
-    content: readFileSync(join(process.cwd(), 'public', 'icon-192.png')).toString('base64'),
-  }
-  return mark
+  return { cid: 'app-mark', filename: 'plates.png', contentType: 'image/png', content: APP_MARK_PNG }
 }
 
 function escapeHtml(s: string): string {

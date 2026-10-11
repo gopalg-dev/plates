@@ -32,7 +32,7 @@ function LoginPage() {
   return (
     <AuthFrame
       title="Sign in"
-      intro="Your log follows you to any device."
+      intro="A gym logbook for the time between sets."
       footer={
         <>
           New here?{' '}

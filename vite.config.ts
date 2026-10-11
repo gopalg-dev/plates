@@ -3,6 +3,7 @@ import { devtools } from '@tanstack/devtools-vite'
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { nitro } from 'nitro/vite'
 
 export default defineConfig(({ mode }) => {
   // Make .env values (MONGODB_URI, MONGODB_DB) visible to server code.
@@ -12,6 +13,7 @@ export default defineConfig(({ mode }) => {
   }
   return {
     resolve: { tsconfigPaths: true },
-    plugins: [devtools(), tailwindcss(), tanstackStart(), viteReact()],
+    // Nitro builds the server side for the host (Vercel picks its preset on its own builds); it sits between Start and React.
+    plugins: [devtools(), tailwindcss(), tanstackStart(), nitro(), viteReact()],
   }
 })

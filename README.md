@@ -1,8 +1,10 @@
 # Plates
 
-A personal gym logbook, built for a phone between sets: see the next session, log a set in two
-taps, and read stats that come only from what you logged. Sign in from any device and your log
-follows you. The name is the mark: three plates in the push, pull and legs colours.
+A gym logbook for the time between sets.
+
+See the next session, log a set in two taps, and read stats that come only from what you logged.
+Sign in from any device and your log follows you. The name is the mark: three plates in the push,
+pull and legs colours.
 
 Four screens, one job each:
 
@@ -50,6 +52,34 @@ bun run dev          # http://localhost:3000
 Stop the database with `bun run db:down`. Data stays in the `workout-mongo-data` volume.
 
 To use a hosted MongoDB instead, set `MONGODB_URI` and `MONGODB_DB` in `.env`.
+
+To see the app with a lived-in log, seed a local database with an account and eight weeks of
+sessions, weigh-ins and tape entries (`seed@example.com` / `password123`):
+
+```sh
+bun run db:seed                                   # defaults
+bun run db:seed -- --weeks 12 --split ul4         # longer, on another split
+```
+
+It only fills an empty database: with any account or log already there it stops and changes nothing,
+and it refuses a database that is not on localhost.
+
+## Deploy to Vercel
+
+The server side builds through Nitro (`nitro()` in `vite.config.ts`), which Vercel detects on its
+own: import the repository at vercel.com/new, keep the detected TanStack Start preset and the
+default build settings, and set these environment variables for Production:
+
+| Variable | Value |
+|---|---|
+| `MONGODB_URI`, `MONGODB_DB` | a hosted MongoDB, for example an Atlas cluster, with the app's database name |
+| `BETTER_AUTH_SECRET` | a random string of 32+ characters, different from the one in `.env` |
+| `BETTER_AUTH_URL` | the site's address, `https://<project>.vercel.app` or your domain, no trailing slash |
+| `RESEND_API_KEY`, `MAIL_FROM` | the Resend key and a sender on a domain verified at Resend |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | only for Google sign-in, with `BETTER_AUTH_URL` + `/api/auth/callback/google` as a redirect URI |
+
+Node 24 or later. A change to a variable needs a redeploy. `bun run build` runs the same build
+locally and `bun run preview` serves it.
 
 ## Accounts
 
