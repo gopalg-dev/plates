@@ -239,6 +239,20 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+55. The Vercel function sits in Mumbai (user: "the site feels slow, i deployed in free vercel").
+    Measured on the live site through the user's own browser session: the HTML's first byte in 50
+    ms, but a full server render of Today in about 2 s, Plan 1.7 s, Library 1.2 s, and a tab
+    switch two server-function calls in a row of 850 ms and 1,000 ms. The response header
+    `x-vercel-id: bom1::iad1::…` gave the cause: the edge was Mumbai but the function ran in
+    Washington, Vercel's default, while the Atlas M0 cluster is in AWS ap-south-1 (Mumbai), so
+    every query in a page's chain of queries crossed the planet at about 250 ms. The fix is
+    `nitro({ vercel: { functions: { regions: ['bom1'] } } })` in `vite.config.ts`, which Nitro
+    writes into the function's `.vc-config.json`; the Hobby plan allows one region. A single
+    database-backed call from India measured 200 ms warm and 900 ms on a cold start, so the
+    platform itself was never the slow part, and no free host would have fixed a cross-planet
+    database. Still open after this: each page is several server calls in sequence (the layout's
+    session check, then the content, then the page loader), and the exercise stills are the 73 KB
+    originals from GitHub; both are the next things to trim if it still feels slow.
 54. "Not now" on the reminders (user: "option to close this suggestion for weight and the
     measurement as well. show it again in some other time, maybe after a day or next week, do
     some research on this before implementation"). Research: a field study of snoozing on phones
