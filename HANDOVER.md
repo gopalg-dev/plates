@@ -239,6 +239,20 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+35. Content in the database (user: "this is the purpose of seeding"). Collections `splits` (one
+    per template, `_id` the split id, `days` the PlanDay list, `order`, `fit`) and `library` (one
+    per exercise, `_id` the exercise id). `src/server/content.ts`: `seedContent(db, {reset})`
+    inserts what is missing from the bundle (`BUNDLED_SPLITS` in `splits.ts`, `LIBRARY`), never
+    overwriting an edit unless `reset`; `readContent()` reads both (one-minute cache per process,
+    seeds first when a collection is empty, so a fresh database works); `splitTemplate(id)`.
+    `src/lib/content.ts` holds the types and the pure helpers (`splitInfos`, `splitInfoOf`,
+    `buildSplitFrom`, `planSourceInfo`, `templateOf`); `library.ts` helpers take the list.
+    `getContentFn` is loaded by the `_app` route (`staleTime` one hour) and read with
+    `useContent()` (`src/lib/use-content.ts`); setup loads it beside the settings. `SplitId` and
+    `PlanSource` are now plain strings (ids can be added in the database); the validators take any
+    string and the repo throws on an unknown template before writing. `splitFromMarker` takes the
+    known ids. `bun run db:seed` seeds content (`--reset`, `--demo` for the old demo account into
+    an empty database). `tests/content.test.ts` covers seed, merge, reset and the auto-seed.
 34. Seeding and Vercel. `bun run db:seed` (`scripts/seed.ts`, bun) makes `seed@example.com`
     (Better Auth's own document shapes: `user` with ObjectId `_id`, `account` with the password
     through `hashPassword` from `better-auth/crypto`, `emailVerified: true`) and eight weeks of

@@ -11,6 +11,7 @@ import {
 } from '#/components/ui/dialog'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '#/components/ui/empty'
 import { Input } from '#/components/ui/input'
+import { ScrollArea, ScrollBar } from '#/components/ui/scroll-area'
 import {
   Item,
   ItemActions,
@@ -21,7 +22,7 @@ import {
   ItemSeparator,
   ItemTitle,
 } from '#/components/ui/item'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
+import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import {
   EQUIPMENT,
   EQUIPMENT_LABEL,
@@ -33,10 +34,30 @@ import {
 import { MUSCLES, MUSCLE_LABEL } from '#/lib/logic/stats'
 import type { Muscle } from '#/lib/types'
 import { rowTap } from '#/lib/row-tap'
+import { useContent } from '#/lib/use-content'
 import { cn } from '#/lib/utils'
 import { EditorPanel, PanelFooter } from './editor-panel'
 
 // ---------------------------------------------------------------- list with search and filters
+
+/** A filter tag: a pill that fills in when pressed. One per row is pressed; "All" means no filter. */
+const chip =
+  'shrink-0 rounded-full px-3 data-[state=on]:border-foreground data-[state=on]:bg-foreground data-[state=on]:text-background'
+/** One line of tags inside the scroll area; it must not shrink or wrap. */
+const row = 'w-max justify-start py-0.5'
+
+/** A small label over one line of tags that scrolls sideways. */
+function TagRow({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
+  return (
+    <div className={className}>
+      <p className="mb-1 text-xs text-muted-foreground">{label}</p>
+      <ScrollArea className="-mx-4">
+        <div className="px-4 pb-2">{children}</div>
+        <ScrollBar orientation="horizontal" className="mx-4 h-2" />
+      </ScrollArea>
+    </div>
+  )
+}
 
 interface ListProps {
   onSelect: (ex: LibraryExercise) => void
@@ -49,17 +70,21 @@ interface ListProps {
 }
 
 export function LibraryList({ onSelect, action = 'Open', autoFocus, onResults }: ListProps) {
+  const { library } = useContent()
   const [query, setQuery] = useState('')
   const [muscle, setMuscle] = useState<Muscle | 'any'>('any')
   const [equipment, setEquipment] = useState<Equipment | 'any'>('any')
   const results = useMemo(
     () =>
-      searchLibrary({
-        query,
-        muscle: muscle === 'any' ? undefined : muscle,
-        equipment: equipment === 'any' ? undefined : equipment,
-      }),
-    [query, muscle, equipment],
+      searchLibrary(
+        {
+          query,
+          muscle: muscle === 'any' ? undefined : muscle,
+          equipment: equipment === 'any' ? undefined : equipment,
+        },
+        library,
+      ),
+    [library, query, muscle, equipment],
   )
   useEffect(() => {
     onResults?.(results)
@@ -76,34 +101,48 @@ export function LibraryList({ onSelect, action = 'Open', autoFocus, onResults }:
         autoFocus={autoFocus}
         className="h-11 text-base"
       />
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        <Select value={muscle} onValueChange={(v) => setMuscle(v as Muscle | 'any')}>
-          <SelectTrigger aria-label="Muscle" className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any">Any muscle</SelectItem>
-            {MUSCLES.map((m) => (
-              <SelectItem key={m} value={m}>
-                {MUSCLE_LABEL[m]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={equipment} onValueChange={(v) => setEquipment(v as Equipment | 'any')}>
-          <SelectTrigger aria-label="Equipment" className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="any">Any equipment</SelectItem>
-            {EQUIPMENT.map((e) => (
-              <SelectItem key={e} value={e}>
-                {EQUIPMENT_LABEL[e]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <TagRow label="Muscle" className="mt-3">
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          size="sm"
+          spacing={2}
+          value={muscle}
+          onValueChange={(v) => v && setMuscle(v as Muscle | 'any')}
+          aria-label="Muscle"
+          className={row}
+        >
+          <ToggleGroupItem value="any" className={chip}>
+            All
+          </ToggleGroupItem>
+          {MUSCLES.map((m) => (
+            <ToggleGroupItem key={m} value={m} className={chip}>
+              {MUSCLE_LABEL[m]}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </TagRow>
+      <TagRow label="Equipment" className="mt-2">
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          size="sm"
+          spacing={2}
+          value={equipment}
+          onValueChange={(v) => v && setEquipment(v as Equipment | 'any')}
+          aria-label="Equipment"
+          className={row}
+        >
+          <ToggleGroupItem value="any" className={chip}>
+            All
+          </ToggleGroupItem>
+          {EQUIPMENT.map((e) => (
+            <ToggleGroupItem key={e} value={e} className={chip}>
+              {EQUIPMENT_LABEL[e]}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </TagRow>
       {results.length === 0 ? (
         <Empty className="mt-4 border border-dashed py-10">
           <EmptyHeader>
@@ -123,7 +162,11 @@ export function LibraryList({ onSelect, action = 'Open', autoFocus, onResults }:
             {results.map((ex, i) => (
               <div key={ex.id}>
                 {i > 0 && <ItemSeparator />}
-                <Item size="sm" className={cn('px-1', rowTap(() => onSelect(ex)).className)} onClick={rowTap(() => onSelect(ex)).onClick}>
+                <Item
+                  size="sm"
+                  className={cn('px-1', rowTap(() => onSelect(ex)).className)}
+                  onClick={rowTap(() => onSelect(ex)).onClick}
+                >
                   <ItemMedia variant="image" className="size-14 rounded-md bg-muted">
                     <img src={imageUrl(ex)} alt="" loading="lazy" width={56} height={56} />
                   </ItemMedia>

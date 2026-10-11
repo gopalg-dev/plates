@@ -304,6 +304,9 @@ no Inter/Geist. Checked.
       used links explained on the sign-in page, favicon and tab titles, and sign-up verified by a
       six-digit emailed code before a password account can sign in. HANDOVER.md items 29 to 32.
 - [x] 28. The app is called Plates (was "Workout plan"): wordmark, titles, mails, file names, README. HANDOVER.md item 33.
+- [x] 29. Content in the database: the split templates and the exercise library in `splits` and
+      `library`, seeded from the bundled copies when empty or by `bun run db:seed`, read once per
+      visit through the shell route. Editable without a deploy. HANDOVER.md item 35.
 
 ## Next up
 

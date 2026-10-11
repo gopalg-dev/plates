@@ -4,7 +4,8 @@ import { suggestNext } from '#/lib/logic/progression'
 import { assignWeekdays, type Finished } from '#/lib/logic/schedule'
 import { plannedSetsFor } from '#/lib/logic/stats'
 import { slug } from '#/lib/seed-plan'
-import { buildSplit, templateOf } from '#/lib/splits'
+import { templateOf } from '#/lib/content'
+import { splitTemplate } from './content'
 import {
   MAX_EXERCISES_PER_DAY,
   type BodyweightLog,
@@ -104,7 +105,7 @@ export async function saveSettings(userId: string, patch: Partial<Settings>): Pr
 /** The user's chosen template, built fresh. */
 async function templatePlan(userId: string): Promise<Plan> {
   const settings = await getSettings(userId)
-  return { days: buildSplit(templateOf(settings.split)), updatedAt: new Date().toISOString() }
+  return { days: await splitTemplate(templateOf(settings.split)), updatedAt: new Date().toISOString() }
 }
 
 export async function getPlan(userId: string): Promise<Plan> {
@@ -130,8 +131,10 @@ export async function resetPlan(userId: string): Promise<Plan> {
 
 /** Switches to another template: remembers the choice and starts the plan over from it. */
 export async function applySplit(userId: string, split: SplitId): Promise<Plan> {
+  // Read the template first: an unknown id throws before anything is written.
+  const days = await splitTemplate(split)
   await saveSettings(userId, { split })
-  return savePlan(userId, { days: buildSplit(split), updatedAt: new Date().toISOString() })
+  return savePlan(userId, { days, updatedAt: new Date().toISOString() })
 }
 
 /** Rolling or by weekday. Going by weekday gives every day without one a sensible weekday. */
@@ -158,6 +161,7 @@ export async function setDayWeekday(userId: string, dayId: string, weekday: numb
 export async function replacePlan(userId: string, days: PlanDay[], split?: SplitId): Promise<Plan> {
   if (days.length === 0) throw new Error('The plan needs at least one day')
   if (days.some((d) => d.exercises.length === 0)) throw new Error('Every day needs at least one exercise')
+  if (split) await splitTemplate(split) // an unknown template id throws here
   await saveSettings(userId, { split: split ?? 'custom' })
   return savePlan(userId, { days, updatedAt: new Date().toISOString() })
 }

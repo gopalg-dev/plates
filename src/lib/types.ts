@@ -17,10 +17,12 @@ export const DAY_TYPES = [
 export type DayType = (typeof DAY_TYPES)[number]
 
 /** The split templates in `src/lib/splits.ts`. */
+/** The split templates that ship with the app. The database can hold more; see `src/lib/content.ts`. */
 export const SPLIT_IDS = ['ppl6', 'ppl3', 'pplul5', 'ul4', 'phul4', 'ulf3', 'full3', 'bro5', 'arnold6'] as const
-export type SplitId = (typeof SPLIT_IDS)[number]
-/** Where the plan came from: a template, or the user's own file. */
-export type PlanSource = SplitId | 'custom'
+/** A template's id: one of `SPLIT_IDS`, or any id added to the `splits` collection. */
+export type SplitId = string
+/** Where the plan came from: a template id, or `custom` for the user's own file. */
+export type PlanSource = string
 export type Muscle =
   | 'chest'
   | 'back'

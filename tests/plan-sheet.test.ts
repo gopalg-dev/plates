@@ -10,6 +10,7 @@ import {
   templateTitle,
 } from '#/lib/logic/plan-sheet'
 import { seedPlan } from '#/lib/seed-plan'
+import { SPLIT_IDS } from '#/lib/types'
 
 describe('parseReps', () => {
   it('reads ranges, single numbers, and seconds', () => {
@@ -56,11 +57,11 @@ describe('guessing', () => {
 describe('template marker', () => {
   it('reads the split id from the Template sheet or the Guide title, and nothing from a plain file', () => {
     const ul4 = { id: 'ul4' as const, name: 'Upper / Lower', days: 4 }
-    expect(splitFromMarker(templateMarker(ul4))).toBe('ul4')
-    expect(splitFromMarker([[templateTitle(ul4)]])).toBe('ul4')
+    expect(splitFromMarker(templateMarker(ul4), SPLIT_IDS)).toBe('ul4')
+    expect(splitFromMarker([[templateTitle(ul4)]], SPLIT_IDS)).toBe('ul4')
     expect(templateTitle(ul4)).toBe('Template: Upper / Lower, 4 days (ul4)')
-    expect(splitFromMarker([['Split', 'nope'], ['How to fill the Plan sheet']])).toBeUndefined()
-    expect(splitFromMarker([])).toBeUndefined()
+    expect(splitFromMarker([['Split', 'nope'], ['How to fill the Plan sheet']], SPLIT_IDS)).toBeUndefined()
+    expect(splitFromMarker([], SPLIT_IDS)).toBeUndefined()
   })
 })
 

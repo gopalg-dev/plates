@@ -53,16 +53,22 @@ Stop the database with `bun run db:down`. Data stays in the `workout-mongo-data`
 
 To use a hosted MongoDB instead, set `MONGODB_URI` and `MONGODB_DB` in `.env`.
 
-To see the app with a lived-in log, seed a local database with an account and eight weeks of
-sessions, weigh-ins and tape entries (`seed@example.com` / `password123`):
+## Content: the templates and the library
+
+The nine split templates and the exercise library live in the database (`splits`, `library`), so
+they can be edited there without a deploy. The copies in the code (`src/lib/splits.ts`,
+`src/lib/library.json`) are the seed: an empty database fills itself from them on the first request,
+and `bun run db:seed` does the same by hand.
 
 ```sh
-bun run db:seed                                   # defaults
-bun run db:seed -- --weeks 12 --split ul4         # longer, on another split
+bun run db:seed                 # adds whatever the bundle has that the database lacks; edits stay
+bun run db:seed -- --reset      # replaces both collections with the bundle
+bun run db:seed -- --demo       # also a demo account with eight weeks of logs; empty database only
 ```
 
-It only fills an empty database: with any account or log already there it stops and changes nothing,
-and it refuses a database that is not on localhost.
+The seed refuses a database that is not on localhost unless `--yes`. The app reads both collections
+once per visit and caches them for an hour in the browser and a minute on the server, so an edit
+shows up within that.
 
 ## Deploy to Vercel
 
@@ -144,8 +150,10 @@ browser from your own data.
 ```
 src/lib/types.ts            shared types
 src/lib/seed-plan.ts        the default six-day plan
-src/lib/splits.ts           the nine split templates
-src/lib/library.ts          the exercise library (data in library.json, from free-exercise-db)
+src/lib/content.ts          the content types and the pure helpers over the templates and the library
+src/lib/splits.ts           the bundled split templates (the seed)
+src/lib/library.ts          the bundled exercise library (data in library.json, from free-exercise-db) and its search
+src/server/content.ts       reads the content from the database, seeds it when empty
 src/lib/logic/              pure logic: next day, weekday schedule, progression, stats, sheet parsing, export rows
 src/lib/auth-client.ts      Better Auth client
 src/server/db.ts            Mongo client

@@ -1,12 +1,10 @@
 import { WEEKDAY_SHORT, WEEK_ORDER, defaultWeekdays } from '#/lib/logic/schedule'
-import { buildSplit } from '#/lib/splits'
-import type { DayType, SplitId } from '#/lib/types'
+import type { DayType, PlanDay } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { DAY_LABEL, dayColourClass } from './day-mark'
 
 /** Seven cells, Monday to Sunday: which days a split trains, in the plate colour of each day's type. */
-export function WeekShape({ split, className }: { split: SplitId; className?: string }) {
-  const days = buildSplit(split)
+export function WeekShape({ days, className }: { days: PlanDay[]; className?: string }) {
   const weekdays = defaultWeekdays(days.length)
   const byWeekday = new Map<number, DayType>()
   days.forEach((d, i) => {

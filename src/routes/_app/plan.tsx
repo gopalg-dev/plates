@@ -36,7 +36,8 @@ import { MUSCLE_BY_DAY } from '#/lib/logic/plan-sheet'
 import { WEEKDAY_LONG, WEEK_ORDER } from '#/lib/logic/schedule'
 import { MUSCLES, MUSCLE_LABEL, plannedSetsFor } from '#/lib/logic/stats'
 import { rowTap } from '#/lib/row-tap'
-import { planSourceInfo } from '#/lib/splits'
+import { planSourceInfo } from '#/lib/content'
+import { useContent } from '#/lib/use-content'
 import {
   MAX_EXERCISES_PER_DAY,
   type Exercise,
@@ -88,7 +89,8 @@ function PlanPage() {
   /** The exercise being edited, or null for a new one on that day. */
   const [editing, setEditing] = useState<{ day: PlanDay; exercise: Exercise | null } | null>(null)
   const [openDay, setOpenDay] = useState<string | null>(null)
-  const split = planSourceInfo(settings.split, plan.days.length)
+  const { splits } = useContent()
+  const split = planSourceInfo(splits, settings.split, plan.days.length)
   const schedule: Schedule = settings.schedule ?? 'rolling'
 
   async function changeWeekday(dayId: string, weekday: number) {

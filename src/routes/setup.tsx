@@ -11,9 +11,9 @@ import { Progress } from '#/components/ui/progress'
 import { RadioGroup, RadioGroupItem } from '#/components/ui/radio-group'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { dayKey } from '#/lib/logic/stats'
-import { DEFAULT_SPLIT, templateOf } from '#/lib/splits'
+import { DEFAULT_SPLIT, templateOf } from '#/lib/content'
 import type { SplitId, TrainingAge, Units } from '#/lib/types'
-import { applySplitFn, getSettingsFn, logBodyweightFn, saveSettingsFn } from '#/server/fns'
+import { applySplitFn, getContentFn, getSettingsFn, logBodyweightFn, saveSettingsFn } from '#/server/fns'
 import { getSessionFn } from '#/server/session'
 
 type Search = { step?: 'split' }
@@ -26,7 +26,10 @@ export const Route = createFileRoute('/setup')({
   beforeLoad: async () => {
     if (!(await getSessionFn())) throw redirect({ to: '/login' })
   },
-  loader: () => getSettingsFn(),
+  loader: async () => {
+    const [settings, content] = await Promise.all([getSettingsFn(), getContentFn()])
+    return { settings, content }
+  },
   component: SetupPage,
 })
 
@@ -51,7 +54,7 @@ const optionRow =
   'flex cursor-pointer items-start gap-3 rounded-lg border p-4 font-normal has-data-[state=checked]:border-foreground'
 
 function SetupPage() {
-  const initial = Route.useLoaderData()
+  const { settings: initial, content } = Route.useLoaderData()
   const search = Route.useSearch()
   const navigate = useNavigate()
   const [step, setStep] = useState(search.step === 'split' ? SPLIT_STEP : 0)
@@ -136,7 +139,7 @@ function SetupPage() {
               <p className="mt-2 text-muted-foreground">
                 How the week is cut up. Every template is yours to edit afterwards, exercise by exercise.
               </p>
-              <SplitPicker value={split} onChange={setSplit} className="mt-8" />
+              <SplitPicker splits={content.splits} value={split} onChange={setSplit} className="mt-8" />
               {switching && (
                 <p className="mt-4 rounded-lg border px-3 py-2 text-sm">
                   Switching starts the plan over from this template. Your edits go, your logged workouts stay.

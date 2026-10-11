@@ -1,14 +1,10 @@
+import { DEFAULT_SPLIT, type SplitInfo, type SplitTemplate } from './content'
 import { SEED_DAYS, ex } from './seed-plan'
-import type { DayType, Exercise, PlanDay, PlanSource, SplitId } from './types'
+import type { DayType, Exercise, PlanDay, SplitId } from './types'
 
-export interface SplitInfo {
-  id: SplitId
-  name: string
-  /** Sessions in one round of the plan. */
-  days: number
-  /** One line for the picker: who it fits. */
-  fit: string
-}
+// The templates that ship with the app. They seed the `splits` collection; the app reads from there.
+
+export { DEFAULT_SPLIT, type SplitInfo }
 
 /** The picker order: the default first, then by sessions per week. */
 export const SPLITS: SplitInfo[] = [
@@ -27,8 +23,6 @@ export const SPLITS: SplitInfo[] = [
   { id: 'bro5', name: 'One muscle a day', days: 5, fit: 'Five sessions, one muscle each, lots of sets per muscle.' },
   { id: 'arnold6', name: 'Arnold split', days: 6, fit: 'Six sessions: chest with back, shoulders with arms, legs alone.' },
 ]
-
-export const DEFAULT_SPLIT: SplitId = 'ppl6'
 
 export function splitInfo(id: SplitId): SplitInfo {
   return SPLITS.find((s) => s.id === id) ?? SPLITS[0]
@@ -118,7 +112,7 @@ const fullC = () =>
 
 // ---- templates ----
 
-const TEMPLATES: Record<SplitId, () => PlanDay[]> = {
+const TEMPLATES: Record<(typeof SPLITS)[number]['id'], () => PlanDay[]> = {
   ppl6: () => SEED_DAYS,
 
   ppl3: () => [seedDay('pull-a'), seedDay('push-a'), seedDay('legs-a')],
@@ -244,20 +238,18 @@ const TEMPLATES: Record<SplitId, () => PlanDay[]> = {
   ],
 }
 
-/** A fresh copy of the template's days, safe to edit. */
+/** A fresh copy of a bundled template's days, safe to edit. The app itself reads templates from the database. */
 export function buildSplit(id: SplitId): PlanDay[] {
-  return structuredClone(TEMPLATES[id]())
+  const make = TEMPLATES[id as keyof typeof TEMPLATES]
+  if (!make) throw new Error(`Unknown bundled split "${id}"`)
+  return structuredClone(make())
 }
 
-/** The template id behind a plan source, or the default when the plan is custom or unset. */
-export function templateOf(source: PlanSource | undefined): SplitId {
-  return source && source !== 'custom' ? source : DEFAULT_SPLIT
-}
-
-/** What to call the plan: the template's info, or a custom entry sized to the plan. */
-export function planSourceInfo(source: PlanSource | undefined, dayCount: number): SplitInfo & { custom: boolean } {
-  if (source === 'custom') {
-    return { id: DEFAULT_SPLIT, name: 'Custom plan', days: dayCount, fit: 'From your own file.', custom: true }
-  }
-  return { ...splitInfo(source ?? DEFAULT_SPLIT), custom: false }
-}
+/** The bundled templates in the shape the database holds them: what `bun run db:seed` writes. */
+export const BUNDLED_SPLITS: SplitTemplate[] = SPLITS.map((s, order) => ({
+  id: s.id,
+  name: s.name,
+  fit: s.fit,
+  order,
+  days: buildSplit(s.id),
+}))

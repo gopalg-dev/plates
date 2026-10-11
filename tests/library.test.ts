@@ -23,17 +23,17 @@ describe('exercise library', () => {
     for (const name of ['Barbell Bench Press', 'Pull-ups', 'Barbell Squat', 'Romanian Deadlift', 'Lateral Raise', 'Plank']) {
       expect(LIBRARY.some((e) => e.name === name), name).toBe(true)
     }
-    expect(findLibrary('plank')?.loadType).toBe('time')
-    expect(findLibrary('pull-ups')?.loadType).toBe('bodyweight')
+    expect(findLibrary(LIBRARY, 'plank')?.loadType).toBe('time')
+    expect(findLibrary(LIBRARY, 'pull-ups')?.loadType).toBe('bodyweight')
   })
 
   it('searches by words and narrows by muscle and equipment', () => {
-    const rows = searchLibrary({ query: 'row' })
+    const rows = searchLibrary({ query: 'row' }, LIBRARY)
     expect(rows.some((e) => e.name === 'Barbell Row')).toBe(true)
     expect(rows.every((e) => /row/i.test(`${e.name} ${e.muscles.join(' ')}`))).toBe(true)
-    expect(searchLibrary({ query: 'incline db press' }).map((e) => e.name)).toContain('Incline DB Press')
-    expect(searchLibrary({ muscle: 'calves' }).every((e) => e.muscle === 'calves')).toBe(true)
-    expect(searchLibrary({ equipment: 'bodyweight', muscle: 'abs' }).every((e) => e.equipment === 'bodyweight')).toBe(true)
-    expect(searchLibrary({ query: 'zzzz' })).toEqual([])
+    expect(searchLibrary({ query: 'incline db press' }, LIBRARY).map((e) => e.name)).toContain('Incline DB Press')
+    expect(searchLibrary({ muscle: 'calves' }, LIBRARY).every((e) => e.muscle === 'calves')).toBe(true)
+    expect(searchLibrary({ equipment: 'bodyweight', muscle: 'abs' }, LIBRARY).every((e) => e.equipment === 'bodyweight')).toBe(true)
+    expect(searchLibrary({ query: 'zzzz' }, LIBRARY)).toEqual([])
   })
 })

@@ -1,10 +1,12 @@
 import { Dumbbell } from 'lucide-react'
 import { findLibraryByName, imageUrl } from '#/lib/library'
+import { useContent } from '#/lib/use-content'
 import { cn } from '#/lib/utils'
 
 /** The library still for an exercise, found by name. A quiet tile when the name is not in the library. */
 export function ExerciseThumb({ name, className }: { name: string; className?: string }) {
-  const ex = findLibraryByName(name)
+  const { library } = useContent()
+  const ex = findLibraryByName(library, name)
   if (!ex) {
     return (
       <span

@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { LibraryDetail, LibraryList } from '#/components/app/library-list'
-import { LIBRARY, type LibraryExercise } from '#/lib/library'
+import type { LibraryExercise } from '#/lib/library'
 import { pageTitle } from '#/lib/page-title'
+import { useContent } from '#/lib/use-content'
 
 export const Route = createFileRoute('/_app/library')({
   head: () => ({ meta: [{ title: pageTitle('Library') }] }),
@@ -10,8 +11,9 @@ export const Route = createFileRoute('/_app/library')({
 })
 
 function LibraryPage() {
+  const { library } = useContent()
   const [selected, setSelected] = useState<LibraryExercise | null>(null)
-  const [visible, setVisible] = useState<LibraryExercise[]>(LIBRARY)
+  const [visible, setVisible] = useState<LibraryExercise[]>(library)
   return (
     <div>
       <h1 className="font-condensed text-4xl font-semibold leading-none">Library</h1>

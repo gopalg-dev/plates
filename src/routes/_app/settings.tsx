@@ -20,7 +20,8 @@ import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '#/components/ui/radio-group'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
-import { planSourceInfo, splitInfo } from '#/lib/splits'
+import { buildSplitFrom, planSourceInfo, splitInfoOf } from '#/lib/content'
+import { useContent } from '#/lib/use-content'
 import { cn } from '#/lib/utils'
 import type { Schedule, SplitId, TrainingAge, Units } from '#/lib/types'
 import { useSignOut } from '#/lib/use-sign-out'
@@ -43,7 +44,8 @@ function SettingsPage() {
   const router = useRouter()
   const { user } = Route.useRouteContext()
   const { signOut, busy: signingOut } = useSignOut()
-  const split = planSourceInfo(settings.split, 0)
+  const { splits } = useContent()
+  const split = planSourceInfo(splits, settings.split, 0)
   /** The template the plan is on, or empty for a custom plan so no option reads as picked. */
   const currentSplit: SplitId | '' = split.custom ? '' : split.id
   const [pickedSplit, setPickedSplit] = useState<SplitId | null>(null)
@@ -56,7 +58,7 @@ function SettingsPage() {
     setSwitching(true)
     try {
       await applySplitFn({ data: { split: pickedSplit } })
-      toast.success(`Plan started over on ${splitInfo(pickedSplit).name}`)
+      toast.success(`Plan started over on ${splitInfoOf(splits, pickedSplit).name}`)
       setPickedSplit(null)
       setSplitOpen(false)
       await router.invalidate()
@@ -187,7 +189,7 @@ function SettingsPage() {
               </div>
             )}
             <p className={cn('text-muted-foreground', !split.custom && 'mt-1')}>{split.fit}</p>
-            {currentSplit && <WeekShape split={currentSplit} className="mt-2.5" />}
+            {currentSplit && <WeekShape days={buildSplitFrom(splits, currentSplit)} className="mt-2.5" />}
           </div>
           <Dialog
             open={splitOpen}
@@ -205,7 +207,7 @@ function SettingsPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="min-h-0 overflow-y-auto scrollbar-none px-6 pb-4">
-                <SplitPicker value={pickedSplit ?? currentSplit} onChange={setPickedSplit} />
+                <SplitPicker splits={splits} value={pickedSplit ?? currentSplit} onChange={setPickedSplit} />
               </div>
               <DialogFooter className="border-t p-4">
                 <Button
@@ -220,7 +222,7 @@ function SettingsPage() {
                 </Button>
                 {pickedSplit !== null && pickedSplit !== currentSplit && (
                   <Button onClick={switchSplit} disabled={switching}>
-                    Switch to {splitInfo(pickedSplit).name}
+                    Switch to {splitInfoOf(splits, pickedSplit).name}
                   </Button>
                 )}
               </DialogFooter>

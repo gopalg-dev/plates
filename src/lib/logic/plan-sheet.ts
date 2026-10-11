@@ -1,8 +1,7 @@
+import type { SplitInfo } from '../content'
 import { slug } from '../seed-plan'
-import type { SplitInfo } from '../splits'
 import {
   DAY_TYPES,
-  SPLIT_IDS,
   type DayType,
   type Exercise,
   type LoadType,
@@ -44,10 +43,11 @@ export function templateTitle(split: Pick<SplitInfo, 'id' | 'name' | 'days'>): s
 
 /**
  * Finds the split id in the cells of a Template or Guide sheet: a "Split" cell followed by the id,
- * or a title ending in "(id)". Undefined when the file carries no marker: a custom plan.
+ * or a title ending in "(id)". Only `known` ids count. Undefined when the file carries no marker: a
+ * custom plan.
  */
-export function splitFromMarker(cells: unknown[][]): SplitId | undefined {
-  const ids = new Set<string>(SPLIT_IDS)
+export function splitFromMarker(cells: unknown[][], known: readonly string[]): SplitId | undefined {
+  const ids = new Set<string>(known)
   for (const row of cells) {
     for (let i = 0; i < row.length; i++) {
       const v = String(row[i] ?? '').trim()

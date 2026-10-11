@@ -33,7 +33,7 @@ import {
 import { AppMark } from '#/components/app/app-mark'
 import { THEME_OPTIONS, readTheme, saveTheme, type Theme } from '#/lib/theme'
 import { useSignOut } from '#/lib/use-sign-out'
-import { getShellFn } from '#/server/fns'
+import { getContentFn, getShellFn } from '#/server/fns'
 
 export const Route = createFileRoute('/_app')({
   // Signed out: sign in first. Signed in but not set up: three questions first.
@@ -47,6 +47,9 @@ export const Route = createFileRoute('/_app')({
     if (!shell.settings.setupDone) throw redirect({ to: '/setup' })
     return { user: shell.user }
   },
+  // The split templates and the exercise library, once per visit; every screen reads them through useContent().
+  loader: () => getContentFn(),
+  staleTime: 60 * 60 * 1000,
   component: AppLayout,
 })
 

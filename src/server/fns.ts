@@ -1,7 +1,8 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { DAY_TYPES, MAX_EXERCISES_PER_DAY, SPLIT_IDS } from '#/lib/types'
+import { DAY_TYPES, MAX_EXERCISES_PER_DAY } from '#/lib/types'
 import { authOptions, currentUser } from './auth'
+import { readContent } from './content'
 import * as repo from './repo'
 import { authed } from './session'
 
@@ -9,6 +10,8 @@ import { authed } from './session'
 // The exceptions, getSessionFn and getShellFn, live in session.ts and answer "nobody" instead.
 
 const units = z.enum(['kg', 'lb'])
+/** A split template id. Open, since templates live in the database; the repo rejects unknown ones. */
+const splitId = z.string().min(1).max(40)
 const trainingAge = z.enum(['under1', 'over1'])
 const muscle = z.enum([
   'chest',
@@ -44,6 +47,11 @@ export const getShellFn = createServerFn({ method: 'GET' }).handler(async () => 
 
 // ---- settings ----
 
+/** The split templates and the exercise library, from the database (seeded from the bundle when empty). */
+export const getContentFn = createServerFn({ method: 'GET' })
+  .middleware([authed])
+  .handler(() => readContent())
+
 export const getSettingsFn = createServerFn({ method: 'GET' })
   .middleware([authed])
   .handler(({ context }) => repo.getSettings(context.userId))
@@ -56,7 +64,7 @@ export const saveSettingsFn = createServerFn({ method: 'POST' })
       bodyweight: z.number().positive().max(500).optional(),
       trainingAge: trainingAge.optional(),
       setupDone: z.boolean().optional(),
-      split: z.enum(SPLIT_IDS).optional(),
+      split: splitId.optional(),
     }),
   )
   .handler(({ data, context }) => repo.saveSettings(context.userId, data))
@@ -79,7 +87,7 @@ export const setDayWeekdayFn = createServerFn({ method: 'POST' })
 /** Starts the plan over from a split template and remembers the choice. Logged workouts stay. */
 export const applySplitFn = createServerFn({ method: 'POST' })
   .middleware([authed])
-  .validator(z.object({ split: z.enum(SPLIT_IDS) }))
+  .validator(z.object({ split: splitId }))
   .handler(({ data, context }) => repo.applySplit(context.userId, data.split))
 
 // ---- plan ----
@@ -161,7 +169,7 @@ const daySchema = z.object({
 
 export const replacePlanFn = createServerFn({ method: 'POST' })
   .middleware([authed])
-  .validator(z.object({ days: z.array(daySchema).min(1).max(14), split: z.enum(SPLIT_IDS).optional() }))
+  .validator(z.object({ days: z.array(daySchema).min(1).max(14), split: splitId.optional() }))
   .handler(({ data, context }) => repo.replacePlan(context.userId, data.days, data.split))
 
 // ---- today / workouts ----

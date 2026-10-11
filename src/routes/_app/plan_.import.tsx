@@ -27,7 +27,8 @@ import {
   type ParsedPlan,
   type SheetRow,
 } from '#/lib/logic/plan-sheet'
-import { SPLITS, buildSplit, planSourceInfo, splitInfo } from '#/lib/splits'
+import { buildSplitFrom, planSourceInfo, splitInfoOf, splitInfos } from '#/lib/content'
+import { useContent } from '#/lib/use-content'
 import { MUSCLES, MUSCLE_LABEL } from '#/lib/logic/stats'
 import {
   DAY_TYPES,
@@ -60,16 +61,17 @@ function ImportPage() {
   const [busy, setBusy] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   /** Which template to download: the plan as it is, or one of the split templates. */
+  const { splits } = useContent()
   const [template, setTemplate] = useState<'current' | SplitId>('current')
-  const currentSource = planSourceInfo(settings.split, plan.days.length)
+  const currentSource = planSourceInfo(splits, settings.split, plan.days.length)
 
   async function downloadTemplate() {
     setBusy(true)
     try {
       const XLSX = await import('xlsx')
       const wb = XLSX.utils.book_new()
-      const chosen = template === 'current' ? null : splitInfo(template)
-      const days = chosen ? buildSplit(chosen.id) : plan.days
+      const chosen = template === 'current' ? null : splitInfoOf(splits, template)
+      const days = chosen ? buildSplitFrom(splits, chosen.id) : plan.days
       // The current plan carries its own template's marker, unless it is custom.
       const marker = chosen ?? (currentSource.custom ? null : currentSource)
       const ws = XLSX.utils.json_to_sheet(planToRows({ days }), { header: [...TEMPLATE_HEADERS] })
@@ -119,7 +121,7 @@ function ImportPage() {
         const s = wb.Sheets[name]
         return s ? XLSX.utils.sheet_to_json<unknown[]>(s, { header: 1, defval: '' }) : []
       })
-      setParsed({ ...parseRows(rows), split: splitFromMarker(cells) })
+      setParsed({ ...parseRows(rows), split: splitFromMarker(cells, splits.map((s) => s.id)) })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not read that file. Use .xlsx or .csv.')
       setParsed(null)
@@ -212,7 +214,7 @@ function ImportPage() {
             <SelectItem value="current">
               {currentSource.custom ? 'Current plan' : `Current plan, ${currentSource.name}`}
             </SelectItem>
-            {SPLITS.map((s) => (
+            {splitInfos(splits).map((s) => (
               <SelectItem key={s.id} value={s.id}>
                 {s.name}, {s.days} {s.days === 1 ? 'day' : 'days'}
               </SelectItem>
@@ -250,7 +252,7 @@ function ImportPage() {
             exercises.
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            {parsed.split ? `Template: ${splitInfo(parsed.split).name}.` : 'Custom plan.'}
+            {parsed.split ? `Template: ${splitInfoOf(splits, parsed.split).name}.` : 'Custom plan.'}
           </p>
 
           {parsed.warnings.length > 0 && (
@@ -423,7 +425,7 @@ function ImportPage() {
                   <DialogTitle>Replace the plan?</DialogTitle>
                   <DialogDescription>
                     Your {plan.days.length} days become these {parsed.days.length}
-                    {parsed.split ? ` on ${splitInfo(parsed.split).name}` : ' as a custom plan'}. Logged workouts
+                    {parsed.split ? ` on ${splitInfoOf(splits, parsed.split).name}` : ' as a custom plan'}. Logged workouts
                     stay, and the next session starts from day one of the new plan.
                   </DialogDescription>
                 </DialogHeader>
