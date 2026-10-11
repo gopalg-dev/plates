@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { expect, test, type Page } from '@playwright/test'
-import { backdateJoin, lastCode, lastMagicLink, resetDatabase } from './db'
+import { backdateJoin, lastCode, lastMagicLink, resetDatabase, traceOf } from './db'
 
 test.describe.configure({ mode: 'serial' })
 
@@ -257,9 +257,10 @@ test('stats reflect the logged workout and bodyweight', async () => {
   await page.getByRole('option', { name: 'Barbell Row' }).click()
   await expect(page.getByRole('combobox', { name: 'Lift' })).toHaveText('Barbell Row')
   await expect(page.getByRole('cell', { name: '62.5 kg × 7' })).toBeVisible()
-  // The week's totals sit under the session count.
+  // The week's totals sit under the session count: 60 × 8 + 62.5 × 7 on the rows, plus 8 pull-ups at the 72 kg
+  // weighed in at setup.
   await page.getByRole('tab', { name: 'Sessions' }).click()
-  await expect(page.getByText(/^918\s*kg$/)).toBeVisible()
+  await expect(page.getByText(/^1,494\s*kg$/)).toBeVisible()
 
   await page.getByRole('tab', { name: 'Body' }).click()
   await expect(page.getByText('No tape yet', { exact: false })).toBeVisible()
@@ -593,4 +594,45 @@ test('settings change units, and start fresh wipes the data', async () => {
   await hydrated(page)
   await expect(page.getByText('1 of 5')).toBeVisible()
   await expect(page.getByRole('radio', { name: 'Kilograms' })).toBeChecked()
+})
+
+test('delete account removes the user and every log, and says so on the sign-in page', async () => {
+  // Start fresh left the account at setup; finish it so Settings opens.
+  await open(page, '/setup')
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByRole('button', { name: 'Skip' }).click()
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByRole('button', { name: 'Start training' }).click()
+  await expect(page).toHaveURL(/\/$/)
+
+  await open(page, '/settings')
+  await expect(page.getByRole('heading', { name: 'Delete account' })).toBeVisible()
+  await page.getByRole('link', { name: 'What is kept and what is not' }).click()
+  await expect(page.getByRole('heading', { name: 'Privacy' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Deleting it' })).toBeVisible()
+  await page.goBack()
+  await page.getByRole('button', { name: 'Delete account' }).click()
+  await expect(page.getByRole('button', { name: 'Delete everything' })).toBeDisabled()
+  await page.getByLabel('Confirmation').fill('delete my account')
+  await snap(page, '17-delete-account')
+  await page.getByRole('button', { name: 'Delete everything' }).click()
+  await expect(page).toHaveURL(/\/login\?deleted=true$/)
+  await expect(page.getByText('Your account and all of its data are deleted.')).toBeVisible()
+
+  // The username no longer signs in, and the database holds no trace beyond the deletion log.
+  await page.getByRole('button', { name: 'Sign in with a password instead' }).click()
+  await page.getByLabel('Email or username').fill('alex')
+  await page.getByLabel('Password', { exact: true }).fill('password123')
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click()
+  await expect(page.getByText('Wrong email, username or password.')).toBeVisible()
+  expect(await traceOf('alex@example.com')).toEqual({
+    user: 0,
+    account: 0,
+    session: 0,
+    settings: 0,
+    plans: 0,
+    workouts: 0,
+    deletions: 1,
+  })
 })

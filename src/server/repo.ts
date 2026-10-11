@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { ObjectId, type Db } from 'mongodb'
 import { nextDayId } from '#/lib/logic/next-day'
 import { STALL_SESSIONS, progressionOf, suggestNext, type PastEntry } from '#/lib/logic/progression'
@@ -597,6 +598,61 @@ export async function startFresh(userId: string): Promise<void> {
 }
 
 // ---- accounts ----
+
+/** What the deletion log keeps: nothing that points back at a person. */
+interface DeletionDoc {
+  at: string
+  /** SHA-256 of the lower-cased email, so a second deletion of the same address can be noticed; not reversible. */
+  emailHash: string
+  sessions: number
+  /** Days between joining and deleting, when setup had been completed. */
+  daysActive?: number
+}
+
+/**
+ * Removes the account and every trace of its data: the Better Auth documents (user, sessions,
+ * sign-in accounts, pending verifications), settings, plans, logs, and any sign-in mail still in
+ * the outbox. One line goes into `deletions`: the date, a hash of the email and the session count.
+ */
+export async function deleteAccount(userId: string): Promise<void> {
+  const { db, settings, plan, plans, workouts, bodyweights, measurements } = await cols()
+  const ids = [userId, ...(ObjectId.isValid(userId) ? [new ObjectId(userId)] : [])]
+  const user = await db.collection('user').findOne({ _id: { $in: ids } as never })
+  const email = typeof user?.email === 'string' ? user.email.toLowerCase() : ''
+  const [sessions, joined] = await Promise.all([
+    workouts.countDocuments({ userId, status: 'done' }),
+    settings.findOne({ _id: userId }, { projection: { joinedAt: 1 } }),
+  ])
+  const log: DeletionDoc = {
+    at: new Date().toISOString(),
+    emailHash: createHash('sha256').update(email).digest('hex'),
+    sessions,
+  }
+  if (joined?.joinedAt) {
+    log.daysActive = Math.max(0, Math.round((Date.now() - new Date(joined.joinedAt).getTime()) / 86_400_000))
+  }
+  await Promise.all([
+    settings.deleteOne({ _id: userId }),
+    plan.deleteOne({ _id: userId }),
+    plans.deleteMany({ userId }),
+    workouts.deleteMany({ userId }),
+    bodyweights.deleteMany({ userId }),
+    measurements.deleteMany({ userId }),
+    db.collection('session').deleteMany({ userId: { $in: ids } }),
+    db.collection('account').deleteMany({ userId: { $in: ids } }),
+    ...(email
+      ? [
+          // Better Auth keys pending links and codes by the address, lower-cased, sometimes with a prefix.
+          db
+            .collection('verification')
+            .deleteMany({ identifier: { $in: [email, `email-verification-otp-${email}`, `sign-in-otp-${email}`] } }),
+          db.collection('mail_outbox').deleteMany({ to: email }),
+        ]
+      : []),
+  ])
+  await db.collection('user').deleteOne({ _id: { $in: ids } as never })
+  await db.collection<DeletionDoc>('deletions').insertOne(log)
+}
 
 /**
  * Before accounts, the one user's data lived under fixed ids and without a userId.

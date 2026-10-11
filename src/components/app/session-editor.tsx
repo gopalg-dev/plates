@@ -40,7 +40,7 @@ interface EditorProps {
   workout: Workout | null
   units: Units
   onClose: () => void
-  onSaved: () => void
+  onSaved: () => void | Promise<void>
 }
 
 /** A finished session: fix a set, add or drop one, or remove the session. Opened from the Stats calendar. */
@@ -87,8 +87,9 @@ function EditorBody({ workout, units, onClose, onSaved }: EditorProps & { workou
       await updateWorkoutFn({
         data: { workoutId: workout.id, changes: entries.map((e) => ({ exerciseId: e.exerciseId, sets: e.sets })) },
       })
+      // The page reloads its data before the toast, so what follows the toast sees the change.
+      await onSaved()
       toast.success('Session updated')
-      onSaved()
     } catch (err) {
       toast.error(errorMessage(err, 'Could not save.'))
       setBusy(false)
@@ -99,9 +100,9 @@ function EditorBody({ workout, units, onClose, onSaved }: EditorProps & { workou
     setBusy(true)
     try {
       await deleteWorkoutFn({ data: { workoutId: workout.id } })
-      toast.success('Session removed')
       setDeleteOpen(false)
-      onSaved()
+      await onSaved()
+      toast.success('Session removed')
     } catch (err) {
       toast.error(errorMessage(err, 'Could not remove it.'))
       setBusy(false)

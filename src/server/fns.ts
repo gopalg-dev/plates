@@ -65,6 +65,11 @@ export const saveSettingsFn = createServerFn({ method: 'POST' })
   )
   .handler(({ data, context }) => repo.saveSettings(context.userId, data))
 
+/** Removes the account and every trace of its data. The client asks for a typed confirmation first. */
+export const deleteAccountFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .handler(({ context }) => repo.deleteAccount(context.userId))
+
 /** Wipes everything of this user except the account. The client asks for a typed confirmation first. */
 export const startFreshFn = createServerFn({ method: 'POST' })
   .middleware([authed])

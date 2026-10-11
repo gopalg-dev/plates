@@ -308,6 +308,8 @@ no Inter/Geist. Checked.
 - [x] 29. Content in the database: the split templates and the exercise library in `splits` and
       `library`, seeded from the bundled copies when empty or by `bun run db:seed`, read once per
       visit through the shell route. Editable without a deploy. HANDOVER.md item 35.
+- [x] 34. Delete account (every trace gone, one hashed line in a deletions log) behind a typed
+      confirmation with the export buttons beside it, and a public /privacy page. HANDOVER.md item 43.
 - [x] 33. Built for gains: finish summary with new bests and the week count, reps-left on the last
       set feeding the targets, stall / week / scale alerts on Today, bodyweight goal (gain, hold,
       cut) at setup and in Settings with a goal-aware pace on the Body tab. HANDOVER.md item 40.

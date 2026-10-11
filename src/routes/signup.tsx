@@ -82,6 +82,10 @@ function SignupPage() {
           <Link to="/login" className="text-foreground underline-offset-4 hover:underline">
             Sign in
           </Link>
+          {' · '}
+          <Link to="/privacy" className="text-foreground underline-offset-4 hover:underline">
+            Privacy
+          </Link>
         </>
       }
     >

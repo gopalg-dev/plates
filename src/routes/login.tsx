@@ -14,8 +14,10 @@ import { pageTitle } from '#/lib/page-title'
 export const Route = createFileRoute('/login')({
   head: () => ({ meta: [{ title: pageTitle('Sign in') }] }),
   // A sign-in link that no longer works lands here with ?error=…, and the page says so.
-  validateSearch: (search: Record<string, unknown>): { error?: string } =>
-    typeof search.error === 'string' && search.error ? { error: search.error } : {},
+  validateSearch: (search: Record<string, unknown>): { error?: string; deleted?: boolean } => ({
+    ...(typeof search.error === 'string' && search.error ? { error: search.error } : {}),
+    ...(search.deleted === true || search.deleted === 'true' ? { deleted: true } : {}),
+  }),
   beforeLoad: async () => {
     if (await getSessionFn()) throw redirect({ to: '/' })
   },
@@ -25,7 +27,7 @@ export const Route = createFileRoute('/login')({
 
 function LoginPage() {
   const { google } = Route.useLoaderData()
-  const { error } = Route.useSearch()
+  const { error, deleted } = Route.useSearch()
   const [sentTo, setSentTo] = useState<string | null>(null)
   const [withPassword, setWithPassword] = useState(false)
 
@@ -39,6 +41,10 @@ function LoginPage() {
           <Link to="/signup" className="text-foreground underline-offset-4 hover:underline">
             Create an account
           </Link>
+          {' · '}
+          <Link to="/privacy" className="text-foreground underline-offset-4 hover:underline">
+            Privacy
+          </Link>
         </>
       }
     >
@@ -46,10 +52,15 @@ function LoginPage() {
         <LinkSent email={sentTo} onReset={() => setSentTo(null)} />
       ) : (
         <div className="flex flex-col gap-8">
+          {deleted && (
+            <p role="status" className="rounded-lg border px-4 py-3 text-sm">
+              Your account and all of its data are deleted.
+            </p>
+          )}
           {error && (
             <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm">
-              That sign-in link was already used or has expired. Each link works once, for 15 minutes. Enter
-              your email for a fresh one.
+              That sign-in link was already used or has expired. Each link works once, for 15 minutes. Enter your email
+              for a fresh one.
             </p>
           )}
           {google && (
@@ -120,8 +131,8 @@ function LinkSent({ email, onReset }: { email: string; onReset: () => void }) {
     <div>
       <p className="font-condensed text-2xl font-semibold leading-none">Check your email</p>
       <p className="mt-3 text-muted-foreground">
-        We sent a sign-in link to <span className="text-foreground">{email}</span>. It works for 15 minutes.
-        Open it on the device you want to use.
+        We sent a sign-in link to <span className="text-foreground">{email}</span>. It works for 15 minutes. Open it on
+        the device you want to use.
       </p>
       <Button variant="link" className="mt-6 h-auto px-0 text-muted-foreground" onClick={onReset}>
         Use a different email
@@ -161,7 +172,10 @@ function GoogleButton() {
 function GoogleMark() {
   return (
     <svg aria-hidden viewBox="0 0 24 24" className="size-5">
-      <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.2-2.1 3.5-5.1 3.5-8.8Z" />
+      <path
+        fill="#4285F4"
+        d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.2-2.1 3.5-5.1 3.5-8.8Z"
+      />
       <path fill="#34A853" d="M12 24c3.2 0 6-1.1 7.9-2.9l-3.9-3a7.2 7.2 0 0 1-10.7-3.8H1.4v3.1A12 12 0 0 0 12 24Z" />
       <path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.4a12 12 0 0 0 0 10.8l3.9-3.1Z" />
       <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.4 6.6l3.9 3.1A7.2 7.2 0 0 1 12 4.8Z" />
@@ -190,7 +204,9 @@ function PasswordForm() {
       ? await authClient.signIn.email({ email: who, password })
       : await authClient.signIn.username({ username: who, password })
     if (res.error) {
-      setError(res.error.status === 401 ? 'Wrong email, username or password.' : (res.error.message ?? 'Could not sign in.'))
+      setError(
+        res.error.status === 401 ? 'Wrong email, username or password.' : (res.error.message ?? 'Could not sign in.'),
+      )
       setBusy(false)
       return
     }

@@ -52,3 +52,28 @@ export async function backdateJoin(days: number) {
     await client.close()
   }
 }
+
+/** What the database still holds for an address, plus the deletion log line count. */
+export async function traceOf(email: string): Promise<Record<string, number>> {
+  const client = await MongoClient.connect(uri, { serverSelectionTimeoutMS: 4000 })
+  try {
+    const db = client.db(E2E_DB)
+    const user = await db.collection('user').findOne({ email })
+    const ids = user ? [user._id, user._id.toHexString()] : []
+    const by = (field: string) => (ids.length ? { [field]: { $in: ids } } : { [field]: '__none__' })
+    const [users, accounts, sessions, settings, plans, workouts, deletions] = await Promise.all([
+      db.collection('user').countDocuments({ email }),
+      db.collection('account').countDocuments(by('userId')),
+      db.collection('session').countDocuments(by('userId')),
+      db
+        .collection('settings')
+        .countDocuments(ids.length ? { _id: { $in: ids } as never } : { _id: '__none__' as never }),
+      db.collection('plans').countDocuments(by('userId')),
+      db.collection('workouts').countDocuments(by('userId')),
+      db.collection('deletions').countDocuments({}),
+    ])
+    return { user: users, account: accounts, session: sessions, settings, plans, workouts, deletions }
+  } finally {
+    await client.close()
+  }
+}

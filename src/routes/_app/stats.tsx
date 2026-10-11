@@ -399,9 +399,9 @@ function StatsPage() {
         workout={editing}
         units={units}
         onClose={() => setEditing(null)}
-        onSaved={() => {
+        onSaved={async () => {
           setEditing(null)
-          refresh()
+          await refresh()
         }}
       />
       <Dialog open={dayOpen !== null} onOpenChange={(o) => !o && setDayOpen(null)}>

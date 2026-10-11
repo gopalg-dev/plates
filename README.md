@@ -111,6 +111,11 @@ Mail goes through [Resend](https://resend.com) when `RESEND_API_KEY` is set (`MA
 sender). Without it, the sign-in link is printed by the dev server and kept in the `mail_outbox`
 collection, which is fine for local use and is what the tests rely on.
 
+Settings has Delete account: a typed confirmation, the export buttons beside it, and then every trace
+of the account and its data leaves the database. The only thing kept is one line in a `deletions`
+collection: the date, a one-way hash of the email, the session count and the days active. The
+/privacy page says the same in plain words and is linked from the sign-in and sign-up pages.
+
 Each account has its own settings, plan and logs. The first account created on a database takes
 over any data logged before accounts existed.
 
@@ -169,7 +174,7 @@ src/server/session.ts       session server function and the auth middleware
 src/server/mail.ts          mail sending, with the development outbox
 src/server/repo.ts          reads and writes, one user at a time
 src/server/fns.ts           server functions with zod validation
-src/routes/                 login, signup, setup, today (/), plan, plan/import, stats, library, settings, api/auth
+src/routes/                 login, signup, privacy, setup, today (/), plan, plan/import, stats, library, settings, api/auth
 src/components/app/         auth frame, date picker, day mark, editor panel, library list, number field, ...
 src/components/ui/          shadcn components
 tests/                      vitest

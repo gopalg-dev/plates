@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
+import { Link, createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 import {
   CalendarDays,
   ChevronsUpDown,
@@ -8,10 +8,12 @@ import {
   Trash2,
   TrendingUp,
   UserRound,
+  UserX,
   Weight,
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { ExportButtons } from '#/components/app/export-buttons'
 import { SectionHeading } from '#/components/app/section-heading'
 import { ProgressionPicker } from '#/components/app/progression-picker'
 import { SplitPicker } from '#/components/app/split-picker'
@@ -37,7 +39,8 @@ import { cn } from '#/lib/utils'
 import { PROGRESSION_LABEL, progressionOf } from '#/lib/logic/progression'
 import { GOAL_DONE, GOAL_OPTIONS } from '#/lib/logic/goal'
 import type { Goal, Schedule, SplitId, TrainingAge, Units } from '#/lib/types'
-import { applySplitFn, getSettingsFn, saveSettingsFn, setScheduleFn, startFreshFn } from '#/server/fns'
+import { authClient } from '#/lib/auth-client'
+import { applySplitFn, deleteAccountFn, getSettingsFn, saveSettingsFn, setScheduleFn, startFreshFn } from '#/server/fns'
 import { pageTitle } from '#/lib/page-title'
 import { errorMessage } from '#/lib/format'
 
@@ -295,6 +298,24 @@ function SettingsPage() {
           </p>
           <StartFreshButton />
         </section>
+
+        <section aria-labelledby="delete-h">
+          <SectionHeading id="delete-h" icon={UserX}>
+            Delete account
+          </SectionHeading>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Removes your account and every trace of your data from the database: sessions, weigh-ins, measurements,
+            plans and settings. There is no recovery. Download your logs first if you want to keep them.{' '}
+            <Link to="/privacy" className="text-foreground underline-offset-4 hover:underline">
+              What is kept and what is not
+            </Link>
+            .
+          </p>
+          <div className="mt-4">
+            <ExportButtons />
+          </div>
+          <DeleteAccountButton />
+        </section>
       </div>
     </div>
   )
@@ -303,6 +324,84 @@ function SettingsPage() {
 // ---------------------------------------------------------------- start fresh
 
 const CONFIRM = 'start fresh'
+
+const DELETE_CONFIRM = 'delete my account'
+
+function DeleteAccountButton() {
+  const navigate = useNavigate()
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const [typed, setTyped] = useState('')
+  const [busy, setBusy] = useState(false)
+  const ready = typed.trim().toLowerCase() === DELETE_CONFIRM
+
+  async function remove() {
+    if (!ready) return
+    setBusy(true)
+    try {
+      await deleteAccountFn()
+      // The session is gone with the account; signing out just clears the cookie, so a failure here is fine.
+      await authClient.signOut().catch(() => undefined)
+      setOpen(false)
+      await router.invalidate()
+      await navigate({ to: '/login', search: { deleted: true } })
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not delete the account.'))
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        setOpen(o)
+        if (!o) setTyped('')
+      }}
+    >
+      <DialogTrigger asChild>
+        <Button variant="destructive" className="mt-4">
+          Delete account
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            void remove()
+          }}
+        >
+          <DialogHeader>
+            <DialogTitle>Delete your account?</DialogTitle>
+            <DialogDescription>
+              Your account and every log go for good. Type <strong>{DELETE_CONFIRM}</strong> to confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <Field className="py-4">
+            <FieldLabel htmlFor="delete-confirm">Confirmation</FieldLabel>
+            <Input
+              id="delete-confirm"
+              value={typed}
+              onChange={(e) => setTyped(e.target.value)}
+              placeholder={DELETE_CONFIRM}
+              autoComplete="off"
+              autoCapitalize="none"
+              autoFocus
+            />
+          </Field>
+          <DialogFooter>
+            <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              Keep my account
+            </Button>
+            <Button type="submit" variant="destructive" disabled={!ready || busy}>
+              Delete everything
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 function StartFreshButton() {
   const navigate = useNavigate()

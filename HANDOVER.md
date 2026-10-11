@@ -239,6 +239,25 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+43. Delete account and a privacy page (user: "delete their account and data, where we entirely
+    remove their data trace from the db, while keeping a small log… a privacy page… enter a text
+    to confirm deletion, with options to export their log"). `repo.deleteAccount(userId)` removes
+    settings, legacy `plan`, `plans`, workouts, bodyweights, measurements, the Better Auth
+    `session` and `account` docs (userId matched as string and ObjectId), pending `verification`
+    rows for the address, `mail_outbox` mail to it, and the `user` doc, then writes one line to
+    `deletions`: `at`, `emailHash` (SHA-256 of the lower-cased email), `sessions` finished,
+    `daysActive` since joining. `deleteAccountFn` (POST, authed). Settings gained a "Delete
+    account" section (UserX icon) after Start fresh: the consequence line with a link to
+    /privacy, the Excel / CSV `ExportButtons`, and a Dialog with the typed confirmation
+    "delete my account" and a "Delete everything" button; afterwards the client clears the cookie
+    (`authClient.signOut()`, failure ignored) and lands on `/login?deleted=true`, which shows
+    "Your account and all of its data are deleted." (`deleted` in the login route's
+    validateSearch). `/privacy` is a public route on `AuthFrame`: what is stored, what it is used
+    for, who can see it, taking it with you, deleting it; linked from the login and signup
+    footers and from the delete section. e2e: a last test finishes setup, visits the privacy
+    page, deletes the account, checks the notice, that the username no longer signs in, and
+    `traceOf(email)` in `e2e/db.ts` (user, account, session, settings, plans, workouts all 0,
+    deletions 1).
 42. Bodyweight work scored at bodyweight (user: "is it worth it" → the one piece worth doing).
     `Workout.bodyweight?` is filled in when sessions are read, never stored:
     `attachBodyweight(workouts, logs)` in `stats.ts` gives each session the latest weigh-in on or
