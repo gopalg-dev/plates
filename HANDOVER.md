@@ -239,6 +239,16 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+52. Sets on the Plan row against the editor (user: "under plan you can see 3x but under edit it
+    shows 4"). The row shows `plannedSetsFor`, which under a year caps each exercise at 3 a
+    session, while the editor shows the stored number. The editor's Sets field now says "Capped
+    at 3 a session while under a year." whenever the typed number is above the cap, so the two
+    numbers explain each other. Tried and dropped the same day: a set of custom day-type and
+    muscle glyphs drawn on Lucide's grid (push, pull, legs, chest, back, shoulders, biceps,
+    triceps, quads, hamstrings, calves, abs). At the 14 to 20px the chips and tiles allow they
+    read as squiggles; the user asked for them to go, and `DayIcon` keeps its Lucide icons.
+    Should this come back, the way that works at that size is a filled mini silhouette from
+    `body-figures.ts` with the muscle painted, not strokes.
 51. Walkthrough, fourth pass: a past week on the Stats calendar points every number at that week
     (the week section, the kilos, the map's labels, and "Back to this week"), and a template's
     "Reset to the original plan" restores the template while the plan of your own keeps its swapped

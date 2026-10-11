@@ -460,6 +460,7 @@ interface FormProps {
 }
 
 function EditorForm({ day, exercise, onClose, onSaved }: FormProps) {
+  const { settings } = Route.useLoaderData()
   const dayId = day.id
   const [name, setName] = useState(exercise?.name ?? '')
   const [sets, setSets] = useState<number | undefined>(exercise?.sets ?? 3)
@@ -560,6 +561,12 @@ function EditorForm({ day, exercise, onClose, onSaved }: FormProps) {
           <Field className="col-span-2">
             <FieldLabel>Sets</FieldLabel>
             <NumberField label="Sets" value={sets} onChange={setSets} step={1} min={1} max={10} inputMode="numeric" />
+            {/* Under a year, the plan and the logger cap each exercise: say so where the number is typed. */}
+            {settings.trainingAge === 'under1' && (sets ?? 0) > plannedSetsFor(sets ?? 0, 'under1') && (
+              <FieldDescription>
+                Capped at {plannedSetsFor(sets ?? 0, 'under1')} a session while under a year.
+              </FieldDescription>
+            )}
           </Field>
           <Field>
             <FieldLabel>Low, {unit}</FieldLabel>
