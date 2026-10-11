@@ -88,6 +88,8 @@ export interface Settings {
   progression?: Progression
   /** Gain, hold or cut. Unset reads as hold. */
   goal?: Goal
+  /** When feedback was last sent or the prompt last dismissed. Gates the prompt after a session. */
+  feedbackAt?: string
 }
 
 export interface LoggedSet {

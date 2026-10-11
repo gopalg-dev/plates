@@ -239,6 +239,24 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+47. Feedback with little friction (user: "how do we collect feedback… generally feedback forms
+    will ask for a lot of information so mostly users will skip them… decide where to provide the
+    feedback form"). Decision: one place plus one moment, never page by page. The account menu has
+    "Send feedback" (`FeedbackDialog` in `src/components/app/feedback-form.tsx`): three faces
+    (Rough / OK / Good, `MOODS` in `src/lib/logic/feedback.ts`) and an optional line, nothing
+    else asked; a face or a line is enough to send. The same fields appear once in a while at the
+    foot of the finish summary (`SummaryDialog`, compact, with a Send beside Done): after
+    `FEEDBACK_AFTER_SESSIONS` (5) finished sessions and then every `FEEDBACK_EVERY_DAYS` (30),
+    dismissing counts as asked (`dismissFeedbackFn` → `settings.feedbackAt`). `finishWorkout`
+    returns `askFeedback` from `feedbackDue(sessionsDone, feedbackAt, now)`. `sendFeedbackFn`
+    stores `{ userId, at, mood?, text, route, trigger }` in the `feedback` collection (deleted
+    with the account) and mails a copy to `FEEDBACK_TO` when that env var is set, through
+    `sendMail`. The privacy page lists feedback among what is stored. Research notes: trigger on an
+    event the person just completed rather than a page load or a timer, one question with an
+    optional open line, a cooldown of two to four weeks per person, and never mid-task (vendor
+    guides from Refiner, SurveySensum, Simplesat; Apple's rating prompt rules as the pattern for
+    asking after a completed sequence and capping how often). Tests: `tests/feedback.test.ts`;
+    the e2e sends feedback from the menu.
 46. Sessions tab tidy-up around the map. The week header is three quiet lines under the big
     number: "1 week in a row, effort ok." and "18 hard sets · 2,202 kg · 2 min" (user: "try to
     provide these information minimally"); the three `Figure` tiles are gone. From 1024px the week

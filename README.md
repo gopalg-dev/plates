@@ -90,6 +90,7 @@ default build settings, and set these environment variables for Production:
 | `BETTER_AUTH_SECRET` | a random string of 32+ characters, different from the one in `.env` |
 | `BETTER_AUTH_URL` | the site's address, `https://<project>.vercel.app` or your domain, no trailing slash |
 | `RESEND_API_KEY`, `MAIL_FROM` | the Resend key and a sender on a domain verified at Resend |
+| `FEEDBACK_TO` | optional: an address that gets a copy of every piece of feedback sent from the app |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | only for Google sign-in, with `BETTER_AUTH_URL` + `/api/auth/callback/google` as a redirect URI |
 
 Node 24 or later. A change to a variable needs a redeploy. `bun run build` runs the same build
@@ -111,6 +112,10 @@ Three ways to sign in, all on `/login`:
 Mail goes through [Resend](https://resend.com) when `RESEND_API_KEY` is set (`MAIL_FROM` is the
 sender). Without it, the sign-in link is printed by the dev server and kept in the `mail_outbox`
 collection, which is fine for local use and is what the tests rely on.
+
+The account menu has Send feedback: three faces and an optional line, stored with the account and
+mailed to `FEEDBACK_TO` when that is set. The same two fields appear at the foot of the finish summary
+after five sessions, then at most once a month.
 
 Settings has Delete account: a typed confirmation, the export buttons beside it, and then every trace
 of the account and its data leaves the database. The only thing kept is one line in a `deletions`

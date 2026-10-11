@@ -1,5 +1,15 @@
 import { Link, Outlet, createFileRoute, redirect, useLocation } from '@tanstack/react-router'
-import { BookOpen, ChartColumn, ChevronsUpDown, Dumbbell, ListChecks, LogOut, Palette, Settings } from 'lucide-react'
+import {
+  BookOpen,
+  ChartColumn,
+  ChevronsUpDown,
+  Dumbbell,
+  ListChecks,
+  LogOut,
+  MessageSquare,
+  Palette,
+  Settings,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Avatar, AvatarFallback } from '#/components/ui/avatar'
 import {
@@ -31,6 +41,7 @@ import {
   useSidebar,
 } from '#/components/ui/sidebar'
 import { AppMark } from '#/components/app/app-mark'
+import { FeedbackDialog } from '#/components/app/feedback-form'
 import { THEME_OPTIONS, readTheme, saveTheme, type Theme } from '#/lib/theme'
 import { useSignOut } from '#/lib/use-sign-out'
 import { getContentFn, getShellFn } from '#/server/fns'
@@ -151,6 +162,7 @@ function AppLayout() {
 
 /** The profile row at the bottom of the sidebar. Opens a menu with Settings and Sign out. */
 function AccountMenu({ who, email }: { who: string; email: string }) {
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
   const { isMobile } = useSidebar()
   const { signOut, busy } = useSignOut()
   /** The look is kept on the device, so it is read after mount: the server does not know it. */
@@ -218,6 +230,10 @@ function AccountMenu({ who, email }: { who: string; email: string }) {
                 </DropdownMenuRadioGroup>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
+            <DropdownMenuItem onSelect={() => setFeedbackOpen(true)}>
+              <MessageSquare aria-hidden className="text-muted-foreground" />
+              Send feedback
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => void signOut()} disabled={busy}>
               <LogOut aria-hidden />
@@ -225,6 +241,7 @@ function AccountMenu({ who, email }: { who: string; email: string }) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <FeedbackDialog open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
       </SidebarMenuItem>
     </SidebarMenu>
   )

@@ -69,9 +69,18 @@ import {
   type Workout,
   type WorkoutEntry,
 } from '#/lib/types'
+import { FeedbackFields, useSendFeedback } from '#/components/app/feedback-form'
+import type { Mood } from '#/lib/logic/feedback'
 import type { SessionSummary } from '#/lib/logic/summary'
 import type { TodayData } from '#/server/repo'
-import { discardWorkoutFn, finishWorkoutFn, getTodayFn, saveSetsFn, startWorkoutFn } from '#/server/fns'
+import {
+  discardWorkoutFn,
+  dismissFeedbackFn,
+  finishWorkoutFn,
+  getTodayFn,
+  saveSetsFn,
+  startWorkoutFn,
+} from '#/server/fns'
 import { pageTitle } from '#/lib/page-title'
 
 export const Route = createFileRoute('/_app/')({
@@ -89,7 +98,7 @@ function TodayPage() {
   const router = useRouter()
   const refresh = () => router.invalidate()
   // The finish summary outlives the workout it came from: it shows over Next up once the page refreshes.
-  const [summary, setSummary] = useState<SessionSummary | null>(null)
+  const [summary, setSummary] = useState<{ summary: SessionSummary; askFeedback: boolean } | null>(null)
   return (
     <>
       {data.active ? (
@@ -99,12 +108,16 @@ function TodayPage() {
           settings={data.settings}
           plan={data.plan}
           onChanged={refresh}
-          onSummary={setSummary}
+          onSummary={(s, askFeedback) => setSummary({ summary: s, askFeedback })}
         />
       ) : (
         <NextUp data={data} onChanged={refresh} />
       )}
-      <SummaryDialog summary={summary} onClose={() => setSummary(null)} />
+      <SummaryDialog
+        summary={summary?.summary ?? null}
+        askFeedback={summary?.askFeedback ?? false}
+        onClose={() => setSummary(null)}
+      />
     </>
   )
 }
@@ -112,9 +125,36 @@ function TodayPage() {
 // ---------------------------------------------------------------- finish summary
 
 /** What the session did, shown once at Finish: every lift's best set, new bests marked, the week's count. */
-function SummaryDialog({ summary, onClose }: { summary: SessionSummary | null; onClose: () => void }) {
+function SummaryDialog({
+  summary,
+  askFeedback,
+  onClose,
+}: {
+  summary: SessionSummary | null
+  askFeedback: boolean
+  onClose: () => void
+}) {
+  const [mood, setMood] = useState<Mood | null>(null)
+  const [text, setText] = useState('')
+  const [sent, setSent] = useState(false)
+  const { send, busy } = useSendFeedback('summary')
+  const asking = askFeedback && !sent
+
+  async function close() {
+    // Waving the prompt away counts: the next one waits a month.
+    if (asking) void dismissFeedbackFn().catch(() => undefined)
+    onClose()
+    setMood(null)
+    setText('')
+    setSent(false)
+  }
+
+  async function sendNow() {
+    if (await send(mood, text)) setSent(true)
+  }
+
   return (
-    <Dialog open={summary !== null} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={summary !== null} onOpenChange={(open) => !open && void close()}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Workout saved</DialogTitle>
@@ -147,8 +187,19 @@ function SummaryDialog({ summary, onClose }: { summary: SessionSummary | null; o
             ))}
           </ul>
         )}
+        {asking && (
+          <div className="border-t pt-4">
+            <p className="mb-2 text-sm font-medium">How is Plates for you?</p>
+            <FeedbackFields mood={mood} text={text} onMood={setMood} onText={setText} compact />
+          </div>
+        )}
         <DialogFooter>
-          <Button onClick={onClose}>Done</Button>
+          {asking && (
+            <Button variant="outline" onClick={sendNow} disabled={busy || (mood === null && !text.trim())}>
+              Send
+            </Button>
+          )}
+          <Button onClick={close}>Done</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -384,7 +435,7 @@ interface ActiveProps {
   settings: Settings
   plan: Plan
   onChanged: () => void
-  onSummary: (summary: SessionSummary) => void
+  onSummary: (summary: SessionSummary, askFeedback: boolean) => void
 }
 
 function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: ActiveProps) {
@@ -476,7 +527,7 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
         data: { workoutId: workout.id, ...extra },
       })
       setCheckInOpen(false)
-      if (res.summary) onSummary(res.summary)
+      if (res.summary) onSummary(res.summary, res.askFeedback === true)
       else toast.success('Nothing was logged, so the workout was removed')
       onChanged()
     } catch (err) {

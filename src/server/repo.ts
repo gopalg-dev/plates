@@ -4,6 +4,7 @@ import { nextDayId } from '#/lib/logic/next-day'
 import { STALL_SESSIONS, progressionOf, suggestNext, type PastEntry } from '#/lib/logic/progression'
 import { assignWeekdays, type Finished } from '#/lib/logic/schedule'
 import { bodyweightAlert, stallAlerts, weekAlert, type Alert } from '#/lib/logic/alerts'
+import { feedbackDue, type FeedbackTrigger, type Mood } from '#/lib/logic/feedback'
 import { attachBodyweight, plannedSetsFor, sessionsInWeek } from '#/lib/logic/stats'
 import { plannedPerWeek, summarize, type SessionSummary } from '#/lib/logic/summary'
 import { buildCustomDays, buildDay } from '#/lib/day-blocks'
@@ -463,7 +464,7 @@ export async function finishWorkout(
   userId: string,
   workoutId: string,
   extra: FinishExtra = {},
-): Promise<{ finished: boolean; summary?: SessionSummary }> {
+): Promise<{ finished: boolean; summary?: SessionSummary; askFeedback?: boolean }> {
   const { workouts } = await cols()
   const _id = oid(workoutId)
   const doc = await workouts.findOne({ _id, userId })
@@ -488,7 +489,11 @@ export async function finishWorkout(
   const earlier = attachBodyweight(past, weighIns)
   const [done] = attachBodyweight([{ ...toWorkout(doc), ...patch } as Workout], weighIns)
   const week = { done: sessionsInWeek(earlier, now) + 1, planned: plannedPerWeek(plan, settings) }
-  return { finished: true, summary: summarize(done, earlier, settings.units, week) }
+  return {
+    finished: true,
+    summary: summarize(done, earlier, settings.units, week),
+    askFeedback: feedbackDue(earlier.length + 1, settings.feedbackAt, now),
+  }
 }
 
 export async function discardWorkout(userId: string, workoutId: string): Promise<void> {
@@ -652,6 +657,28 @@ export async function startFresh(userId: string): Promise<void> {
   ])
 }
 
+// ---- feedback ----
+
+export interface FeedbackInput {
+  mood?: Mood
+  text: string
+  route: string
+  trigger: FeedbackTrigger
+}
+
+/** Keeps what was sent and remembers the moment, so the next prompt waits its turn. */
+export async function addFeedback(userId: string, input: FeedbackInput): Promise<void> {
+  const { db } = await cols()
+  const at = new Date().toISOString()
+  await db.collection('feedback').insertOne({ userId, at, ...input })
+  await saveSettings(userId, { feedbackAt: at })
+}
+
+/** The prompt was waved away: ask again in a month, not tomorrow. */
+export async function dismissFeedback(userId: string): Promise<void> {
+  await saveSettings(userId, { feedbackAt: new Date().toISOString() })
+}
+
 // ---- accounts ----
 
 /** What the deletion log keeps: nothing that points back at a person. */
@@ -702,6 +729,7 @@ export async function deleteAccount(userId: string): Promise<void> {
             .collection('verification')
             .deleteMany({ identifier: { $in: [email, `email-verification-otp-${email}`, `sign-in-otp-${email}`] } }),
           db.collection('mail_outbox').deleteMany({ to: email }),
+          db.collection('feedback').deleteMany({ userId }),
         ]
       : []),
   ])

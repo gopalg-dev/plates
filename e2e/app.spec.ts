@@ -485,6 +485,21 @@ test('a day on the stats calendar opens its session to fix a set or remove it', 
   await expect(page.getByText('Nothing logged yet', { exact: false })).toBeVisible()
 })
 
+test('feedback is one tap and an optional line, from the account menu', async () => {
+  await open(page, '/')
+  if ((page.viewportSize()?.width ?? 0) < 768) await page.getByRole('button', { name: 'Open menu' }).click()
+  await page.getByRole('button', { name: /^Account menu/ }).click()
+  await page.getByRole('menuitem', { name: 'Send feedback' }).click()
+  await expect(page.getByRole('heading', { name: 'How is Plates for you?' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Send', exact: true })).toBeDisabled()
+  await page.getByRole('radio', { name: 'Good' }).click()
+  await page.getByLabel('Feedback', { exact: true }).fill('The targets are spot on.')
+  await snap(page, '15b-feedback')
+  await page.getByRole('button', { name: 'Send', exact: true }).click()
+  await expect(page.getByText('Thanks, noted.')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'How is Plates for you?' })).not.toBeVisible()
+})
+
 test('an emailed sign-in link signs a new user in and starts setup', async () => {
   await signOut(page)
   await expect(page).toHaveURL(/\/login$/)

@@ -12,7 +12,7 @@ const SECTIONS: { title: string; body: string }[] = [
     title: 'What is stored',
     body:
       'Your email address, a username and display name if you set one, your settings, your plan, and what you log: ' +
-      'sessions with their sets, weigh-ins and tape measurements. Passwords are stored as a hash that cannot be ' +
+      'sessions with their sets, weigh-ins and tape measurements, and any feedback you send. Passwords are stored as a hash that cannot be ' +
       'read back. Sign-in links and codes are kept only until they are used or expire.',
   },
   {

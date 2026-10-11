@@ -2,7 +2,9 @@ import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
 import { DAY_TYPES, GOALS, MAX_DAYS, MAX_EXERCISES_PER_DAY, PROGRESSIONS } from '#/lib/types'
 import { authOptions, currentUser } from './auth'
+import { MOOD_LABEL } from '#/lib/logic/feedback'
 import { readContent } from './content'
+import { sendMail } from './mail'
 import * as repo from './repo'
 import { authed } from './session'
 
@@ -64,6 +66,42 @@ export const saveSettingsFn = createServerFn({ method: 'POST' })
     }),
   )
   .handler(({ data, context }) => repo.saveSettings(context.userId, data))
+
+/** One tap and an optional line. Stored with the account; also mailed to FEEDBACK_TO when that is set. */
+export const sendFeedbackFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(
+    z
+      .object({
+        mood: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
+        text: z.string().trim().max(1000),
+        route: z.string().max(200),
+        trigger: z.enum(['menu', 'summary']),
+      })
+      .refine((d) => d.mood !== undefined || d.text.length > 0, { message: 'Pick a face or write a line.' }),
+  )
+  .handler(async ({ data, context }) => {
+    await repo.addFeedback(context.userId, data)
+    const to = process.env.FEEDBACK_TO
+    if (to) {
+      const mood = data.mood ? MOOD_LABEL[data.mood] : 'no face'
+      const text = `${mood} on ${data.route} (${data.trigger})\n\n${data.text || '(no text)'}`
+      await sendMail({
+        to,
+        subject: `Plates feedback: ${mood}`,
+        text,
+        html: `<pre style="font: 14px/1.5 sans-serif; white-space: pre-wrap">${escapeHtml(text)}</pre>`,
+      }).catch((err: unknown) => console.warn('Feedback mail failed', err))
+    }
+  })
+
+export const dismissFeedbackFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .handler(({ context }) => repo.dismissFeedback(context.userId))
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
+}
 
 /** Removes the account and every trace of its data. The client asks for a typed confirmation first. */
 export const deleteAccountFn = createServerFn({ method: 'POST' })
