@@ -109,7 +109,7 @@ test('logs a workout with the set logger', async () => {
   await expect(page.getByText(/Started/)).toBeVisible()
 
   // Pull-ups open first. Log a set by reps only.
-  await expect(page.getByRole('button', { name: /Pull-ups/ })).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByRole('button', { name: /^Pull-ups/ })).toHaveAttribute('aria-expanded', 'true')
   const pullups = page.getByRole('region', { name: /Pull-ups/ })
   await pullups.getByLabel('Set 1 reps', { exact: true }).fill('8')
   await pullups.getByRole('button', { name: 'Mark set 1 done' }).click()
