@@ -33,3 +33,14 @@ export function signed(n: number, digits = 1): string {
   const s = n.toFixed(digits).replace(/\.0+$/, '')
   return n > 0 ? `+${s}` : s
 }
+
+/**
+ * What to tell the user when a request fails: the error's own sentence, or the fallback when the
+ * message is not one (a validator's JSON, an empty string, a non-Error).
+ */
+export function errorMessage(err: unknown, fallback: string): string {
+  if (!(err instanceof Error)) return fallback
+  const m = err.message.trim()
+  if (!m || m.startsWith('[') || m.startsWith('{')) return fallback
+  return m
+}

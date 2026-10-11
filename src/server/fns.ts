@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { DAY_TYPES, MAX_EXERCISES_PER_DAY } from '#/lib/types'
+import { DAY_TYPES, GOALS, MAX_EXERCISES_PER_DAY, PROGRESSIONS } from '#/lib/types'
 import { authOptions, currentUser } from './auth'
 import { readContent } from './content'
 import * as repo from './repo'
@@ -13,23 +13,17 @@ const units = z.enum(['kg', 'lb'])
 /** A split template id. Open, since templates live in the database; the repo rejects unknown ones. */
 const splitId = z.string().min(1).max(40)
 const trainingAge = z.enum(['under1', 'over1'])
-const muscle = z.enum([
-  'chest',
-  'back',
-  'shoulders',
-  'biceps',
-  'triceps',
-  'quads',
-  'hamstrings',
-  'calves',
-  'abs',
-])
+const muscle = z.enum(['chest', 'back', 'shoulders', 'biceps', 'triceps', 'quads', 'hamstrings', 'calves', 'abs'])
 const loadType = z.enum(['weight', 'bodyweight', 'time'])
 
+/** A value the user may not have entered. Sessions stored before October 2026 hold null for that. */
+const absent = <T extends z.ZodType>(schema: T) => schema.nullish().transform((v) => v ?? undefined)
+
 const loggedSet = z.object({
-  weight: z.number().min(0).max(2000).optional(),
-  reps: z.number().int().min(0).max(500).optional(),
-  seconds: z.number().int().min(0).max(3600).optional(),
+  weight: absent(z.number().min(0).max(2000)),
+  reps: absent(z.number().int().min(0).max(500)),
+  seconds: absent(z.number().int().min(0).max(3600)),
+  left: absent(z.number().int().min(0).max(5)),
   done: z.boolean(),
 })
 
@@ -65,6 +59,8 @@ export const saveSettingsFn = createServerFn({ method: 'POST' })
       trainingAge: trainingAge.optional(),
       setupDone: z.boolean().optional(),
       split: splitId.optional(),
+      progression: z.enum(PROGRESSIONS).optional(),
+      goal: z.enum(GOALS).optional(),
     }),
   )
   .handler(({ data, context }) => repo.saveSettings(context.userId, data))
@@ -237,7 +233,10 @@ export const getStatsFn = createServerFn({ method: 'GET' })
   .middleware([authed])
   .handler(({ context }) => repo.getStatsData(context.userId))
 
-const dayKey = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
+const dayKey = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .optional()
 /** The instant a log happened. Optional and never in the future (a day of slack for time zones). */
 const at = z.iso
   .datetime()

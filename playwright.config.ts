@@ -26,6 +26,8 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 180_000,
     env: {
+      // Always the local Docker database, whatever .env points at (a hosted one for the dev server, say).
+      MONGODB_URI: 'mongodb://localhost:27017',
       MONGODB_DB: E2E_DB,
       // Better Auth checks the request origin against this URL; the e2e server has its own port.
       BETTER_AUTH_URL: `http://localhost:${E2E_PORT}`,

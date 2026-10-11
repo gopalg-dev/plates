@@ -1,10 +1,12 @@
 import { ObjectId, type Db } from 'mongodb'
 import { nextDayId } from '#/lib/logic/next-day'
-import { suggestNext } from '#/lib/logic/progression'
+import { STALL_SESSIONS, progressionOf, suggestNext, type PastEntry } from '#/lib/logic/progression'
 import { assignWeekdays, type Finished } from '#/lib/logic/schedule'
-import { plannedSetsFor } from '#/lib/logic/stats'
+import { bodyweightAlert, stallAlerts, weekAlert, type Alert } from '#/lib/logic/alerts'
+import { attachBodyweight, plannedSetsFor, sessionsInWeek } from '#/lib/logic/stats'
+import { plannedPerWeek, summarize, type SessionSummary } from '#/lib/logic/summary'
 import { slug } from '#/lib/seed-plan'
-import { templateOf } from '#/lib/content'
+import { DEFAULT_SPLIT } from '#/lib/content'
 import { splitTemplate } from './content'
 import {
   MAX_EXERCISES_PER_DAY,
@@ -14,6 +16,7 @@ import {
   type MeasurementLog,
   type Plan,
   type PlanDay,
+  type PlanSource,
   type Schedule,
   type Settings,
   type SplitId,
@@ -22,11 +25,13 @@ import {
 } from '#/lib/types'
 import { getDb } from './db'
 
-// Every document belongs to one user. Settings and plan use the user id as their _id;
-// the log collections carry a userId field, and every query filters on it.
+// Every document belongs to one user. Settings use the user id as their _id; plans and the log
+// collections carry a userId field, and every query filters on it.
 
 type SettingsDoc = Settings & { _id: string }
-type PlanDoc = Plan & { _id: string }
+type PlanDoc = Plan & { _id: ObjectId; userId: string; split: PlanSource }
+/** The one-plan-per-user shape from before plans were kept per split. Read only to migrate. */
+type LegacyPlanDoc = Plan & { _id: string }
 type WorkoutDoc = Omit<Workout, 'id'> & { _id: ObjectId; userId: string }
 type BodyweightDoc = Omit<BodyweightLog, 'id'> & { _id: ObjectId; userId: string }
 type MeasurementDoc = Omit<MeasurementLog, 'id'> & { _id: ObjectId; userId: string }
@@ -40,10 +45,10 @@ function ensureIndexes(db: Db) {
   if (indexed.has(db)) return
   indexed.add(db)
   void Promise.all([
-    db.collection('workouts').createIndexes([
-      { key: { userId: 1, status: 1, finishedAt: -1 } },
-      { key: { userId: 1, startedAt: -1 } },
-    ]),
+    db.collection('plans').createIndexes([{ key: { userId: 1, split: 1 }, unique: true }]),
+    db
+      .collection('workouts')
+      .createIndexes([{ key: { userId: 1, status: 1, finishedAt: -1 } }, { key: { userId: 1, startedAt: -1 } }]),
     db.collection('bodyweights').createIndexes([{ key: { userId: 1, date: -1 } }, { key: { userId: 1, day: 1 } }]),
     db.collection('measurements').createIndexes([{ key: { userId: 1, date: -1 } }, { key: { userId: 1, day: 1 } }]),
   ]).catch((err: unknown) => {
@@ -58,16 +63,27 @@ async function cols() {
   return {
     db,
     settings: db.collection<SettingsDoc>('settings'),
-    plan: db.collection<PlanDoc>('plan'),
+    plan: db.collection<LegacyPlanDoc>('plan'),
+    plans: db.collection<PlanDoc>('plans'),
     workouts: db.collection<WorkoutDoc>('workouts'),
     bodyweights: db.collection<BodyweightDoc>('bodyweights'),
     measurements: db.collection<MeasurementDoc>('measurements'),
   }
 }
 
+/** Sessions stored before October 2026 hold null for a value never entered; the app treats that as absent. */
+function cleanSet(s: LoggedSet): LoggedSet {
+  const out: LoggedSet = { done: s.done }
+  if (s.weight != null) out.weight = s.weight
+  if (s.reps != null) out.reps = s.reps
+  if (s.seconds != null) out.seconds = s.seconds
+  if (s.left != null) out.left = s.left
+  return out
+}
+
 function toWorkout(doc: WorkoutDoc): Workout {
   const { _id, userId: _owner, ...rest } = doc
-  return { id: _id.toHexString(), ...rest }
+  return { id: _id.toHexString(), ...rest, entries: rest.entries.map((e) => ({ ...e, sets: e.sets.map(cleanSet) })) }
 }
 
 function strip<T extends { _id: string }>(doc: T): Omit<T, '_id'> {
@@ -101,40 +117,84 @@ export async function saveSettings(userId: string, patch: Partial<Settings>): Pr
 }
 
 // ---- plan ----
+//
+// One plan per split the user has been on, in `plans`, keyed by user and split id (`custom` for an
+// uploaded plan). Settings name the current split. Switching away keeps the plan; switching back
+// finds it as it was left.
 
-/** The user's chosen template, built fresh. */
-async function templatePlan(userId: string): Promise<Plan> {
+/** The split the user is on: a template id, `custom`, or the default before anything was chosen. */
+async function currentSource(userId: string): Promise<PlanSource> {
   const settings = await getSettings(userId)
-  return { days: await splitTemplate(templateOf(settings.split)), updatedAt: new Date().toISOString() }
+  return settings.split ?? DEFAULT_SPLIT
 }
 
-export async function getPlan(userId: string): Promise<Plan> {
-  const { plan } = await cols()
-  const doc = await plan.findOne({ _id: userId })
-  if (doc) return strip(doc)
-  const fresh = await templatePlan(userId)
-  await plan.updateOne({ _id: userId }, { $setOnInsert: { _id: userId, ...fresh } }, { upsert: true })
-  return fresh
+async function findPlan(userId: string, split: PlanSource): Promise<PlanDoc | null> {
+  const { plans } = await cols()
+  return plans.findOne({ userId, split })
 }
 
-async function savePlan(userId: string, next: Plan): Promise<Plan> {
-  const { plan } = await cols()
-  const updated = { ...next, updatedAt: new Date().toISOString() }
-  await plan.updateOne({ _id: userId }, { $set: updated }, { upsert: true })
+function toPlan(doc: PlanDoc): Plan {
+  return { days: doc.days, updatedAt: doc.updatedAt }
+}
+
+/** Writes the days into the slot for one split, creating the slot when it is new. */
+async function savePlanFor(userId: string, split: PlanSource, days: PlanDay[]): Promise<Plan> {
+  const { plans } = await cols()
+  const updated = { days, updatedAt: new Date().toISOString() }
+  await plans.updateOne({ userId, split }, { $set: updated, $setOnInsert: { userId, split } }, { upsert: true })
   return updated
 }
 
-/** Back to the chosen template, edits and swaps gone. Logged workouts stay. */
-export async function resetPlan(userId: string): Promise<Plan> {
-  return savePlan(userId, await templatePlan(userId))
+/**
+ * Before plans were kept per split, the one plan sat in `plan` under the user id. The first read
+ * moves it into the slot for the split the user is on.
+ */
+async function migrateLegacyPlan(userId: string, split: PlanSource): Promise<Plan | null> {
+  const { plan } = await cols()
+  const legacy = await plan.findOne({ _id: userId })
+  if (!legacy) return null
+  const moved = await savePlanFor(userId, split, legacy.days)
+  await plan.deleteOne({ _id: userId })
+  return moved
 }
 
-/** Switches to another template: remembers the choice and starts the plan over from it. */
+/** The plan for the split the user is on, built from its template the first time. */
+export async function getPlan(userId: string): Promise<Plan> {
+  let source = await currentSource(userId)
+  const doc = await findPlan(userId, source)
+  if (doc) return toPlan(doc)
+  const legacy = await migrateLegacyPlan(userId, source)
+  if (legacy) return legacy
+  if (source === 'custom') {
+    // Nothing uploaded survives for this account; fall back to the default template.
+    source = DEFAULT_SPLIT
+    await saveSettings(userId, { split: source })
+  }
+  return savePlanFor(userId, source, await splitTemplate(source))
+}
+
+/** Saves the plan for the split the user is on. */
+async function savePlan(userId: string, next: Plan): Promise<Plan> {
+  return savePlanFor(userId, await currentSource(userId), next.days)
+}
+
+/** Back to the template of the split the user is on, edits and swaps gone. Logged workouts stay. */
+export async function resetPlan(userId: string): Promise<Plan> {
+  const source = await currentSource(userId)
+  if (source === 'custom') throw new Error('A custom plan has no template to go back to')
+  return savePlanFor(userId, source, await splitTemplate(source))
+}
+
+/**
+ * Moves to another split: remembers the choice and shows that split's plan, as the user left it,
+ * or fresh from the template the first time. The plan being left stays for when they come back.
+ */
 export async function applySplit(userId: string, split: SplitId): Promise<Plan> {
   // Read the template first: an unknown id throws before anything is written.
-  const days = await splitTemplate(split)
+  const template = await splitTemplate(split)
   await saveSettings(userId, { split })
-  return savePlan(userId, { days, updatedAt: new Date().toISOString() })
+  const existing = await findPlan(userId, split)
+  return existing ? toPlan(existing) : savePlanFor(userId, split, template)
 }
 
 /** Rolling or by weekday. Going by weekday gives every day without one a sensible weekday. */
@@ -156,14 +216,17 @@ export async function setDayWeekday(userId: string, dayId: string, weekday: numb
   return savePlan(userId, plan)
 }
 
-/** Swaps the whole plan for days the user brought in. Logged workouts are untouched. */
-/** An uploaded plan. `split` is the template it was downloaded as; without one the plan is custom. */
+/**
+ * An uploaded plan. `split` is the template it was downloaded as, and the plan takes that split's
+ * slot; without one the plan is custom. Logged workouts are untouched.
+ */
 export async function replacePlan(userId: string, days: PlanDay[], split?: SplitId): Promise<Plan> {
   if (days.length === 0) throw new Error('The plan needs at least one day')
   if (days.some((d) => d.exercises.length === 0)) throw new Error('Every day needs at least one exercise')
   if (split) await splitTemplate(split) // an unknown template id throws here
-  await saveSettings(userId, { split: split ?? 'custom' })
-  return savePlan(userId, { days, updatedAt: new Date().toISOString() })
+  const source: PlanSource = split ?? 'custom'
+  await saveSettings(userId, { split: source })
+  return savePlanFor(userId, source, days)
 }
 
 export type ExercisePatch = Partial<Omit<Exercise, 'id'>>
@@ -247,6 +310,28 @@ export async function lastFinishedWorkout(userId: string): Promise<Workout | nul
   return doc ? toWorkout(doc) : null
 }
 
+/**
+ * The last few finished sessions of an exercise, newest first, with how each felt. Sessions on the
+ * same plan day come first (Chest and back A learns from A, not B); any day serves when that day has
+ * no history yet.
+ */
+export async function recentEntries(
+  userId: string,
+  exerciseId: string,
+  dayId: string,
+  limit = STALL_SESSIONS,
+): Promise<PastEntry[]> {
+  const { workouts } = await cols()
+  const match = { userId, status: 'done' as const, entries: { $elemMatch: { exerciseId, 'sets.done': true } } }
+  let docs = await workouts.find({ ...match, dayId }, { sort: { finishedAt: -1 }, limit }).toArray()
+  if (docs.length === 0) docs = await workouts.find(match, { sort: { finishedAt: -1 }, limit }).toArray()
+  return docs.flatMap((doc) => {
+    const entry = toWorkout(doc).entries.find((e) => e.exerciseId === exerciseId)
+    return entry ? [{ entry, effort: doc.effort }] : []
+  })
+}
+
+/** The last finished session of an exercise, on any day. */
 export async function lastFinishedEntry(userId: string, exerciseId: string): Promise<WorkoutEntry | undefined> {
   const { workouts } = await cols()
   const doc = await workouts.findOne(
@@ -266,8 +351,8 @@ export async function startWorkout(userId: string, dayId: string): Promise<Worko
   const entries: WorkoutEntry[] = []
   for (const ex of day.exercises) {
     const targetSets = plannedSetsFor(ex.sets, settings.trainingAge)
-    const last = await lastFinishedEntry(userId, ex.id)
-    const s = suggestNext(ex, targetSets, last, settings.units)
+    const history = await recentEntries(userId, ex.id, dayId)
+    const s = suggestNext(ex, targetSets, history, settings.units, progressionOf(settings))
     entries.push({
       exerciseId: ex.id,
       name: ex.name,
@@ -276,6 +361,7 @@ export async function startWorkout(userId: string, dayId: string): Promise<Worko
       repMin: ex.repMin,
       repMax: ex.repMax,
       ...(s.hint ? { hint: s.hint } : {}),
+      ...(s.suggested ? { suggested: s.suggested } : {}),
       sets: s.sets,
     })
   }
@@ -313,12 +399,15 @@ export interface FinishExtra {
   note?: string
 }
 
-/** Marks the workout done. A workout with nothing checked is deleted instead. */
+/**
+ * Marks the workout done and says what it did: each lift's best set, new bests, and the week's count.
+ * A workout with nothing checked is deleted instead.
+ */
 export async function finishWorkout(
   userId: string,
   workoutId: string,
   extra: FinishExtra = {},
-): Promise<{ finished: boolean }> {
+): Promise<{ finished: boolean; summary?: SessionSummary }> {
   const { workouts } = await cols()
   const _id = oid(workoutId)
   const doc = await workouts.findOne({ _id, userId })
@@ -328,11 +417,22 @@ export async function finishWorkout(
     await workouts.deleteOne({ _id, userId })
     return { finished: false }
   }
-  const patch: Partial<WorkoutDoc> = { status: 'done', finishedAt: new Date().toISOString() }
+  const now = new Date()
+  const patch: Partial<WorkoutDoc> = { status: 'done', finishedAt: now.toISOString() }
   if (extra.effort !== undefined) patch.effort = extra.effort
   if (extra.note) patch.note = extra.note
+  // Earlier sessions are read before this one joins them.
+  const [past, settings, plan, weighIns] = await Promise.all([
+    listWorkouts(userId, { sinceDays: 365 }),
+    getSettings(userId),
+    getPlan(userId),
+    listBodyweights(userId),
+  ])
   await workouts.updateOne({ _id, userId }, { $set: patch })
-  return { finished: true }
+  const earlier = attachBodyweight(past, weighIns)
+  const [done] = attachBodyweight([{ ...toWorkout(doc), ...patch } as Workout], weighIns)
+  const week = { done: sessionsInWeek(earlier, now) + 1, planned: plannedPerWeek(plan, settings) }
+  return { finished: true, summary: summarize(done, earlier, settings.units, week) }
 }
 
 export async function discardWorkout(userId: string, workoutId: string): Promise<void> {
@@ -483,12 +583,13 @@ export async function listMeasurements(userId: string, limit = 24): Promise<Meas
   return docs.map(({ _id, userId: _owner, ...rest }) => ({ id: _id.toHexString(), ...rest })).reverse()
 }
 
-/** Wipes this user's plan, settings and every log. The account itself stays; setup runs again. */
+/** Wipes this user's plans, settings and every log. The account itself stays; setup runs again. */
 export async function startFresh(userId: string): Promise<void> {
-  const { settings, plan, workouts, bodyweights, measurements } = await cols()
+  const { settings, plan, plans, workouts, bodyweights, measurements } = await cols()
   await Promise.all([
     settings.deleteOne({ _id: userId }),
     plan.deleteOne({ _id: userId }),
+    plans.deleteMany({ userId }),
     workouts.deleteMany({ userId }),
     bodyweights.deleteMany({ userId }),
     measurements.deleteMany({ userId }),
@@ -513,7 +614,7 @@ export async function claimLegacyData(userId: string): Promise<void> {
   }
   const legacyPlan = await plan.findOne({ _id: 'plan' })
   if (legacyPlan) {
-    await plan.updateOne({ _id: userId }, { $set: strip(legacyPlan) }, { upsert: true })
+    await savePlanFor(userId, await currentSource(userId), legacyPlan.days)
     await plan.deleteOne({ _id: 'plan' })
   }
   const orphaned = { userId: { $exists: false } }
@@ -536,19 +637,27 @@ export interface TodayData {
   recent: Finished[]
   lastBodyweightAt: string | null
   lastMeasurementAt: string | null
+  /** Lifts that stopped moving, a week running out, a scale that is not moving. */
+  alerts: Alert[]
 }
 
 export async function getTodayData(userId: string): Promise<TodayData> {
-  const { bodyweights, measurements } = await cols()
-  const [settings, plan, active, last, recent, lastWeight, lastMeasure] = await Promise.all([
+  const { measurements } = await cols()
+  const now = new Date()
+  const [settings, plan, active, last, recent, bodyweights, lastMeasure] = await Promise.all([
     getSettings(userId),
     getPlan(userId),
     getActiveWorkout(userId),
     lastFinishedWorkout(userId),
     listWorkouts(userId, { sinceDays: 365 }),
-    bodyweights.findOne({ userId }, { sort: { date: -1 } }),
+    listBodyweights(userId, 60),
     measurements.findOne({ userId }, { sort: { date: -1 } }),
   ])
+  const alerts: Alert[] = [
+    ...stallAlerts(attachBodyweight(recent, bodyweights), now),
+    weekAlert(sessionsInWeek(recent, now), plannedPerWeek(plan, settings), now),
+    bodyweightAlert(bodyweights, settings.goal, settings.units, now),
+  ].filter((a): a is Alert => a !== null)
   return {
     settings,
     plan,
@@ -556,8 +665,9 @@ export async function getTodayData(userId: string): Promise<TodayData> {
     nextDayId: nextDayId(plan.days, last?.dayId),
     lastFinished: last ? { dayName: last.dayName, finishedAt: last.finishedAt! } : null,
     recent: recent.map((w) => ({ dayId: w.dayId, finishedAt: w.finishedAt! })),
-    lastBodyweightAt: lastWeight?.date ?? null,
+    lastBodyweightAt: bodyweights.at(-1)?.date ?? null,
     lastMeasurementAt: lastMeasure?.date ?? null,
+    alerts,
   }
 }
 
@@ -605,5 +715,5 @@ export async function getStatsData(userId: string): Promise<StatsData> {
     listBodyweights(userId),
     listMeasurements(userId),
   ])
-  return { settings, plan, workouts, bodyweights, measurements }
+  return { settings, plan, workouts: attachBodyweight(workouts, bodyweights), bodyweights, measurements }
 }

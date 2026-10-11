@@ -76,7 +76,7 @@ no Inter/Geist. Checked.
 - `src/lib/types.ts` shared types
 - `src/lib/seed-plan.ts` the final Plan B with the user's equipment picks (`seedPlan()`, `slug()`)
 - `src/lib/logic/next-day.ts` rolling day order
-- `src/lib/logic/progression.ts` prefill + double progression hints, rest seconds
+- `src/lib/logic/progression.ts` per-set targets (dynamic double progression, effort, stall rule) + hints, rest seconds
 - `src/lib/logic/stats.ts` week math, volume, strength series, PRs, bodyweight trend
 - `src/lib/logic/units.ts` formatting helpers
 - `src/server/db.ts` Mongo client (tests inject a db with `useDbForTests`)
@@ -87,7 +87,8 @@ no Inter/Geist. Checked.
 ## Data (MongoDB collections)
 
 - `settings` one doc `_id: 'settings'`: units, bodyweight, trainingAge, setupDone
-- `plan` one doc `_id: 'plan'`: days[] -> exercises[] (id, name, sets, repMin, repMax, muscle, loadType, note, alternates)
+- `plans` one doc per user and split (`userId`, `split`: a template id or `custom`): days[] -> exercises[] (id, name, sets, repMin, repMax, muscle, loadType, note, alternates). The user is on the split named in settings; the others wait for them to come back
+- `splits` and `library`: the reference content, seeded from the bundle (phase 29)
 - `workouts`: dayId, dayName, dayType, startedAt, finishedAt, status, entries[] -> sets[] (weight, reps, seconds, done)
 - `bodyweights`: date, weight
 - `measurements`: date, arm, chest, waist
@@ -307,6 +308,16 @@ no Inter/Geist. Checked.
 - [x] 29. Content in the database: the split templates and the exercise library in `splits` and
       `library`, seeded from the bundled copies when empty or by `bun run db:seed`, read once per
       visit through the shell route. Editable without a deploy. HANDOVER.md item 35.
+- [x] 33. Built for gains: finish summary with new bests and the week count, reps-left on the last
+      set feeding the targets, stall / week / scale alerts on Today, bodyweight goal (gain, hold,
+      cut) at setup and in Settings with a goal-aware pace on the Body tab. HANDOVER.md item 40.
+- [x] 32. Progression setting: reps then weight, weight every session, or top set drives (APRE); asked
+      at setup, changeable in Settings, defaulting by training age. HANDOVER.md item 39.
+- [x] 31. Targets, not prefilled values: each set shows what to aim for from the same plan day's last
+      sessions (dynamic double progression, effort-aware, 3-session stall rule) and logs it only when
+      marked done. HANDOVER.md item 38.
+- [x] 30. One plan per split: switching splits keeps the plan being left and brings back the one
+      the user had on the new split, edits and all. HANDOVER.md item 36.
 
 ## Next up
 

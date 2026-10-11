@@ -9,8 +9,11 @@ pull and legs colours.
 Four screens, one job each:
 
 - **Today**: the next day in the rolling order, this week's sessions and the streak, exercise rows
-  that expand into a set logger with plate-step buttons, prefilled from last time, and Finish with
-  a one-tap effort check-in. The header's menu switches the day or discards the session.
+  that expand into a set logger with plate-step buttons, each set showing the target worked out from
+  last time (reps up, then weight up, set by set), a reps-left tap on the last set so a light
+  weight moves up sooner, and Finish with a one-tap effort check-in followed by what the session did:
+  every lift's best set, new bests, the week's count. Lifts that stopped moving, a week running out and a
+  scale that is not moving show up here as one-line alerts. The header's menu switches the day or discards the session.
 - **Plan**: the days of your split, each exercise with its picture. Edit an exercise, swap in an
   alternate, add or remove exercises (six per day at most), or bring your own plan from an Excel
   template.
@@ -18,16 +21,20 @@ Four screens, one job each:
   chart of each week's best set, a table reading "this week 62.5 kg × 7, last week 60 kg × 8,
   +2.5 kg", and recent bests. Sessions: the week's count, streak, hard sets, weight lifted and
   minutes, a month calendar where tapping a day opens that session to fix a set or remove it,
-  hard sets per muscle against the plan, and the Excel / CSV export. Body: bodyweight chart (tap
+  hard sets per muscle against the plan, and the Excel / CSV export. Pull-ups and other bodyweight
+  work count at your logged bodyweight in the weight lifted and in new bests. Body: bodyweight chart (tap
   a point to edit or remove a weigh-in) and measurements.
 - **Library**: 137 exercises with a picture, muscles, equipment and cues, searchable and
   filterable. "Pick from library" fills an exercise in from the plan editor or the import preview.
-- **Settings**: units, training age, rolling or weekday schedule, the split
-  (switch in place), and "Start fresh" behind a typed confirmation. On a phone the menu button
-  opens the sidebar; the profile row at its foot holds Settings and Sign out.
+- **Settings**: units, training age, bodyweight goal, progression, rolling or weekday schedule, the split (switch in place;
+  each split keeps its own plan, so coming back finds your edits), and "Start fresh" behind a typed
+  confirmation. On a phone the menu button opens the sidebar; the profile row at its foot holds
+  Settings and Sign out.
 
-First run asks four questions, one per screen: units, which split (nine templates from
-Push / Pull / Legs to Full body and the Arnold split), bodyweight, training age. Days can run in a
+First run asks five questions, one per screen: units, which split (nine templates from
+Push / Pull / Legs to Full body and the Arnold split), bodyweight, training age, and how the weight
+should go up (reps then weight, weight every session, or the last set to as many reps as you can
+setting the next load). Days can run in a
 rolling order or sit on fixed weekdays, with Today showing a rest day or anything skipped this week.
 
 ## Stack

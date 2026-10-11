@@ -55,11 +55,17 @@ console.log(
 if (flag('demo')) {
   const email = opt('email', 'demo@example.com').toLowerCase()
   const password = opt('password', 'password123')
-  const username = opt('username', email.split('@')[0].replace(/[^a-zA-Z0-9_.]/g, '').slice(0, 30) || 'demo')
+  const username = opt(
+    'username',
+    email
+      .split('@')[0]
+      .replace(/[^a-zA-Z0-9_.]/g, '')
+      .slice(0, 30) || 'demo',
+  )
   const weeks = Math.max(1, Number(opt('weeks', '8')))
   const splitId = opt('split', 'ppl6')
 
-  for (const name of ['user', 'settings', 'plan', 'workouts', 'bodyweights', 'measurements']) {
+  for (const name of ['user', 'settings', 'plan', 'plans', 'workouts', 'bodyweights', 'measurements']) {
     if ((await db.collection(name).countDocuments({}, { limit: 1 })) > 0) {
       await client.close()
       throw new Error(`"${dbName}" already has data in "${name}". The demo only goes into an empty database.`)
@@ -138,7 +144,7 @@ if (flag('demo')) {
     split: splitId,
     schedule: 'rolling',
   })
-  await db.collection('plan').insertOne({ _id: userId as never, days, updatedAt: start.toISOString() })
+  await db.collection('plans').insertOne({ userId, split: splitId, days, updatedAt: start.toISOString() })
 
   const workouts: Record<string, unknown>[] = []
   let dayIndex = 0
@@ -182,7 +188,8 @@ if (flag('demo')) {
     if (i % 3 === 0) {
       weight = round(weight - 0.08 + (random() - 0.5) * 0.6, 0.1)
       const date = at(d, 7, 10)
-      if (date <= now) bodyweights.push({ _id: new ObjectId(), userId, date: date.toISOString(), day: dayKey(d), weight })
+      if (date <= now)
+        bodyweights.push({ _id: new ObjectId(), userId, date: date.toISOString(), day: dayKey(d), weight })
     }
     if (i % 28 === 0) {
       const n = i / 28

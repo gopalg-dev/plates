@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 import {
   ArrowLeftRight,
+  CalendarClock,
   CalendarX,
   ChevronLeft,
   ChevronRight,
@@ -10,6 +11,8 @@ import {
   Ruler,
   Scale,
   Trash2,
+  TrendingDown,
+  Trophy,
   X,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
@@ -50,7 +53,7 @@ import {
   ItemTitle,
 } from '#/components/ui/item'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
-import { timeOfDay } from '#/lib/format'
+import { errorMessage, timeOfDay } from '#/lib/format'
 import { EFFORTS, EFFORT_LABEL, type Effort } from '#/lib/logic/effort'
 import { nudgeFor } from '#/lib/logic/nudges'
 import { WEEKDAY_LONG, WEEKDAY_SHORT, weekdayView } from '#/lib/logic/schedule'
@@ -66,6 +69,7 @@ import {
   type Workout,
   type WorkoutEntry,
 } from '#/lib/types'
+import type { SessionSummary } from '#/lib/logic/summary'
 import type { TodayData } from '#/server/repo'
 import { discardWorkoutFn, finishWorkoutFn, getTodayFn, saveSetsFn, startWorkoutFn } from '#/server/fns'
 import { pageTitle } from '#/lib/page-title'
@@ -84,18 +88,71 @@ function TodayPage() {
   const data = Route.useLoaderData()
   const router = useRouter()
   const refresh = () => router.invalidate()
-  if (data.active) {
-    return (
-      <ActiveWorkout
-        key={data.active.id}
-        workout={data.active}
-        settings={data.settings}
-        plan={data.plan}
-        onChanged={refresh}
-      />
-    )
-  }
-  return <NextUp data={data} onChanged={refresh} />
+  // The finish summary outlives the workout it came from: it shows over Next up once the page refreshes.
+  const [summary, setSummary] = useState<SessionSummary | null>(null)
+  return (
+    <>
+      {data.active ? (
+        <ActiveWorkout
+          key={data.active.id}
+          workout={data.active}
+          settings={data.settings}
+          plan={data.plan}
+          onChanged={refresh}
+          onSummary={setSummary}
+        />
+      ) : (
+        <NextUp data={data} onChanged={refresh} />
+      )}
+      <SummaryDialog summary={summary} onClose={() => setSummary(null)} />
+    </>
+  )
+}
+
+// ---------------------------------------------------------------- finish summary
+
+/** What the session did, shown once at Finish: every lift's best set, new bests marked, the week's count. */
+function SummaryDialog({ summary, onClose }: { summary: SessionSummary | null; onClose: () => void }) {
+  return (
+    <Dialog open={summary !== null} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Workout saved</DialogTitle>
+          <DialogDescription>
+            {summary ? `${summary.week.done} of ${summary.week.planned} sessions this week.` : ''}
+          </DialogDescription>
+        </DialogHeader>
+        {summary && (
+          <ul className="divide-y">
+            {summary.lines.map((l) => (
+              <li key={l.exerciseId} className="flex items-center gap-3 py-2.5">
+                <span className="min-w-0 flex-1 truncate">{l.name}</span>
+                <span className="shrink-0 tabular-nums">{l.best}</span>
+                {l.pr ? (
+                  <span className="flex shrink-0 items-center gap-1 text-sm text-success" aria-label="New best">
+                    <Trophy className="size-4" aria-hidden />
+                    best
+                  </span>
+                ) : l.change ? (
+                  <span
+                    className={cn(
+                      'shrink-0 text-sm tabular-nums',
+                      l.change.startsWith('+') ? 'text-success' : 'text-muted-foreground',
+                    )}
+                  >
+                    {l.change}
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+        <DialogFooter>
+          <Button onClick={onClose}>Done</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 // ---------------------------------------------------------------- next up
@@ -139,7 +196,7 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
       setPickerOpen(false)
       onChanged()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not start the workout.')
+      toast.error(errorMessage(err, 'Could not start the workout.'))
     } finally {
       setStarting(null)
     }
@@ -178,6 +235,25 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
           {view?.doneToday ? `${view.today!.name} is in the log. ` : 'Nothing planned for today. '}
           {nextLine}
         </p>
+      )}
+
+      {data.alerts.length > 0 && (
+        <ul className="mt-5 flex flex-col gap-2">
+          {data.alerts.map((a) => (
+            <li key={a.kind + a.title} className="flex items-start gap-3 rounded-lg border px-3 py-2.5">
+              {a.kind === 'stall' ? (
+                <TrendingDown className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
+              ) : a.kind === 'week' ? (
+                <CalendarClock className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
+              ) : (
+                <Scale className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
+              )}
+              <p className="min-w-0 flex-1 text-sm">
+                <span className="font-medium">{a.title}</span> <span className="text-muted-foreground">{a.detail}</span>
+              </p>
+            </li>
+          ))}
+        </ul>
       )}
 
       {nudge && (
@@ -308,9 +384,10 @@ interface ActiveProps {
   settings: Settings
   plan: Plan
   onChanged: () => void
+  onSummary: (summary: SessionSummary) => void
 }
 
-function ActiveWorkout({ workout, settings, plan, onChanged }: ActiveProps) {
+function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: ActiveProps) {
   const [entries, setEntries] = useState<WorkoutEntry[]>(workout.entries)
   const [openId, setOpenId] = useState<string | null>(
     () => workout.entries.find((e) => e.sets.some((s) => !s.done))?.exerciseId ?? null,
@@ -398,11 +475,12 @@ function ActiveWorkout({ workout, settings, plan, onChanged }: ActiveProps) {
       const res = await finishWorkoutFn({
         data: { workoutId: workout.id, ...extra },
       })
-      toast.success(res.finished ? 'Workout saved' : 'Nothing was logged, so the workout was removed')
       setCheckInOpen(false)
+      if (res.summary) onSummary(res.summary)
+      else toast.success('Nothing was logged, so the workout was removed')
       onChanged()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not finish the workout.')
+      toast.error(errorMessage(err, 'Could not finish the workout.'))
       setBusy(false)
     }
   }
@@ -420,7 +498,7 @@ function ActiveWorkout({ workout, settings, plan, onChanged }: ActiveProps) {
       toast('Switched day')
       onChanged()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not switch.')
+      toast.error(errorMessage(err, 'Could not switch.'))
       setBusy(false)
     }
   }
@@ -433,7 +511,7 @@ function ActiveWorkout({ workout, settings, plan, onChanged }: ActiveProps) {
       toast('Workout discarded')
       onChanged()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not discard the workout.')
+      toast.error(errorMessage(err, 'Could not discard the workout.'))
       setBusy(false)
     }
   }
@@ -485,7 +563,12 @@ function ActiveWorkout({ workout, settings, plan, onChanged }: ActiveProps) {
             {plan.days
               .filter((d) => d.id !== workout.dayId)
               .map((d) => (
-                <Item key={d.id} size="sm" className="cursor-pointer px-2" onClick={rowTap(() => switchTo(d.id)).onClick}>
+                <Item
+                  key={d.id}
+                  size="sm"
+                  className="cursor-pointer px-2"
+                  onClick={rowTap(() => switchTo(d.id)).onClick}
+                >
                   <ItemMedia>
                     <DayIcon type={d.type} className="size-8 rounded-md" />
                   </ItemMedia>
@@ -637,64 +720,64 @@ function ZenMode({
       >
         <DialogTitle className="sr-only">Zen mode</DialogTitle>
         <DialogDescription className="sr-only">One exercise at a time.</DialogDescription>
-      <div className="flex shrink-0 items-center justify-between gap-3 px-4 pt-safe">
-        <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-          <DayIcon type={workout.dayType} className="size-6 rounded-md" />
-          {workout.dayName}
-        </p>
-        <Button variant="ghost" size="sm" className="mt-3 -mr-2" onClick={onExit}>
-          <X aria-hidden />
-          Exit zen
-        </Button>
-      </div>
-      <div className="mx-auto min-h-0 w-full max-w-2xl flex-1 overflow-y-auto scrollbar-none px-4 pb-6">
-        <p className="mt-6 text-sm tabular-nums text-muted-foreground">
-          {at + 1} of {entries.length}
-        </p>
-        <Accordion type="single" value={entry.exerciseId} className="mt-1 border-t">
-          <ExerciseRow
-            key={entry.exerciseId}
-            entry={entry}
-            units={units}
-            onChangeSet={(i, patch) => onChangeSet(entry.exerciseId, i, patch)}
-            onToggleDone={(i) => onToggleDone(entry.exerciseId, i)}
-            onAddSet={() => onAddSet(entry.exerciseId)}
-            onRemoveSet={() => onRemoveSet(entry.exerciseId)}
-          />
-        </Accordion>
-      </div>
-      <div className="shrink-0 border-t px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
-        <div className="mx-auto flex w-full max-w-2xl items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={at === 0}
-            onClick={() => onCurrent(entries[at - 1].exerciseId)}
-            aria-label="Previous exercise"
-          >
-            <ChevronLeft aria-hidden />
-            Previous
-          </Button>
-          <p className="flex-1 text-center text-sm tabular-nums text-muted-foreground">
-            {doneSets} of {totalSets} sets done
+        <div className="flex shrink-0 items-center justify-between gap-3 px-4 pt-safe">
+          <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+            <DayIcon type={workout.dayType} className="size-6 rounded-md" />
+            {workout.dayName}
           </p>
-          {last ? (
-            <Button size="sm" onClick={onFinish} disabled={busy}>
-              Finish workout
-            </Button>
-          ) : (
+          <Button variant="ghost" size="sm" className="mt-3 -mr-2" onClick={onExit}>
+            <X aria-hidden />
+            Exit zen
+          </Button>
+        </div>
+        <div className="mx-auto min-h-0 w-full max-w-2xl flex-1 overflow-y-auto scrollbar-none px-4 pb-6">
+          <p className="mt-6 text-sm tabular-nums text-muted-foreground">
+            {at + 1} of {entries.length}
+          </p>
+          <Accordion type="single" value={entry.exerciseId} className="mt-1 border-t">
+            <ExerciseRow
+              key={entry.exerciseId}
+              entry={entry}
+              units={units}
+              onChangeSet={(i, patch) => onChangeSet(entry.exerciseId, i, patch)}
+              onToggleDone={(i) => onToggleDone(entry.exerciseId, i)}
+              onAddSet={() => onAddSet(entry.exerciseId)}
+              onRemoveSet={() => onRemoveSet(entry.exerciseId)}
+            />
+          </Accordion>
+        </div>
+        <div className="shrink-0 border-t px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
+          <div className="mx-auto flex w-full max-w-2xl items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onCurrent(entries[at + 1].exerciseId)}
-              aria-label="Next exercise"
+              disabled={at === 0}
+              onClick={() => onCurrent(entries[at - 1].exerciseId)}
+              aria-label="Previous exercise"
             >
-              Next
-              <ChevronRight aria-hidden />
+              <ChevronLeft aria-hidden />
+              Previous
             </Button>
-          )}
+            <p className="flex-1 text-center text-sm tabular-nums text-muted-foreground">
+              {doneSets} of {totalSets} sets done
+            </p>
+            {last ? (
+              <Button size="sm" onClick={onFinish} disabled={busy}>
+                Finish workout
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onCurrent(entries[at + 1].exerciseId)}
+                aria-label="Next exercise"
+              >
+                Next
+                <ChevronRight aria-hidden />
+              </Button>
+            )}
+          </div>
         </div>
-      </div>
       </DialogContent>
     </Dialog>
   )

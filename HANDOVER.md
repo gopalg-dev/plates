@@ -239,6 +239,104 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+42. Bodyweight work scored at bodyweight (user: "is it worth it" → the one piece worth doing).
+    `Workout.bodyweight?` is filled in when sessions are read, never stored:
+    `attachBodyweight(workouts, logs)` in `stats.ts` gives each session the latest weigh-in on or
+    before it, else the first after it; `getStatsData`, `getTodayData` (for the stall alerts) and
+    `finishWorkout` (for the summary) attach it. `setScore(entry, set, bodyweight?)` scores a
+    bodyweight set as the Epley estimate at that weight when known, reps alone otherwise, so 8
+    pull-ups at 80 kg beat 8 at 70 kg and a heavier lifter's work shows in new bests;
+    `weekTotals.lifted` adds bodyweight × reps over bodyweight sets. The Lifts chart and tables
+    still show reps for bodyweight exercises. Not done, on purpose: plate steps by bodyweight,
+    added weight on pull-ups and dips. Tests under "bodyweight work" in `tests/stats.test.ts`.
+41. Follow-ups on the same day. `ProgressionPicker` (`src/components/app/progression-picker.tsx`)
+    is shared by setup and Settings: an icon per method (ArrowUpNarrowWide, ArrowUp, Target), one
+    plain line and a worked example in a muted box (`example` on `PROGRESSION_OPTIONS`); titles
+    are "Reps first, then weight", "Weight every session", "Last set all out" (user: "add any
+    images or icons for reference, and simplify the description"). Under "Reps first", a set below
+    the top of the range now aims one rep higher than last time (capped at repMax) and the hint
+    says "Aim for 11" (user screenshot showed 10 repeating 10). The Sign out button left the
+    Settings Account section (user request); sign out lives only in the sidebar account menu, and
+    the e2e has a `signOut(page)` helper that opens that menu (the sidebar first on phones).
+    `playwright.config.ts` pins `MONGODB_URI` to the local Docker database for the e2e server and
+    `e2e/db.ts` does the same, because `.env` can point at Atlas (the run failed on a refused SRV
+    lookup before that). Setup progress reads "1 of 5". Full e2e: 36 passed. A `data/` folder
+    with one JSON file per collection was exported from the local database for a schema review
+    (user: "extract the data into json files"); `account.json`, `session.json` and `user.json`
+    hold local credentials and must not be committed.
+40. Built for gains (user: "we are not just building things, we really want the user to progress
+    and see some gains"). Four pieces:
+    - Finish summary: `finishWorkout` now returns `{ finished, summary }`; `summarize` in
+      `src/lib/logic/summary.ts` lists each lift's best set, marks a new best (`pr`, by Epley score
+      against every earlier session) and the top-weight change against the previous session of that
+      lift ("+2.5 kg"), plus the week's count against `plannedPerWeek(plan, settings)` (weekday
+      days, or rolling days up to six). `SummaryDialog` on Today ("Workout saved" title, Trophy for
+      a best, Done button); the e2e expects it and clicks Done.
+    - Reps left on the last set: `LoggedSet.left` (0, 1 = 1 to 2, 3 = 3 or more), a small toggle
+      row under the sets of a weight exercise once its last set is done (`LEFT_OPTIONS` in
+      `exercise-row.tsx`, also in the session editor). `suggestNext` reads it: 3 or more on the last
+      set is `light`: double moves every set up a step, linear adds the step even if the sets were
+      not completed, top set adds one more step; "too much" still holds.
+    - Alerts on Today (`src/lib/logic/alerts.ts`, computed in `getTodayData` as `alerts`):
+      `stallAlerts` (a lift trained 3+ times in the last 4 weeks whose best never beat its best
+      from before, at most two), `weekAlert` (sessions left >= days left in the Monday-to-Sunday
+      week), `bodyweightAlert` (goal gain or cut, three weekly averages present, under 0.1 kg or
+      0.2 lb a week of movement: "Weight flat for 3 weeks. Eat more/less"). Rendered as bordered
+      rows above the weigh-in nudge with TrendingDown / CalendarClock / Scale icons.
+    - Bodyweight goal: `Settings.goal` (`GOALS` gain | hold | cut, unset reads as hold), a
+      Gain / Hold / Cut toggle under the weigh-in field at setup (preselects gain) and a
+      "Bodyweight" section in Settings; `paceNote(changePct, goal)` in `src/lib/logic/goal.ts`
+      makes the Body tab's week-on-week line read against the goal.
+    `tests/gains.test.ts` covers all four.
+39. Progression setting (user: "ask them about the plan range they want to follow at the time of
+    configuration or later on the settings"). `Settings.progression?: 'double' | 'linear' |
+    'topset'` (`PROGRESSIONS` in types); unset means `defaultProgression(trainingAge)`: `linear`
+    under a year, `double` otherwise (`progressionOf(settings)`). Setup gained a fifth step "How
+    should the weight go up?" whose default follows the training age picked just before; Settings
+    has a "Progression" section (TrendingUp icon) with the same three radios
+    (`PROGRESSION_OPTIONS`, `PROGRESSION_LABEL` in `progression.ts`). `suggestNext(..., method)`:
+    `double` is the per-set rule of item 38; `linear` adds the increment to every set once every
+    planned set was done at or above repMin, else repeats, with the stall rule; `topset` (APRE)
+    reads the last done set's reps: below repMin one step down, inside the range hold, repMax to
+    repMax+2 one step up, repMax+3 or more two steps, all sets at that weight with the last set
+    targeting repMax, no stall rule. "Too much" holds in every method. Rep ranges stay per
+    exercise on the plan. Both e2e setup walks click Continue once more.
+38. Targets instead of prefilled values (user: "prefill the session weight and reps based on the
+    same plan of previous week… just prefill not saving. like progressive overload and any other
+    methods. do some research"). `suggestNext(exercise, targetSets, history: PastEntry[], units)`
+    in `progression.ts` now returns blank `sets` plus `suggested: SetTarget[]` (one target per set)
+    and a `hint`; nothing is logged until a set is marked done. `WorkoutEntry.suggested` carries the
+    targets; `exercise-row.tsx` shows them as placeholders (`targetFor`) and `completeSet` adopts
+    them. Rules: dynamic double progression per set (a set at the top of the range goes up by the
+    muscle's increment and back to repMin, the rest repeat); session effort 4 "Too much" holds every
+    weight, 1 "Easy" lets a set one rep short go up; `STALL_SESSIONS` (3) sessions at the same top
+    weight with no set reaching the top suggest 10% less rounded to the increment. History comes
+    from `recentEntries(userId, exerciseId, dayId)` in `repo.ts`: the same plan day first, any day
+    when that day has none, three sessions deep, each with the session's effort. Bodyweight and
+    timed rules unchanged. Research notes in the chat of 11 Oct 2026: linear, double, dynamic
+    double, APRE (last-set AMRAP, candidate for a per-exercise option on big lifts), RPE/RIR
+    autoregulation (needs a per-set rating the app does not collect), 3-session/10% stall rule.
+37. Sets without a weight (user: "I was able to save the workout without entering the weights",
+    then the session editor failed with the validator's JSON on screen). Three causes, all fixed:
+    the Mongo client now runs with `ignoreUndefined: true` (a set with no weight was being stored
+    as `weight: null`, which the editor showed as "null" and sent back, and zod refused);
+    `loggedSet` in `fns.ts` accepts null as absent (`absent()` helper) and `toWorkout` drops nulls
+    from older sessions on read; `completeSet` / `canComplete` / `weightFor` in `exercise-row.tsx`
+    refuse to mark a weight set done without a weight above zero (its own or an earlier set's),
+    and the done toggle is disabled until there is one. Every `toast.error` now goes through
+    `errorMessage(err, fallback)` in `lib/format.ts`, which hides messages that are not a sentence.
+    `tests/complete-set.test.ts`.
+36. One plan per split (user: "later I switched to some other split and again come back to the
+    arnold split… will I see the arnold split along with my adjustments"). Collection `plans`,
+    one document per user and split (`userId`, `split` = template id or `custom`, `days`,
+    `updatedAt`, unique index on the pair). Settings name the split the user is on;
+    `getPlan` reads that slot and builds it from the template the first time; `applySplit`
+    remembers the choice and returns the slot as left or fresh from the template; `resetPlan`
+    restores the template for the current slot only and throws for `custom`; `replacePlan`
+    writes the uploaded days into the marked template's slot or `custom`; `startFresh` removes
+    every slot. The old `plan` collection (one doc under the user id) is migrated on first read
+    and in `claimLegacyData`. Settings and setup say "Each split keeps its own plan. Coming back
+    to one finds it as you left it."; the switch toast is "Now on <split>".
 35. Content in the database (user: "this is the purpose of seeding"). Collections `splits` (one
     per template, `_id` the split id, `days` the PlanDay list, `order`, `fit`) and `library` (one
     per exercise, `_id` the exercise id). `src/server/content.ts`: `seedContent(db, {reset})`
@@ -258,7 +356,7 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     through `hashPassword` from `better-auth/crypto`, `emailVerified: true`) and eight weeks of
     sessions on a split, weigh-ins every three days drifting down, tape every four weeks;
     deterministic. It only fills an empty database (user request: "a fresh db seed, not moving
-    all data"): any document in `user`, `settings`, `plan`, `workouts`, `bodyweights` or
+    all data"): any document in `user`, `settings`, `plan`, `plans`, `workouts`, `bodyweights` or
     `measurements` makes it stop without writing. It refuses a non-local `MONGODB_URI` without
     `--yes`; it prints the host, never the connection string (the `.env` URI carries the
     Atlas password). For Vercel: `nitro` is installed and `nitro()` sits between `tanstackStart()`

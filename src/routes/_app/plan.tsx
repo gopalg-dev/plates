@@ -57,6 +57,7 @@ import {
   updateExerciseFn,
 } from '#/server/fns'
 import { pageTitle } from '#/lib/page-title'
+import { errorMessage } from '#/lib/format'
 
 export const Route = createFileRoute('/_app/plan')({
   head: () => ({ meta: [{ title: pageTitle('Plan') }] }),
@@ -98,7 +99,7 @@ function PlanPage() {
       await setDayWeekdayFn({ data: { dayId, weekday } })
       await router.invalidate()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not move the day.')
+      toast.error(errorMessage(err, 'Could not move the day.'))
     }
   }
 
@@ -320,7 +321,7 @@ function EditorForm({ day, exercise, onClose, onSaved }: FormProps) {
       }
       onSaved()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not save.')
+      toast.error(errorMessage(err, 'Could not save.'))
       setBusy(false)
     }
   }
@@ -334,7 +335,7 @@ function EditorForm({ day, exercise, onClose, onSaved }: FormProps) {
       setRemoveOpen(false)
       onSaved()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not remove it.')
+      toast.error(errorMessage(err, 'Could not remove it.'))
       setBusy(false)
     }
   }
@@ -347,7 +348,7 @@ function EditorForm({ day, exercise, onClose, onSaved }: FormProps) {
       toast.success(`Switched to ${alt}`)
       onSaved()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not switch.')
+      toast.error(errorMessage(err, 'Could not switch.'))
       setBusy(false)
     }
   }
@@ -393,11 +394,25 @@ function EditorForm({ day, exercise, onClose, onSaved }: FormProps) {
           </Field>
           <Field>
             <FieldLabel>Low, {unit}</FieldLabel>
-            <NumberField label={`Low ${unit}`} value={repMin} onChange={setRepMin} step={1} min={1} inputMode="numeric" />
+            <NumberField
+              label={`Low ${unit}`}
+              value={repMin}
+              onChange={setRepMin}
+              step={1}
+              min={1}
+              inputMode="numeric"
+            />
           </Field>
           <Field>
             <FieldLabel>High, {unit}</FieldLabel>
-            <NumberField label={`High ${unit}`} value={repMax} onChange={setRepMax} step={1} min={1} inputMode="numeric" />
+            <NumberField
+              label={`High ${unit}`}
+              value={repMax}
+              onChange={setRepMax}
+              step={1}
+              min={1}
+              inputMode="numeric"
+            />
           </Field>
         </div>
 
@@ -501,7 +516,9 @@ function EditorForm({ day, exercise, onClose, onSaved }: FormProps) {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Remove {exercise.name} from {day.name}?</DialogTitle>
+                <DialogTitle>
+                  Remove {exercise.name} from {day.name}?
+                </DialogTitle>
                 <DialogDescription>
                   It leaves the plan from the next workout on. Sessions already logged keep it.
                   {day.exercises.length <= 1 ? ' A day needs at least one exercise, so add another first.' : ''}
@@ -511,7 +528,12 @@ function EditorForm({ day, exercise, onClose, onSaved }: FormProps) {
                 <Button type="button" variant="ghost" onClick={() => setRemoveOpen(false)}>
                   Keep it
                 </Button>
-                <Button type="button" variant="destructive" onClick={remove} disabled={busy || day.exercises.length <= 1}>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={remove}
+                  disabled={busy || day.exercises.length <= 1}
+                >
                   Remove
                 </Button>
               </DialogFooter>
@@ -548,7 +570,7 @@ function ResetPlanButton({ template, onReset }: { template: string; onReset: () 
       setOpen(false)
       onReset()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not reset.')
+      toast.error(errorMessage(err, 'Could not reset.'))
     } finally {
       setBusy(false)
     }

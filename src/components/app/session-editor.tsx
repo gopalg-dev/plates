@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '#/components/ui/dialog'
-import { shortDate } from '#/lib/format'
+import { errorMessage, shortDate } from '#/lib/format'
 import { EFFORT_LABEL, type Effort } from '#/lib/logic/effort'
 import { effectiveSets } from '#/lib/logic/stats'
 import type { LoggedSet, Units, Workout, WorkoutEntry } from '#/lib/types'
@@ -90,7 +90,7 @@ function EditorBody({ workout, units, onClose, onSaved }: EditorProps & { workou
       toast.success('Session updated')
       onSaved()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not save.')
+      toast.error(errorMessage(err, 'Could not save.'))
       setBusy(false)
     }
   }
@@ -103,7 +103,7 @@ function EditorBody({ workout, units, onClose, onSaved }: EditorProps & { workou
       setDeleteOpen(false)
       onSaved()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not remove it.')
+      toast.error(errorMessage(err, 'Could not remove it.'))
       setBusy(false)
     }
   }

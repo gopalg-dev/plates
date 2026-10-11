@@ -1,14 +1,9 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '#/components/ui/button'
-import {
-  bodyweightsToRows,
-  exportFileName,
-  measurementsToRows,
-  setHeaders,
-  setsToRows,
-} from '#/lib/logic/export'
+import { bodyweightsToRows, exportFileName, measurementsToRows, setHeaders, setsToRows } from '#/lib/logic/export'
 import { getExportFn } from '#/server/fns'
+import { errorMessage } from '#/lib/format'
 
 /** Builds the workbook in the browser and hands it to the browser's download. Nothing is stored. */
 async function downloadLogs(kind: 'xlsx' | 'csv') {
@@ -50,7 +45,7 @@ export function ExportButtons() {
     try {
       await downloadLogs(kind)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not build the file.')
+      toast.error(errorMessage(err, 'Could not build the file.'))
     } finally {
       setExporting(false)
     }

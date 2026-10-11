@@ -42,7 +42,7 @@ function bestScores(ws: Workout[], start: Date, end: Date): Map<string, number> 
     for (const e of w.entries) {
       const b = bestSet(e)
       if (!b) continue
-      const s = setScore(e, b)
+      const s = setScore(e, b, w.bodyweight)
       if (s > (out.get(e.exerciseId) ?? 0)) out.set(e.exerciseId, s)
     }
   }

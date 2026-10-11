@@ -6,7 +6,8 @@ import { useDbForTests } from '#/server/db'
 import { forgetContent, readContent, seedContent, splitTemplate } from '#/server/content'
 
 const uri = process.env.MONGODB_URI ?? 'mongodb://localhost:27017'
-const dbName = `${process.env.MONGODB_DB ?? 'workout_plan_v3'}_test`
+// Its own database: the repo tests seed content too, and the two files run at the same time.
+const dbName = `${process.env.MONGODB_DB ?? 'workout_plan_v3'}_content_test`
 
 let client: MongoClient | undefined
 try {

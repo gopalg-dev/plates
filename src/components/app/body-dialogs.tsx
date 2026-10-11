@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from '#/components/ui/dialog'
 import { Field, FieldGroup, FieldLabel } from '#/components/ui/field'
-import { longDate } from '#/lib/format'
+import { errorMessage, longDate } from '#/lib/format'
 import { dayKey } from '#/lib/logic/stats'
 import type { BodyweightLog, MeasurementLog, Units } from '#/lib/types'
 import {
@@ -29,7 +29,7 @@ import { NumberField } from './number-field'
 type Variant = 'outline' | 'default' | 'secondary'
 
 function fail(err: unknown) {
-  toast.error(err instanceof Error ? err.message : 'Could not save.')
+  toast.error(errorMessage(err, 'Could not save.'))
 }
 
 /** The instant stored for a log on `day`: right now for today, midday for an earlier day. */
@@ -143,9 +143,7 @@ interface WeighInProps {
 export function WeighInDialog({ log, units, onClose, onChanged }: WeighInProps) {
   return (
     <Dialog open={log !== null} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent>
-        {log && <WeighInForm key={log.id} log={log} units={units} onChanged={onChanged} />}
-      </DialogContent>
+      <DialogContent>{log && <WeighInForm key={log.id} log={log} units={units} onChanged={onChanged} />}</DialogContent>
     </Dialog>
   )
 }
@@ -274,9 +272,7 @@ export function LogMeasurementsDialog({ lengthUnit, onLogged, variant = 'outline
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger ?? <Button variant={variant}>Log measurements</Button>}
-      </DialogTrigger>
+      <DialogTrigger asChild>{trigger ?? <Button variant={variant}>Log measurements</Button>}</DialogTrigger>
       <DialogContent>
         <form onSubmit={save}>
           <DialogHeader>
@@ -286,15 +282,34 @@ export function LogMeasurementsDialog({ lengthUnit, onLogged, variant = 'outline
           <FieldGroup className="gap-5 py-5">
             <Field>
               <FieldLabel>Arm, {lengthUnit}</FieldLabel>
-              <NumberField label={`Arm in ${lengthUnit}`} value={arm} onChange={setArm} step={step} inputMode="decimal" autoFocus />
+              <NumberField
+                label={`Arm in ${lengthUnit}`}
+                value={arm}
+                onChange={setArm}
+                step={step}
+                inputMode="decimal"
+                autoFocus
+              />
             </Field>
             <Field>
               <FieldLabel>Chest, {lengthUnit}</FieldLabel>
-              <NumberField label={`Chest in ${lengthUnit}`} value={chest} onChange={setChest} step={step} inputMode="decimal" />
+              <NumberField
+                label={`Chest in ${lengthUnit}`}
+                value={chest}
+                onChange={setChest}
+                step={step}
+                inputMode="decimal"
+              />
             </Field>
             <Field>
               <FieldLabel>Waist, {lengthUnit}</FieldLabel>
-              <NumberField label={`Waist in ${lengthUnit}`} value={waist} onChange={setWaist} step={step} inputMode="decimal" />
+              <NumberField
+                label={`Waist in ${lengthUnit}`}
+                value={waist}
+                onChange={setWaist}
+                step={step}
+                inputMode="decimal"
+              />
             </Field>
             {!editing && <DateField id="tape-day" value={day} onChange={setDay} />}
           </FieldGroup>

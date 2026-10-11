@@ -8,7 +8,8 @@ const uri = () => process.env.MONGODB_URI ?? 'mongodb://localhost:27017'
 const name = () => process.env.MONGODB_DB ?? 'workout_plan_v3'
 
 function theClient(): MongoClient {
-  client ??= new MongoClient(uri(), { serverSelectionTimeoutMS: 4000 })
+  // ignoreUndefined: a field the app left undefined (a set with no weight yet) is left out, not stored as null.
+  client ??= new MongoClient(uri(), { serverSelectionTimeoutMS: 4000, ignoreUndefined: true })
   return client
 }
 

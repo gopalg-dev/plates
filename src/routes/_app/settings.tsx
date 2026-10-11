@@ -1,8 +1,19 @@
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
-import { CalendarDays, ChevronsUpDown, Hourglass, LayoutGrid, Trash2, UserRound, Weight } from 'lucide-react'
+import {
+  CalendarDays,
+  ChevronsUpDown,
+  Hourglass,
+  LayoutGrid,
+  Scale,
+  Trash2,
+  TrendingUp,
+  UserRound,
+  Weight,
+} from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { SectionHeading } from '#/components/app/section-heading'
+import { ProgressionPicker } from '#/components/app/progression-picker'
 import { SplitPicker } from '#/components/app/split-picker'
 import { WeekShape } from '#/components/app/week-shape'
 import { Button } from '#/components/ui/button'
@@ -23,10 +34,12 @@ import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { buildSplitFrom, planSourceInfo, splitInfoOf } from '#/lib/content'
 import { useContent } from '#/lib/use-content'
 import { cn } from '#/lib/utils'
-import type { Schedule, SplitId, TrainingAge, Units } from '#/lib/types'
-import { useSignOut } from '#/lib/use-sign-out'
+import { PROGRESSION_LABEL, progressionOf } from '#/lib/logic/progression'
+import { GOAL_DONE, GOAL_OPTIONS } from '#/lib/logic/goal'
+import type { Goal, Schedule, SplitId, TrainingAge, Units } from '#/lib/types'
 import { applySplitFn, getSettingsFn, saveSettingsFn, setScheduleFn, startFreshFn } from '#/server/fns'
 import { pageTitle } from '#/lib/page-title'
+import { errorMessage } from '#/lib/format'
 
 export const Route = createFileRoute('/_app/settings')({
   head: () => ({ meta: [{ title: pageTitle('Settings') }] }),
@@ -43,7 +56,6 @@ function SettingsPage() {
   const settings = Route.useLoaderData()
   const router = useRouter()
   const { user } = Route.useRouteContext()
-  const { signOut, busy: signingOut } = useSignOut()
   const { splits } = useContent()
   const split = planSourceInfo(splits, settings.split, 0)
   /** The template the plan is on, or empty for a custom plan so no option reads as picked. */
@@ -58,12 +70,12 @@ function SettingsPage() {
     setSwitching(true)
     try {
       await applySplitFn({ data: { split: pickedSplit } })
-      toast.success(`Plan started over on ${splitInfoOf(splits, pickedSplit).name}`)
+      toast.success(`Now on ${splitInfoOf(splits, pickedSplit).name}`)
       setPickedSplit(null)
       setSplitOpen(false)
       await router.invalidate()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not switch the split.')
+      toast.error(errorMessage(err, 'Could not switch the split.'))
     } finally {
       setSwitching(false)
     }
@@ -75,7 +87,7 @@ function SettingsPage() {
       toast.success(done)
       await router.invalidate()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not save.')
+      toast.error(errorMessage(err, 'Could not save.'))
     }
   }
 
@@ -86,7 +98,7 @@ function SettingsPage() {
       toast.success(next === 'weekday' ? 'Each day is on its weekday now' : 'Back to the rolling order')
       await router.invalidate()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not change the schedule.')
+      toast.error(errorMessage(err, 'Could not change the schedule.'))
     }
   }
 
@@ -138,6 +150,41 @@ function SettingsPage() {
               </Label>
             ))}
           </RadioGroup>
+        </section>
+
+        <section aria-labelledby="goal-h">
+          <SectionHeading id="goal-h" icon={Scale}>
+            Bodyweight
+          </SectionHeading>
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            value={settings.goal ?? 'hold'}
+            onValueChange={(v) =>
+              v && v !== (settings.goal ?? 'hold') && save({ goal: v as Goal }, GOAL_DONE[v as Goal])
+            }
+            className="mt-3 w-full max-w-xs"
+            aria-label="Bodyweight goal"
+          >
+            {GOAL_OPTIONS.map((o) => (
+              <ToggleGroupItem key={o.value} value={o.value} className="h-12 flex-1 text-base">
+                {o.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </section>
+
+        <section aria-labelledby="progression-h">
+          <SectionHeading id="progression-h" icon={TrendingUp}>
+            Progression
+          </SectionHeading>
+          <ProgressionPicker
+            value={progressionOf(settings)}
+            onChange={(v) =>
+              v !== progressionOf(settings) && save({ progression: v }, `Progression: ${PROGRESSION_LABEL[v]}`)
+            }
+            className="mt-3"
+          />
         </section>
 
         <section aria-labelledby="schedule-h">
@@ -203,7 +250,7 @@ function SettingsPage() {
               <DialogHeader className="p-6 pb-4">
                 <DialogTitle>Change split</DialogTitle>
                 <DialogDescription>
-                  Picking another starts the plan over from its template: your edits go, your logged workouts stay.
+                  Each split keeps its own plan. Coming back to one finds it as you left it.
                 </DialogDescription>
               </DialogHeader>
               <div className="min-h-0 overflow-y-auto scrollbar-none px-6 pb-4">
@@ -236,9 +283,6 @@ function SettingsPage() {
           </SectionHeading>
           <p className="mt-3">{user.username ?? user.name ?? user.email}</p>
           <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
-          <Button variant="outline" className="mt-3" onClick={signOut} disabled={signingOut}>
-            Sign out
-          </Button>
         </section>
 
         <section aria-labelledby="fresh-h">
@@ -278,7 +322,7 @@ function StartFreshButton() {
       await router.invalidate()
       await navigate({ to: '/setup' })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not wipe the data.')
+      toast.error(errorMessage(err, 'Could not wipe the data.'))
       setBusy(false)
     }
   }

@@ -23,18 +23,21 @@ export const SPLIT_IDS = ['ppl6', 'ppl3', 'pplul5', 'ul4', 'phul4', 'ulf3', 'ful
 export type SplitId = string
 /** Where the plan came from: a template id, or `custom` for the user's own file. */
 export type PlanSource = string
-export type Muscle =
-  | 'chest'
-  | 'back'
-  | 'shoulders'
-  | 'biceps'
-  | 'triceps'
-  | 'quads'
-  | 'hamstrings'
-  | 'calves'
-  | 'abs'
+export type Muscle = 'chest' | 'back' | 'shoulders' | 'biceps' | 'triceps' | 'quads' | 'hamstrings' | 'calves' | 'abs'
 export type LoadType = 'weight' | 'bodyweight' | 'time'
 export type TrainingAge = 'under1' | 'over1'
+
+/**
+ * How the next load is chosen. `double`: work up the rep range, then add a plate step, set by set.
+ * `linear`: a plate step every session the sets were completed. `topset`: the last set goes to as
+ * many reps as possible and the whole next session's load follows that count.
+ */
+/** Where the bodyweight should go. The Body tab and Today read the scale against it. */
+export const GOALS = ['gain', 'hold', 'cut'] as const
+export type Goal = (typeof GOALS)[number]
+
+export const PROGRESSIONS = ['double', 'linear', 'topset'] as const
+export type Progression = (typeof PROGRESSIONS)[number]
 
 export interface Exercise {
   id: string
@@ -79,13 +82,26 @@ export interface Settings {
   split?: PlanSource
   /** Rolling when unset. */
   schedule?: Schedule
+  /** How the next load is chosen. When unset: `linear` under a year of training, `double` otherwise. */
+  progression?: Progression
+  /** Gain, hold or cut. Unset reads as hold. */
+  goal?: Goal
 }
 
 export interface LoggedSet {
   weight?: number
   reps?: number
   seconds?: number
+  /** Reps left in the tank, asked on the last set only: 0, 1 (meaning 1 to 2) or 3 (3 or more). */
+  left?: number
   done: boolean
+}
+
+/** What a set should aim for, worked out from earlier sessions. Never logged on its own. */
+export interface SetTarget {
+  weight?: number
+  reps?: number
+  seconds?: number
 }
 
 export interface WorkoutEntry {
@@ -96,6 +112,8 @@ export interface WorkoutEntry {
   repMin: number
   repMax: number
   hint?: string
+  /** One target per set, by index. Shown as placeholders and adopted when a set is marked done. */
+  suggested?: SetTarget[]
   sets: LoggedSet[]
 }
 
@@ -113,6 +131,11 @@ export interface Workout {
   /** How it felt, picked at finish: 1 easy, 2 ok, 3 hard, 4 too much. */
   effort?: number
   note?: string
+  /**
+   * The weigh-in in force when the session was done, filled in when sessions are read for stats
+   * (`attachBodyweight`); never stored. Scores bodyweight work and counts it in the weight lifted.
+   */
+  bodyweight?: number
 }
 
 export interface BodyweightLog {

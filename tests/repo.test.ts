@@ -39,10 +39,7 @@ beforeEach(async () => {
   if (client) await client.db(dbName).dropDatabase()
 })
 
-async function finishSession(
-  dayId: string,
-  fill: (w: Awaited<ReturnType<typeof repo.startWorkout>>) => Promise<void>,
-) {
+async function finishSession(dayId: string, fill: (w: Awaited<ReturnType<typeof repo.startWorkout>>) => Promise<void>) {
   const w = await repo.startWorkout(U, dayId)
   await fill(w)
   return repo.finishWorkout(U, w.id)
@@ -118,7 +115,14 @@ suite('plan', () => {
     expect(pull.exercises.at(-1)?.name).toBe('Barbell Shrug')
     expect(pull.exercises).toHaveLength(6)
     await expect(
-      repo.addExercise(U, 'pull-a', { name: 'One Too Many', sets: 3, repMin: 8, repMax: 12, muscle: 'back', loadType: 'weight' }),
+      repo.addExercise(U, 'pull-a', {
+        name: 'One Too Many',
+        sets: 3,
+        repMin: 8,
+        repMax: 12,
+        muscle: 'back',
+        loadType: 'weight',
+      }),
     ).rejects.toThrow(/up to 6/)
     await expect(repo.removeExercise(U, 'pull-a', 'nope')).rejects.toThrow()
     for (const id of ['pull-ups', 'barbell-row', 'seated-cable-row', 'face-pull', 'barbell-curl']) {
@@ -138,6 +142,45 @@ suite('plan', () => {
     // A fresh user with a split in settings seeds from it.
     await repo.saveSettings('user-c', { split: 'full3' })
     expect((await repo.getPlan('user-c')).days.map((d) => d.type)).toEqual(['full', 'full', 'full'])
+  })
+
+  it("keeps each split's plan: coming back finds the edits, every other split is untouched", async () => {
+    await repo.saveSettings(U, { split: 'arnold6' })
+    await repo.updateExercise(U, 'chest-back-a', 'barbell-bench-press', { sets: 9 })
+    await repo.applySplit(U, 'ul4')
+    expect((await repo.getPlan(U)).days[0].exercises[0].sets).toBe(4)
+    await repo.updateExercise(U, 'upper-a', 'barbell-bench-press', { sets: 7 })
+    const back = await repo.applySplit(U, 'arnold6')
+    expect(back.days[0].exercises[0].sets).toBe(9)
+    expect((await repo.applySplit(U, 'ul4')).days[0].exercises[0].sets).toBe(7)
+    // Reset only touches the split the user is on.
+    await repo.resetPlan(U)
+    expect((await repo.getPlan(U)).days[0].exercises[0].sets).toBe(4)
+    expect((await repo.applySplit(U, 'arnold6')).days[0].exercises[0].sets).toBe(9)
+    // Picking the same split again changes nothing.
+    expect((await repo.applySplit(U, 'arnold6')).days[0].exercises[0].sets).toBe(9)
+  })
+
+  it('gives an uploaded plan its own slot and has no template to reset it to', async () => {
+    const days = (await repo.getPlan(U)).days.slice(0, 2)
+    await repo.replacePlan(U, days)
+    expect((await repo.getSettings(U)).split).toBe('custom')
+    expect((await repo.getPlan(U)).days).toHaveLength(2)
+    await expect(repo.resetPlan(U)).rejects.toThrow(/no template/)
+    // Away and back: the uploaded days are still there, and the default split kept its plan.
+    expect((await repo.applySplit(U, 'ppl6')).days).toHaveLength(6)
+    await repo.saveSettings(U, { split: 'custom' })
+    expect((await repo.getPlan(U)).days).toHaveLength(2)
+  })
+
+  it('moves a plan stored the old way into the slot for the current split, once', async () => {
+    const db = client!.db(dbName)
+    await repo.saveSettings(U, { split: 'ul4' })
+    const days = [{ id: 'd', name: 'D', type: 'full', exercises: [] }]
+    await db.collection('plan').insertOne({ _id: U as never, days, updatedAt: 'x' })
+    expect((await repo.getPlan(U)).days).toEqual(days)
+    expect(await db.collection('plan').findOne({ _id: U as never })).toBeNull()
+    expect(await db.collection('plans').countDocuments({ userId: U, split: 'ul4' })).toBe(1)
   })
 })
 
@@ -209,11 +252,35 @@ suite('workouts', () => {
     })
     const next = await repo.startWorkout(U, 'pull-a')
     const row = next.entries.find((e) => e.exerciseId === 'barbell-row')!
-    expect(row.sets.map((s) => s.weight)).toEqual([62.5, 62.5, 62.5, 62.5])
+    // Targets sit beside blank sets: nothing is logged until a set is marked done.
+    expect(row.sets).toEqual([{ done: false }, { done: false }, { done: false }, { done: false }])
+    expect(row.suggested?.map((s) => s.weight)).toEqual([62.5, 62.5, 62.5, 62.5])
     expect(row.hint).toContain('Try 62.5 kg')
     const pullups = next.entries.find((e) => e.exerciseId === 'pull-ups')!
-    expect(pullups.sets.map((s) => s.reps)).toEqual([8, 7, 6, 6])
+    expect(pullups.suggested?.map((s) => s.reps)).toEqual([8, 7, 6, 6])
     expect(pullups.hint).toContain('Add a rep')
+  })
+
+  it('learns from the same plan day first, and from any day when that day has no history', async () => {
+    // Pull A and Push A both hold a barbell exercise under the same id only in a custom plan; make one.
+    const plan = await repo.getPlan(U)
+    const row = plan.days[0].exercises.find((e) => e.id === 'barbell-row')!
+    const days = [
+      { ...plan.days[0], id: 'heavy', name: 'Heavy', exercises: [{ ...row, repMin: 4, repMax: 6 }] },
+      { ...plan.days[0], id: 'light', name: 'Light', exercises: [{ ...row, repMin: 10, repMax: 15 }] },
+    ]
+    await repo.replacePlan(U, days)
+    await finishSession('heavy', async (w) => {
+      await repo.saveEntrySets(U, w.id, 'barbell-row', [{ weight: 80, reps: 5, done: true }])
+    })
+    // Light has no history yet: it borrows Heavy's last session.
+    const light = await repo.startWorkout(U, 'light')
+    expect(light.entries[0].suggested?.[0].weight).toBe(80)
+    await repo.saveEntrySets(U, light.id, 'barbell-row', [{ weight: 50, reps: 15, done: true }])
+    await repo.finishWorkout(U, light.id)
+    // Now each day follows its own line: Heavy stays at 80, Light moves up from 50.
+    expect((await repo.startWorkout(U, 'heavy')).entries[0].suggested?.[0].weight).toBe(80)
+    expect((await repo.startWorkout(U, 'light')).entries[0].suggested?.[0].weight).toBe(52.5)
   })
 
   it('discards an in-progress workout', async () => {
@@ -380,7 +447,9 @@ suite('users', () => {
 
   it('hands the pre-account data to the first user only', async () => {
     const db = client!.db(dbName)
-    await db.collection('settings').insertOne({ _id: 'settings' as never, units: 'lb', trainingAge: 'over1', setupDone: true })
+    await db
+      .collection('settings')
+      .insertOne({ _id: 'settings' as never, units: 'lb', trainingAge: 'over1', setupDone: true })
     await db.collection('plan').insertOne({ _id: 'plan' as never, days: [], updatedAt: 'x' })
     await db.collection('workouts').insertOne({ dayId: 'pull-a', status: 'done', entries: [] })
     await db.collection('bodyweights').insertOne({ date: 'x', weight: 70 })
@@ -391,6 +460,7 @@ suite('users', () => {
     expect((await repo.getSettings('first')).units).toBe('lb')
     expect(await db.collection('settings').findOne({ _id: 'settings' as never })).toBeNull()
     expect(await db.collection('plan').findOne({ _id: 'plan' as never })).toBeNull()
+    expect(await db.collection('plans').countDocuments({ userId: 'first' })).toBe(1)
     expect(await db.collection('workouts').countDocuments({ userId: 'first' })).toBe(1)
     expect(await db.collection('bodyweights').countDocuments({ userId: 'first' })).toBe(1)
     expect(await db.collection('measurements').countDocuments({ userId: 'first' })).toBe(1)

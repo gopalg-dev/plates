@@ -43,6 +43,7 @@ import {
 import { getPlanFn, replacePlanFn } from '#/server/fns'
 import { DAY_LABEL } from '#/components/app/day-mark'
 import { pageTitle } from '#/lib/page-title'
+import { errorMessage } from '#/lib/format'
 
 export const Route = createFileRoute('/_app/plan_/import')({
   head: () => ({ meta: [{ title: pageTitle('Bring your own plan') }] }),
@@ -99,7 +100,7 @@ function ImportPage() {
       }
       XLSX.writeFile(wb, marker ? `plates-template-${marker.id}.xlsx` : 'plates-template.xlsx')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not build the template.')
+      toast.error(errorMessage(err, 'Could not build the template.'))
     } finally {
       setBusy(false)
     }
@@ -121,9 +122,15 @@ function ImportPage() {
         const s = wb.Sheets[name]
         return s ? XLSX.utils.sheet_to_json<unknown[]>(s, { header: 1, defval: '' }) : []
       })
-      setParsed({ ...parseRows(rows), split: splitFromMarker(cells, splits.map((s) => s.id)) })
+      setParsed({
+        ...parseRows(rows),
+        split: splitFromMarker(
+          cells,
+          splits.map((s) => s.id),
+        ),
+      })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not read that file. Use .xlsx or .csv.')
+      toast.error(errorMessage(err, 'Could not read that file. Use .xlsx or .csv.'))
       setParsed(null)
     } finally {
       setBusy(false)
@@ -185,7 +192,7 @@ function ImportPage() {
       await router.invalidate()
       await navigate({ to: '/plan' })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not save the plan.')
+      toast.error(errorMessage(err, 'Could not save the plan.'))
       setBusy(false)
     }
   }
@@ -201,8 +208,8 @@ function ImportPage() {
       </Link>
       <h1 className="mt-3 font-condensed text-4xl font-semibold leading-none">Bring your own plan</h1>
       <p className="mt-2 text-muted-foreground">
-        Download the template, fill it in Excel or Google Sheets, then upload it. The file is read on your
-        device and nothing is saved until you confirm.
+        Download the template, fill it in Excel or Google Sheets, then upload it. The file is read on your device and
+        nothing is saved until you confirm.
       </p>
 
       <div className="mt-6 flex flex-wrap items-center gap-2">
@@ -248,8 +255,7 @@ function ImportPage() {
             Preview
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {fileName}: {parsed.days.length} {parsed.days.length === 1 ? 'day' : 'days'}, {exerciseCount}{' '}
-            exercises.
+            {fileName}: {parsed.days.length} {parsed.days.length === 1 ? 'day' : 'days'}, {exerciseCount} exercises.
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
             {parsed.split ? `Template: ${splitInfoOf(splits, parsed.split).name}.` : 'Custom plan.'}
@@ -372,8 +378,14 @@ function ImportPage() {
                           onChange={(e) => updateExercise(di, ei, { repMax: Number(e.target.value) })}
                           className="col-span-2 h-9 px-2 text-center tabular-nums sm:col-span-1"
                         />
-                        <Select value={ex.loadType} onValueChange={(v) => updateExercise(di, ei, { loadType: v as LoadType })}>
-                          <SelectTrigger aria-label={`${ex.name} type`} className="col-span-3 h-9 w-full px-2 text-sm sm:col-span-1">
+                        <Select
+                          value={ex.loadType}
+                          onValueChange={(v) => updateExercise(di, ei, { loadType: v as LoadType })}
+                        >
+                          <SelectTrigger
+                            aria-label={`${ex.name} type`}
+                            className="col-span-3 h-9 w-full px-2 text-sm sm:col-span-1"
+                          >
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -384,8 +396,14 @@ function ImportPage() {
                             ))}
                           </SelectContent>
                         </Select>
-                        <Select value={ex.muscle} onValueChange={(v) => updateExercise(di, ei, { muscle: v as Muscle })}>
-                          <SelectTrigger aria-label={`${ex.name} muscle`} className="col-span-3 h-9 w-full px-2 text-sm sm:col-span-1">
+                        <Select
+                          value={ex.muscle}
+                          onValueChange={(v) => updateExercise(di, ei, { muscle: v as Muscle })}
+                        >
+                          <SelectTrigger
+                            aria-label={`${ex.name} muscle`}
+                            className="col-span-3 h-9 w-full px-2 text-sm sm:col-span-1"
+                          >
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -425,8 +443,8 @@ function ImportPage() {
                   <DialogTitle>Replace the plan?</DialogTitle>
                   <DialogDescription>
                     Your {plan.days.length} days become these {parsed.days.length}
-                    {parsed.split ? ` on ${splitInfoOf(splits, parsed.split).name}` : ' as a custom plan'}. Logged workouts
-                    stay, and the next session starts from day one of the new plan.
+                    {parsed.split ? ` on ${splitInfoOf(splits, parsed.split).name}` : ' as a custom plan'}. Logged
+                    workouts stay, and the next session starts from day one of the new plan.
                   </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>

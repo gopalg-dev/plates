@@ -3,6 +3,7 @@ import { ChevronLeft } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { NumberField } from '#/components/app/number-field'
+import { ProgressionPicker } from '#/components/app/progression-picker'
 import { SplitPicker } from '#/components/app/split-picker'
 import { Button } from '#/components/ui/button'
 import { Field, FieldDescription } from '#/components/ui/field'
@@ -12,12 +13,15 @@ import { RadioGroup, RadioGroupItem } from '#/components/ui/radio-group'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { dayKey } from '#/lib/logic/stats'
 import { DEFAULT_SPLIT, templateOf } from '#/lib/content'
-import type { SplitId, TrainingAge, Units } from '#/lib/types'
+import { defaultProgression } from '#/lib/logic/progression'
+import { GOAL_OPTIONS } from '#/lib/logic/goal'
+import type { Goal, Progression, SplitId, TrainingAge, Units } from '#/lib/types'
 import { applySplitFn, getContentFn, getSettingsFn, logBodyweightFn, saveSettingsFn } from '#/server/fns'
 import { getSessionFn } from '#/server/session'
 
 type Search = { step?: 'split' }
 import { pageTitle } from '#/lib/page-title'
+import { errorMessage } from '#/lib/format'
 
 export const Route = createFileRoute('/setup')({
   head: () => ({ meta: [{ title: pageTitle('Setup') }] }),
@@ -34,7 +38,7 @@ export const Route = createFileRoute('/setup')({
 })
 
 // Units, split, bodyweight, training age. One question per screen.
-const STEPS = 4
+const STEPS = 5
 const SPLIT_STEP = 1
 
 const ageOptions: { value: TrainingAge; title: string; detail: string }[] = [
@@ -61,7 +65,11 @@ function SetupPage() {
   const [units, setUnits] = useState<Units>(initial.units)
   const [split, setSplit] = useState<SplitId>(templateOf(initial.split))
   const [bodyweight, setBodyweight] = useState<number | undefined>(initial.bodyweight)
+  const [goal, setGoal] = useState<Goal>(initial.goal ?? 'gain')
   const [trainingAge, setTrainingAge] = useState<TrainingAge>(initial.trainingAge)
+  // Null until touched: the default follows the training age picked on the step before.
+  const [progression, setProgression] = useState<Progression | null>(initial.progression ?? null)
+  const chosenProgression = progression ?? defaultProgression(trainingAge)
   const [saving, setSaving] = useState(false)
 
   // The split the plan is on now. Before the first setup there is none; data claimed from before
@@ -74,9 +82,16 @@ function SetupPage() {
     setSaving(true)
     try {
       await saveSettingsFn({
-        data: { units, trainingAge, setupDone: true, ...(bodyweight ? { bodyweight } : {}) },
+        data: {
+          units,
+          trainingAge,
+          progression: chosenProgression,
+          goal,
+          setupDone: true,
+          ...(bodyweight ? { bodyweight } : {}),
+        },
       })
-      // A new split starts the plan over from its template. The same split keeps the plan and its edits.
+      // Another split shows its own plan: as left earlier, or fresh from the template. The same split changes nothing.
       if (split !== currentSplit) await applySplitFn({ data: { split } })
       // The first setup records the answer to "What do you weigh today?" as today's weigh-in. A later run
       // only logs when the number was changed, so re-running setup does not invent a weigh-in.
@@ -85,7 +100,7 @@ function SetupPage() {
       }
       await navigate({ to: '/' })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Could not save. Try again.')
+      toast.error(errorMessage(err, 'Could not save. Try again.'))
       setSaving(false)
     }
   }
@@ -142,7 +157,7 @@ function SetupPage() {
               <SplitPicker splits={content.splits} value={split} onChange={setSplit} className="mt-8" />
               {switching && (
                 <p className="mt-4 rounded-lg border px-3 py-2 text-sm">
-                  Switching starts the plan over from this template. Your edits go, your logged workouts stay.
+                  Each split keeps its own plan. Coming back to one finds it as you left it.
                 </p>
               )}
             </section>
@@ -166,6 +181,20 @@ function SetupPage() {
                   A weekly weigh-in shows whether you are gaining at the right pace. You can skip this.
                 </FieldDescription>
               </Field>
+              <ToggleGroup
+                type="single"
+                variant="outline"
+                value={goal}
+                onValueChange={(v) => v && setGoal(v as Goal)}
+                className="mt-6 w-full"
+                aria-label="Bodyweight goal"
+              >
+                {GOAL_OPTIONS.map((o) => (
+                  <ToggleGroupItem key={o.value} value={o.value} className="h-12 flex-1 text-base">
+                    {o.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
             </section>
           )}
 
@@ -187,6 +216,13 @@ function SetupPage() {
                   </Label>
                 ))}
               </RadioGroup>
+            </section>
+          )}
+
+          {step === 4 && (
+            <section>
+              <h1 className="font-condensed text-3xl font-semibold leading-tight">How should the weight go up?</h1>
+              <ProgressionPicker value={chosenProgression} onChange={setProgression} className="mt-8" />
             </section>
           )}
         </div>

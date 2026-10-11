@@ -1,13 +1,4 @@
-import type {
-  BodyweightLog,
-  DayType,
-  LoggedSet,
-  Muscle,
-  Plan,
-  TrainingAge,
-  Workout,
-  WorkoutEntry,
-} from '../types'
+import type { BodyweightLog, DayType, LoggedSet, Muscle, Plan, TrainingAge, Workout, WorkoutEntry } from '../types'
 
 export const MUSCLES: Muscle[] = [
   'chest',
@@ -82,10 +73,34 @@ export function epley(weight: number, reps: number): number {
   return weight * (1 + reps / 30)
 }
 
-export function setScore(entry: Pick<WorkoutEntry, 'loadType'>, s: LoggedSet): number {
+/**
+ * One number to rank sets by. Weight lifts: the Epley estimate. Bodyweight work: the same estimate
+ * at the session's bodyweight when one is known, so 8 pull-ups at 80 kg beat 8 at 70 kg; plain reps
+ * when no weigh-in exists. Holds: seconds.
+ */
+export function setScore(entry: Pick<WorkoutEntry, 'loadType'>, s: LoggedSet, bodyweight?: number): number {
   if (entry.loadType === 'weight') return epley(s.weight ?? 0, s.reps ?? 0)
-  if (entry.loadType === 'bodyweight') return s.reps ?? 0
+  if (entry.loadType === 'bodyweight') return bodyweight ? epley(bodyweight, s.reps ?? 0) : (s.reps ?? 0)
   return s.seconds ?? 0
+}
+
+/**
+ * Gives each session the weigh-in in force at the time: the latest on or before it, else the first
+ * after it. Sessions keep no bodyweight of their own, so a weigh-in logged late still counts.
+ */
+export function attachBodyweight(ws: Workout[], logs: BodyweightLog[]): Workout[] {
+  if (logs.length === 0) return ws
+  const sorted = [...logs].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+  return ws.map((w) => {
+    const at = new Date(w.finishedAt ?? w.startedAt).getTime()
+    let before: BodyweightLog | undefined
+    for (const l of sorted) {
+      if (new Date(l.date).getTime() <= at) before = l
+      else break
+    }
+    const bodyweight = (before ?? sorted[0]).weight
+    return { ...w, bodyweight }
+  })
 }
 
 export function bestSet(entry: WorkoutEntry): LoggedSet | undefined {
@@ -239,7 +254,7 @@ export function strengthSeries(ws: Workout[], exerciseId: string): StrengthPoint
       weight: best.weight ?? 0,
       reps: best.reps ?? 0,
       seconds: best.seconds ?? 0,
-      score: setScore(entry, best),
+      score: setScore(entry, best, w.bodyweight),
     })
   }
   return out
@@ -288,7 +303,7 @@ export function weeklyStrength(ws: Workout[], exerciseId: string): WeeklyPoint[]
 export interface WeekTotals {
   /** Done sets with reps or seconds. */
   sets: number
-  /** Weight × reps over the weighted sets, in the user's units. */
+  /** Weight × reps over the weighted sets, plus bodyweight × reps over bodyweight sets when a weigh-in is known. */
   lifted: number
   /** Minutes between starting and finishing, summed over the week's sessions. */
   minutes: number
@@ -307,6 +322,7 @@ export function weekTotals(ws: Workout[], at: Date): WeekTotals {
       for (const s of effectiveSets(e)) {
         out.sets++
         if (e.loadType === 'weight') out.lifted += (s.weight ?? 0) * (s.reps ?? 0)
+        else if (e.loadType === 'bodyweight') out.lifted += (w.bodyweight ?? 0) * (s.reps ?? 0)
       }
     }
   }
@@ -333,7 +349,7 @@ export function recentPRs(ws: Workout[], now: Date, days = 14): PR[] {
     for (const e of w.entries) {
       const b = bestSet(e)
       if (!b) continue
-      const score = setScore(e, b)
+      const score = setScore(e, b, w.bodyweight)
       const prev = best.get(e.exerciseId) ?? 0
       if (score > prev) {
         best.set(e.exerciseId, score)

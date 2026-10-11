@@ -12,6 +12,7 @@ import {
   Trophy,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { paceNote } from '#/lib/logic/goal'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis, useActiveTooltipLabel } from 'recharts'
 import {
   DeleteMeasurementButton,
@@ -129,13 +130,6 @@ function changeOf(loadType: LoadType, from: SetLike, to: SetLike, units: Units):
   }
   const ds = to.seconds - from.seconds
   return ds === 0 ? { text: 'same', up: false } : { text: `${signed(ds, 0)} s`, up: ds > 0 }
-}
-
-function paceNote(changePct: number): string {
-  if (changePct > 0.75) return 'Faster than the lean-gain pace. Trim a little.'
-  if (changePct >= 0.2) return 'Right in the lean-gain pace.'
-  if (changePct < -0.2) return 'Trending down.'
-  return 'Holding steady.'
 }
 
 /** Noon on a local calendar day, so formatting never slips to the day before in western time zones. */
@@ -379,7 +373,7 @@ function StatsPage() {
                   <p className="mt-2 text-sm text-muted-foreground">
                     7-day average {fmtWeight(bw.weekAvg, units)}
                     {bw.changePct !== undefined
-                      ? `, ${signed(bw.changePct, 1)}% vs last week. ${paceNote(bw.changePct)}`
+                      ? `, ${signed(bw.changePct, 1)}% vs last week. ${paceNote(bw.changePct, settings.goal)}`
                       : ''}
                   </p>
                 ) : null}

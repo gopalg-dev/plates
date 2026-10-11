@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  attachBodyweight,
   bodyweightTrend,
   epley,
   monthCalendar,
@@ -10,21 +11,18 @@ import {
   strengthSeries,
   volumeByMuscleInWeek,
   weekTotals,
+  setScore,
   weeklyStreak,
   weeklyStrength,
 } from '#/lib/logic/stats'
 import { seedPlan } from '#/lib/seed-plan'
-import type { DayType, LoggedSet, Workout, WorkoutEntry } from '#/lib/types'
+import type { BodyweightLog, DayType, LoggedSet, Workout, WorkoutEntry } from '#/lib/types'
 
 // Saturday evening.
 const now = new Date(2026, 9, 10, 18, 0, 0)
 
 let counter = 0
-function workout(
-  finishedAt: Date | null,
-  dayType: DayType = 'push',
-  entries: WorkoutEntry[] = [],
-): Workout {
+function workout(finishedAt: Date | null, dayType: DayType = 'push', entries: WorkoutEntry[] = []): Workout {
   counter++
   return {
     id: `w${counter}`,
@@ -77,12 +75,7 @@ describe('epley', () => {
 
 describe('consistency', () => {
   it('counts only finished sessions in the current week', () => {
-    const ws = [
-      workout(daysAgo(0)),
-      workout(daysAgo(2)),
-      workout(daysAgo(8)),
-      workout(null),
-    ]
+    const ws = [workout(daysAgo(0)), workout(daysAgo(2)), workout(daysAgo(8)), workout(null)]
     expect(sessionsInWeek(ws, now)).toBe(2)
   })
 
@@ -225,6 +218,52 @@ describe('strength', () => {
   })
 })
 
+describe('bodyweight work', () => {
+  const pullups = (reps: number): WorkoutEntry => ({
+    exerciseId: 'pull-ups',
+    name: 'Pull-ups',
+    muscle: 'back',
+    loadType: 'bodyweight',
+    repMin: 6,
+    repMax: 12,
+    sets: [{ reps, done: true }],
+  })
+  const log = (date: Date, weight: number): BodyweightLog => ({ id: String(weight), date: date.toISOString(), weight })
+
+  it('gives each session the weigh-in in force at the time, or the first one after it', () => {
+    const ws = [workout(daysAgo(20)), workout(daysAgo(5)), workout(daysAgo(1))]
+    const logs = [log(daysAgo(10, 7), 70), log(daysAgo(3, 7), 72)]
+    expect(attachBodyweight(ws, logs).map((w) => w.bodyweight)).toEqual([70, 70, 72])
+    expect(attachBodyweight(ws, []).map((w) => w.bodyweight)).toEqual([undefined, undefined, undefined])
+  })
+
+  it('scores pull-ups at bodyweight when known, by reps otherwise', () => {
+    expect(setScore(pullups(8), { reps: 8, done: true })).toBe(8)
+    expect(setScore(pullups(8), { reps: 8, done: true }, 75)).toBe(epley(75, 8))
+    expect(setScore(pullups(8), { reps: 8, done: true }, 80)).toBeGreaterThan(
+      setScore(pullups(8), { reps: 8, done: true }, 70),
+    )
+  })
+
+  it('counts bodyweight reps in the weight lifted and in new bests', () => {
+    const logs = [log(daysAgo(30, 7), 70), log(daysAgo(3, 7), 75)]
+    const ws = attachBodyweight(
+      [workout(daysAgo(20), 'pull', [pullups(8)]), workout(daysAgo(1), 'pull', [pullups(8)])],
+      logs,
+    )
+    expect(weekTotals(ws, now).lifted).toBe(75 * 8)
+    // The same 8 reps at 75 kg beat 8 reps at 70 kg.
+    expect(recentPRs(ws, now).map((p) => p.exerciseId)).toEqual(['pull-ups'])
+    // Without weigh-ins the reps alone decide, and 8 after 8 is no new best.
+    expect(
+      recentPRs(
+        ws.map((w) => ({ ...w, bodyweight: undefined })),
+        now,
+      ),
+    ).toEqual([])
+  })
+})
+
 describe('bodyweight', () => {
   it('compares this week to last week', () => {
     const logs = [
@@ -237,7 +276,7 @@ describe('bodyweight', () => {
     expect(t.latest).toBe(71)
     expect(t.weekAvg).toBeCloseTo(70.8)
     expect(t.prevWeekAvg).toBeCloseTo(70.2)
-    expect(t.changePct).toBeCloseTo((70.8 - 70.2) / 70.2 * 100)
+    expect(t.changePct).toBeCloseTo(((70.8 - 70.2) / 70.2) * 100)
   })
 
   it('handles no data', () => {

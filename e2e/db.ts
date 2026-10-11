@@ -1,7 +1,8 @@
 import { MongoClient } from 'mongodb'
 import { E2E_DB } from '../playwright.config'
 
-const uri = process.env.MONGODB_URI ?? 'mongodb://localhost:27017'
+// The e2e run always uses the local Docker database; see playwright.config.ts.
+const uri = 'mongodb://localhost:27017'
 
 /** Wipes the e2e database so each browser project starts from first run. */
 export async function resetDatabase() {

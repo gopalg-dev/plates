@@ -4,6 +4,14 @@ import { backdateJoin, lastCode, lastMagicLink, resetDatabase } from './db'
 
 test.describe.configure({ mode: 'serial' })
 
+/** Sign out from the account menu at the foot of the sidebar. Phones open the sidebar first. */
+async function signOut(page: Page) {
+  await open(page, '/')
+  if ((page.viewportSize()?.width ?? 0) < 768) await page.getByRole('button', { name: 'Open menu' }).click()
+  await page.getByRole('button', { name: /^Account menu/ }).click()
+  await page.getByRole('menuitem', { name: 'Sign out' }).click()
+}
+
 const shots = 'e2e/screenshots'
 
 // The flows build on each other and the session cookie must survive between them, so every test
@@ -56,7 +64,7 @@ test('first run: create an account, then setup one question at a time', async ()
 
   await expect(page).toHaveURL(/\/setup$/)
   await expect(page.getByRole('heading', { name: 'Which units do you lift in?' })).toBeVisible()
-  await expect(page.getByText('1 of 4')).toBeVisible()
+  await expect(page.getByText('1 of 5')).toBeVisible()
   await snap(page, '01-setup-units')
 
   await page.getByRole('radio', { name: 'Pounds' }).click()
@@ -77,11 +85,16 @@ test('first run: create an account, then setup one question at a time', async ()
 
   await expect(page.getByRole('heading', { name: 'How long have you been lifting?' })).toBeVisible()
   await page.getByRole('radio', { name: /A year or more/ }).click()
+  await page.getByRole('button', { name: 'Continue' }).click()
+  await expect(page.getByRole('heading', { name: 'How should the weight go up?' })).toBeVisible()
+  await expect(page.getByRole('radio', { name: /Reps first, then weight/ })).toBeChecked()
   await snap(page, '03-setup-age')
   await page.getByRole('button', { name: 'Start training' }).click()
 
   await expect(page).toHaveURL(/\/$/)
-  await expect(page.getByText(new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }))).toBeVisible()
+  await expect(
+    page.getByText(new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })),
+  ).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Pull A' })).toBeVisible()
   // The weigh-in from setup counts, so Today asks for the tape baseline, not for the weight again.
   await expect(page.getByText('Tape day.')).toBeVisible()
@@ -123,7 +136,12 @@ test('logs a workout with the set logger', async () => {
   await page.getByLabel('Session note').fill('Grip gave out on rows')
   await snap(page, '05b-finish-check-in')
   await page.getByRole('button', { name: 'Save and finish' }).click()
-  await expect(page.getByText('Workout saved')).toBeVisible()
+  // The finish summary: every lift's best set and the week's count. First session, so nothing is a new best yet.
+  await expect(page.getByRole('heading', { name: 'Workout saved' })).toBeVisible()
+  await expect(page.getByText('1 of 6 sessions this week.')).toBeVisible()
+  await expect(page.getByText('62.5 kg × 7')).toBeVisible()
+  await snap(page, '05c-finish-summary')
+  await page.getByRole('button', { name: 'Done' }).click()
   await expect(page.getByRole('heading', { name: 'Push A' })).toBeVisible()
   await snap(page, '06-today-after-finish')
 })
@@ -203,7 +221,10 @@ test('stats reflect the logged workout and bodyweight', async () => {
   await expect(page.getByText('of 6 sessions').locator('..').getByText('1', { exact: true })).toBeVisible()
   // Picking a week in the calendar points the week numbers at that week.
   await page.getByRole('button', { name: 'Previous month', exact: true }).click()
-  await page.getByRole('button', { name: /, no session$/ }).first().click()
+  await page
+    .getByRole('button', { name: /, no session$/ })
+    .first()
+    .click()
   await expect(page.getByRole('heading', { name: /^Week of/ })).toBeVisible()
   await expect(page.getByText('of 6 sessions').locator('..').getByText('0', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Back to this week' }).click()
@@ -217,9 +238,13 @@ test('stats reflect the logged workout and bodyweight', async () => {
   if (prev.getFullYear() !== new Date().getFullYear()) {
     await page.getByLabel('Choose the Year').selectOption(String(prev.getFullYear()))
   }
-  await page.getByLabel('Choose the Month').selectOption({ label: prev.toLocaleDateString('en-US', { month: 'short' }) })
+  await page
+    .getByLabel('Choose the Month')
+    .selectOption({ label: prev.toLocaleDateString('en-US', { month: 'short' }) })
   await expect(
-    page.getByRole('button', { name: `${prev.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}. Pick a month` }),
+    page.getByRole('button', {
+      name: `${prev.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}. Pick a month`,
+    }),
   ).toBeVisible()
   await snap(page, '09c-month-picker')
   await page.keyboard.press('Escape')
@@ -307,7 +332,9 @@ test('stats reflect the logged workout and bodyweight', async () => {
   await page.getByRole('menuitem', { name: 'Discard workout' }).click()
   await expect(page.getByRole('heading', { name: 'Discard this workout?' })).toBeVisible()
   await page.getByRole('button', { name: 'Discard workout' }).click()
-  await expect(page.getByText(new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }))).toBeVisible()
+  await expect(
+    page.getByText(new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })),
+  ).toBeVisible()
   await page.emulateMedia({ colorScheme: 'light' })
 })
 
@@ -354,7 +381,9 @@ test('bring your own plan: template download, upload, preview edit, replace', as
     ',,Plank,3,45 s,,,,',
     ',,,3,8-12,,,,',
   ].join('\n')
-  await page.locator('#plan-file').setInputFiles({ name: 'my-plan.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) })
+  await page
+    .locator('#plan-file')
+    .setInputFiles({ name: 'my-plan.csv', mimeType: 'text/csv', buffer: Buffer.from(csv) })
   await expect(page.getByRole('heading', { name: 'Preview' })).toBeVisible()
   await expect(page.getByText('my-plan.csv: 2 days, 4 exercises.')).toBeVisible()
   // A CSV carries no template marker, so it comes in as a custom plan.
@@ -407,7 +436,10 @@ test('a day on the stats calendar opens its session to fix a set or remove it', 
   await expect(sheet).toBeVisible()
   await expect(sheet.getByText('Grip gave out on rows')).toBeVisible()
   await sheet.getByRole('button', { name: /Barbell Row/ }).click()
-  await sheet.getByRole('region', { name: /Barbell Row/ }).getByLabel('Set 1 reps', { exact: true }).fill('9')
+  await sheet
+    .getByRole('region', { name: /Barbell Row/ })
+    .getByLabel('Set 1 reps', { exact: true })
+    .fill('9')
   await snap(page, '13-history-edit')
   await sheet.getByRole('button', { name: 'Save changes' }).click()
   await expect(page.getByText('Session updated')).toBeVisible()
@@ -426,8 +458,7 @@ test('a day on the stats calendar opens its session to fix a set or remove it', 
 })
 
 test('an emailed sign-in link signs a new user in and starts setup', async () => {
-  await open(page, '/settings')
-  await page.getByRole('button', { name: 'Sign out' }).first().click()
+  await signOut(page)
   await expect(page).toHaveURL(/\/login$/)
   await hydrated(page)
   await snap(page, '14-login')
@@ -446,6 +477,7 @@ test('an emailed sign-in link signs a new user in and starts setup', async () =>
   await page.getByRole('radio', { name: /^Full body/ }).click()
   await page.getByRole('button', { name: 'Continue' }).click()
   await page.getByRole('button', { name: 'Skip' }).click()
+  await page.getByRole('button', { name: 'Continue' }).click()
   await page.getByRole('button', { name: 'Start training' }).click()
   await expect(page.getByRole('heading', { name: 'Full body A' })).toBeVisible()
   await open(page, '/plan')
@@ -453,8 +485,7 @@ test('an emailed sign-in link signs a new user in and starts setup', async () =>
 })
 
 test('accounts stay apart: a second user starts clean and the first signs back in by username', async () => {
-  await open(page, '/settings')
-  await page.getByRole('button', { name: 'Sign out' }).first().click()
+  await signOut(page)
   await expect(page).toHaveURL(/\/login$/)
   await hydrated(page)
   // A sign-in link works once: opening it again lands on the sign-in page with the reason.
@@ -476,13 +507,13 @@ test('accounts stay apart: a second user starts clean and the first signs back i
   await page.getByRole('button', { name: 'Continue' }).click()
   await page.getByRole('button', { name: 'Continue' }).click()
   await page.getByRole('button', { name: 'Skip' }).click()
+  await page.getByRole('button', { name: 'Continue' }).click()
   await page.getByRole('button', { name: 'Start training' }).click()
   // The default plan, not the one the first user imported.
   await expect(page.getByRole('heading', { name: 'Pull A' })).toBeVisible()
   await open(page, '/stats')
   await expect(page.getByText('Nothing logged yet', { exact: false })).toBeVisible()
-  await open(page, '/settings')
-  await page.getByRole('button', { name: 'Sign out' }).first().click()
+  await signOut(page)
   await expect(page).toHaveURL(/\/login$/)
   await hydrated(page)
 
@@ -550,7 +581,7 @@ test('settings change units, and start fresh wipes the data', async () => {
   await page.getByRole('button', { name: /^Change split, on Custom plan/ }).click()
   await page.getByRole('radio', { name: /^Upper \/ Lower 4 days/ }).click()
   await page.getByRole('button', { name: 'Switch to Upper / Lower' }).click()
-  await expect(page.getByText('Plan started over on Upper / Lower')).toBeVisible()
+  await expect(page.getByText('Now on Upper / Lower')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Change split, on Upper / Lower' })).toBeVisible()
   await expect(page).toHaveURL(/\/settings$/)
 
@@ -560,6 +591,6 @@ test('settings change units, and start fresh wipes the data', async () => {
   await page.getByRole('button', { name: 'Wipe and start over' }).click()
   await expect(page).toHaveURL(/\/setup$/)
   await hydrated(page)
-  await expect(page.getByText('1 of 4')).toBeVisible()
+  await expect(page.getByText('1 of 5')).toBeVisible()
   await expect(page.getByRole('radio', { name: 'Kilograms' })).toBeChecked()
 })
