@@ -90,6 +90,8 @@ export interface Settings {
   goal?: Goal
   /** When feedback was last sent or the prompt last dismissed. Gates the prompt after a session. */
   feedbackAt?: string
+  /** Keep the screen on during a session. Unset reads as on. */
+  keepAwake?: boolean
 }
 
 export interface LoggedSet {

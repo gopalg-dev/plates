@@ -5,6 +5,7 @@ import {
   Hourglass,
   LayoutGrid,
   Scale,
+  Smartphone,
   Trash2,
   TrendingUp,
   UserRound,
@@ -212,6 +213,34 @@ function SettingsPage() {
             }
             className="mt-3"
           />
+        </section>
+
+        <section aria-labelledby="screen-h">
+          <SectionHeading id="screen-h" icon={Smartphone}>
+            Screen during a session
+          </SectionHeading>
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            value={settings.keepAwake === false ? 'off' : 'on'}
+            onValueChange={(v) =>
+              v &&
+              v !== (settings.keepAwake === false ? 'off' : 'on') &&
+              save(
+                { keepAwake: v === 'on' },
+                v === 'on' ? 'The screen stays on while you train' : 'The screen can sleep as usual',
+              )
+            }
+            className="mt-3 w-full max-w-xs"
+            aria-label="Screen during a session"
+          >
+            <ToggleGroupItem value="on" className="h-12 flex-1 text-base">
+              Keep it on
+            </ToggleGroupItem>
+            <ToggleGroupItem value="off" className="h-12 flex-1 text-base">
+              Let it sleep
+            </ToggleGroupItem>
+          </ToggleGroup>
         </section>
 
         <section aria-labelledby="schedule-h">

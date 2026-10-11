@@ -239,6 +239,17 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+49. Screen stays on during a session (user: "is it possible to keep the option to make the
+    screen…", then "add it after the round"). `useWakeLock(active)` in `src/lib/use-wake-lock.ts`
+    asks for a screen wake lock while `active` and the page is visible, asks again on
+    visibilitychange (browsers drop the lock when the page leaves the foreground), releases on
+    cleanup, and does nothing where the API is missing or refused (Chrome and Edge on Android and
+    desktop, Safari on iOS 16.4+; a secure origin is required, which the deployed site is).
+    `ActiveWorkout` on Today holds it while a session is in progress unless
+    `settings.keepAwake === false`; Settings has a "Screen during a session" toggle, "Keep it on"
+    (default) / "Let it sleep". The library picker inside the plan editor overflowed its dialog
+    (user found it): a dialog lays its content out as a grid item, which will not shrink below the
+    width of the scrolling tag rows unless it is `min-w-0`; the list's root now is.
 48. Walkthrough as a user (user: "run through the platform like a real user on all different
     viewports exploring every single feature… validating the logics which are linked with
     multiple places… again and again until you find no bugs"). `e2e/explore.spec.ts`, run by

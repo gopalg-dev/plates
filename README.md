@@ -27,7 +27,8 @@ Four screens, one job each:
   a point to edit or remove a weigh-in) and measurements.
 - **Library**: 137 exercises with a picture, muscles, equipment and cues, searchable and
   filterable. "Pick from library" fills an exercise in from the plan editor or the import preview.
-- **Settings**: units, training age, bodyweight goal, progression, rolling or weekday schedule, the split (switch in place;
+- **Settings**: units, training age, bodyweight goal, progression, whether the screen stays on during
+  a session, rolling or weekday schedule, the split (switch in place;
   each split keeps its own plan, so coming back finds your edits), and "Start fresh" behind a typed
   confirmation. On a phone the menu button opens the sidebar; the profile row at its foot holds
   Settings and Sign out.

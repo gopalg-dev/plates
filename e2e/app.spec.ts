@@ -594,6 +594,10 @@ test('settings change units, and start fresh wipes the data', async () => {
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
   await page.getByRole('radio', { name: 'Pounds' }).click()
   await expect(page.getByText('Lifting in lb')).toBeVisible()
+  await page.getByRole('radio', { name: 'Let it sleep' }).click()
+  await expect(page.getByText('The screen can sleep as usual')).toBeVisible()
+  await page.getByRole('radio', { name: 'Keep it on' }).click()
+  await expect(page.getByText('The screen stays on while you train')).toBeVisible()
   await snap(page, '17-settings')
   // The look lives in the account menu, is kept on the device and applied before paint, so it survives a reload.
   const pickLook = async (name: string) => {

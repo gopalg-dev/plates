@@ -91,7 +91,8 @@ export function LibraryList({ onSelect, action = 'Open', autoFocus, onResults }:
   }, [results, onResults])
 
   return (
-    <div>
+    // min-w-0: inside a dialog this is a grid item, and the scrolling tag rows must not set its width.
+    <div className="min-w-0">
       <Input
         type="search"
         value={query}

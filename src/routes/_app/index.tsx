@@ -58,6 +58,7 @@ import { EFFORTS, EFFORT_LABEL, type Effort } from '#/lib/logic/effort'
 import { nudgeFor } from '#/lib/logic/nudges'
 import { WEEKDAY_LONG, WEEKDAY_SHORT, weekdayView } from '#/lib/logic/schedule'
 import { plannedSetsFor, weeklyStreakOf } from '#/lib/logic/stats'
+import { useWakeLock } from '#/lib/use-wake-lock'
 import { rowTap } from '#/lib/row-tap'
 import { cn } from '#/lib/utils'
 import {
@@ -439,6 +440,8 @@ interface ActiveProps {
 }
 
 function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: ActiveProps) {
+  // The phone stays awake between sets, unless Settings says to let it sleep.
+  useWakeLock(settings.keepAwake !== false)
   const [entries, setEntries] = useState<WorkoutEntry[]>(workout.entries)
   const [openId, setOpenId] = useState<string | null>(
     () => workout.entries.find((e) => e.sets.some((s) => !s.done))?.exerciseId ?? null,
