@@ -339,12 +339,12 @@ test('bring your own plan: template download, upload, preview edit, replace', as
   await expect(page.getByRole('combobox', { name: 'Template' })).toHaveText('Current plan, Push / Pull / Legs')
   const download = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download template' }).click()
-  expect((await download).suggestedFilename()).toBe('workout-plan-template-ppl6.xlsx')
+  expect((await download).suggestedFilename()).toBe('plates-template-ppl6.xlsx')
   await page.getByRole('combobox', { name: 'Template' }).click()
   await page.getByRole('option', { name: 'Upper / Lower, 4 days' }).click()
   const ul4 = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download template' }).click()
-  expect((await ul4).suggestedFilename()).toBe('workout-plan-template-ul4.xlsx')
+  expect((await ul4).suggestedFilename()).toBe('plates-template-ul4.xlsx')
 
   const csv = [
     'Day,Type,Exercise,Sets,Reps,Load,Muscle,Note,Alternates',
@@ -393,11 +393,11 @@ test('a day on the stats calendar opens its session to fix a set or remove it', 
   // The logs export as a spreadsheet, built in the browser.
   const xlsx = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download Excel' }).click()
-  expect((await xlsx).suggestedFilename()).toMatch(/^workout-logs-\d{4}-\d{2}-\d{2}\.xlsx$/)
+  expect((await xlsx).suggestedFilename()).toMatch(/^plates-logs-\d{4}-\d{2}-\d{2}\.xlsx$/)
   const csv = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download CSV' }).click()
   const csvFile = await csv
-  expect(csvFile.suggestedFilename()).toMatch(/^workout-logs-\d{4}-\d{2}-\d{2}\.csv$/)
+  expect(csvFile.suggestedFilename()).toMatch(/^plates-logs-\d{4}-\d{2}-\d{2}\.csv$/)
   const text = readFileSync((await csvFile.path())!, 'utf8')
   expect(text.split('\n')[0]).toContain('Weight (kg)')
   expect(text).toContain('Barbell Row')

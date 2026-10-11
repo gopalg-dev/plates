@@ -33,7 +33,7 @@ export async function sendMail(mail: Mail): Promise<void> {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: process.env.MAIL_FROM ?? 'Workout plan <onboarding@resend.dev>',
+        from: process.env.MAIL_FROM ?? 'Plates <onboarding@resend.dev>',
         to: [mail.to],
         subject: mail.subject,
         text: mail.text,

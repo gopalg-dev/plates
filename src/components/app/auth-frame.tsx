@@ -18,7 +18,7 @@ export function AuthFrame({ title, intro, children, footer }: Props) {
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-12">
       <p className="flex items-center gap-2.5 text-muted-foreground">
         <AppMark className="size-7" />
-        <span className="font-condensed text-lg font-medium leading-none">Workout plan</span>
+        <span className="font-condensed text-lg font-medium leading-none">Plates</span>
       </p>
       <h1 className="mt-6 font-condensed text-5xl font-semibold leading-none">{title}</h1>
       <p className="mt-3 text-muted-foreground">{intro}</p>

@@ -13,7 +13,7 @@ let mark: InlineImage | undefined
 function appMark(): InlineImage {
   mark ??= {
     cid: 'app-mark',
-    filename: 'workout-plan.png',
+    filename: 'plates.png',
     contentType: 'image/png',
     content: readFileSync(join(process.cwd(), 'public', 'icon-192.png')).toString('base64'),
   }
@@ -64,7 +64,7 @@ function frame(subject: string, preview: string, card: string, footer: string): 
 <tr><td style="padding:0 4px 20px;">
   <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
     <td style="width:28px;height:28px;"><img src="cid:app-mark" width="28" height="28" alt="" style="display:block;width:28px;height:28px;border-radius:6px;"></td>
-    <td style="padding-left:10px;font-family:${CONDENSED};font-size:18px;font-weight:600;color:${C.ink};line-height:28px;">Workout plan</td>
+    <td style="padding-left:10px;font-family:${CONDENSED};font-size:18px;font-weight:600;color:${C.ink};line-height:28px;">Plates</td>
   </tr></table>
 </td></tr>
 <tr><td style="background:${C.card};border:1px solid ${C.border};border-radius:12px;padding:28px 28px 24px;">
@@ -86,8 +86,8 @@ const line = (text: string) =>
 /** The sign-in link: one line, one button, the link as text for clients that strip buttons. */
 export function signInMail(url: string, minutes: number): AppMail {
   const safeUrl = escapeHtml(url)
-  const subject = 'Your sign-in link for Workout plan'
-  const text = `Sign in to Workout plan:\n${url}\n\nThe link works for ${minutes} minutes, on the device you open it on. If you did not ask for it, ignore this email.`
+  const subject = 'Your sign-in link for Plates'
+  const text = `Sign in to Plates:\n${url}\n\nThe link works for ${minutes} minutes, on the device you open it on. If you did not ask for it, ignore this email.`
   const card = `${h1('Sign in')}
   ${line(`Open this on the device you want to use. The link works for ${minutes} minutes.`)}
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:24px 0 0;"><tr>
@@ -108,8 +108,8 @@ export function signInMail(url: string, minutes: number): AppMail {
 /** The sign-up code: the six digits, big, and how long they last. */
 export function codeMail(code: string, minutes: number): AppMail {
   const digits = escapeHtml(code)
-  const subject = `${code} is your Workout plan code`
-  const text = `Your Workout plan code is ${code}. It works for ${minutes} minutes. If you did not ask for it, ignore this email.`
+  const subject = `${code} is your Plates code`
+  const text = `Your Plates code is ${code}. It works for ${minutes} minutes. If you did not ask for it, ignore this email.`
   const card = `${h1('Your code')}
   ${line(`Type it on the sign-up screen. It works for ${minutes} minutes.`)}
   <p style="margin:20px 0 0;font-family:${CONDENSED};font-size:44px;line-height:48px;font-weight:600;letter-spacing:8px;color:${C.ink};">${digits}</p>`

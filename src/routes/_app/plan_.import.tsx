@@ -95,7 +95,7 @@ function ImportPage() {
         tag['!cols'] = [{ wch: 8 }, { wch: 30 }]
         XLSX.utils.book_append_sheet(wb, tag, 'Template')
       }
-      XLSX.writeFile(wb, marker ? `workout-plan-template-${marker.id}.xlsx` : 'workout-plan-template.xlsx')
+      XLSX.writeFile(wb, marker ? `plates-template-${marker.id}.xlsx` : 'plates-template.xlsx')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Could not build the template.')
     } finally {

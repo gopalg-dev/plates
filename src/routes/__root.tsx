@@ -11,7 +11,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
-      { title: 'Workout plan' },
+      { title: 'Plates' },
       { name: 'theme-color', content: 'hsl(200 16% 96%)', media: '(prefers-color-scheme: light)' },
       { name: 'theme-color', content: 'hsl(210 23% 14%)', media: '(prefers-color-scheme: dark)' },
     ],

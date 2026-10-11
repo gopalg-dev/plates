@@ -101,7 +101,7 @@ describe('export rows', () => {
   })
 
   it('names the file by the day', () => {
-    expect(exportFileName('xlsx', new Date(2026, 9, 10))).toBe('workout-logs-2026-10-10.xlsx')
-    expect(exportFileName('csv', new Date(2026, 0, 2))).toBe('workout-logs-2026-01-02.csv')
+    expect(exportFileName('xlsx', new Date(2026, 9, 10))).toBe('plates-logs-2026-10-10.xlsx')
+    expect(exportFileName('csv', new Date(2026, 0, 2))).toBe('plates-logs-2026-01-02.csv')
   })
 })

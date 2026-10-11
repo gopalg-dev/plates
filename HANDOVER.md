@@ -239,6 +239,10 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+33. The app is called **Plates** (user's pick, 2026-10-11; it was "Workout plan"). Renamed in the
+    wordmark, tab titles, sign-in frame, mail subjects and sender name, the template file name
+    (`plates-template-<id>.xlsx`), the export file name and the README. The package name and the
+    folder stay `workout_plan_v3`.
     The mark is drawn once: `AppMark` (`app-mark.tsx`) is an `<img>` of
     `/favicon.svg`, used in the sidebar header, the phone header and the sign-in frame; the
     sign-in email uses `public/icon-192.png`, the same SVG rendered with Chrome (scratch script

@@ -80,7 +80,7 @@ function AppLayout() {
         <SidebarHeader className="h-12 flex-row items-center justify-between gap-2 px-2 group-data-[collapsible=icon]:justify-center">
           <p className="flex min-w-0 items-center gap-2 pl-1 font-condensed text-xl font-semibold leading-none group-data-[collapsible=icon]:pl-0">
             <AppMark className="size-7" />
-            <span className="truncate group-data-[collapsible=icon]:hidden">Workout plan</span>
+            <span className="truncate group-data-[collapsible=icon]:hidden">Plates</span>
           </p>
           <SidebarTrigger aria-label="Toggle sidebar" />
         </SidebarHeader>
@@ -112,7 +112,7 @@ function AppLayout() {
           <SidebarTrigger aria-label="Open menu" />
           <p className="flex items-center gap-2 font-condensed text-lg font-medium leading-none">
             <AppMark />
-            Workout plan
+            Plates
           </p>
         </header>
         <main className="mx-auto w-full max-w-2xl px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-16">

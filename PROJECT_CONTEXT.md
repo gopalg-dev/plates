@@ -303,6 +303,7 @@ no Inter/Geist. Checked.
 - [x] 27. Mail and sign-up hardening: the sign-in email in the app's look, Resend errors surfaced,
       used links explained on the sign-in page, favicon and tab titles, and sign-up verified by a
       six-digit emailed code before a password account can sign in. HANDOVER.md items 29 to 32.
+- [x] 28. The app is called Plates (was "Workout plan"): wordmark, titles, mails, file names, README. HANDOVER.md item 33.
 
 ## Next up
 

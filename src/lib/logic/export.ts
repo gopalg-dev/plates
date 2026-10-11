@@ -77,7 +77,7 @@ export function measurementsToRows(logs: MeasurementLog[]): MeasurementRow[] {
     .map((l) => ({ Date: l.day ?? dayKey(l.date), Arm: l.arm ?? '', Chest: l.chest ?? '', Waist: l.waist ?? '' }))
 }
 
-/** `workout-logs-2026-10-10.xlsx` */
+/** `plates-logs-2026-10-10.xlsx` */
 export function exportFileName(kind: 'xlsx' | 'csv', now = new Date()): string {
-  return `workout-logs-${dayKey(now)}.${kind}`
+  return `plates-logs-${dayKey(now)}.${kind}`
 }

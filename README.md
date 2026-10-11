@@ -1,8 +1,8 @@
-# Workout plan
+# Plates
 
 A personal gym logbook, built for a phone between sets: see the next session, log a set in two
 taps, and read stats that come only from what you logged. Sign in from any device and your log
-follows you.
+follows you. The name is the mark: three plates in the push, pull and legs colours.
 
 Four screens, one job each:
 
