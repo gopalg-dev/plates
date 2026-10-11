@@ -21,7 +21,8 @@ Four screens, one job each:
   chart of each week's best set, a table reading "this week 62.5 kg × 7, last week 60 kg × 8,
   +2.5 kg", and recent bests. Sessions: the week's count, streak, hard sets, weight lifted and
   minutes, a month calendar where tapping a day opens that session to fix a set or remove it,
-  hard sets per muscle against the plan, and the Excel / CSV export. Pull-ups and other bodyweight
+  a body map (front and back, each muscle grey, red or green by the week's hard sets against the
+  plan, tap one for the number) over the hard sets per muscle, and the Excel / CSV export. Pull-ups and other bodyweight
   work count at your logged bodyweight in the weight lifted and in new bests. Body: bodyweight chart (tap
   a point to edit or remove a weigh-in) and measurements.
 - **Library**: 137 exercises with a picture, muscles, equipment and cues, searchable and
@@ -190,6 +191,9 @@ custom tokens are `--day-push`, `--day-pull`, `--day-legs` (plate colours for th
 `-ink` partners (the glyph colour on top of each plate, which a theme with pastel plates darkens)
 and `--success`. Type is Barlow, with Barlow Condensed for titles and big numbers. Bottom sheets are
 shadcn Drawers; forms use the shadcn field components.
+
+The body map on Stats uses the figure polygons of [react-body-highlighter](https://github.com/giavinh79/react-body-highlighter)
+by GV79, MIT License, folded into the nine muscles the app tracks.
 
 Five looks, picked from the account menu and kept on the device: Slate (the default, dark when the
 device is), Chalk (warm white and graphite, flat), Pocket (the device's own typeface, soft corners,

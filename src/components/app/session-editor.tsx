@@ -49,6 +49,16 @@ export function SessionEditor({ workout, units, onClose, onSaved }: EditorProps)
   const shown = useRef(workout)
   if (workout) shown.current = workout
   const current = workout ?? shown.current
+  // The edits live here, above the panel: the panel swaps between a drawer and a dialog when the
+  // viewport crosses 768px, which remounts its content, and a typed change must survive that.
+  const [forId, setForId] = useState<string | null>(null)
+  const [entries, setEntries] = useState<WorkoutEntry[]>([])
+  const [openId, setOpenId] = useState<string | null>(null)
+  if (workout && forId !== workout.id) {
+    setForId(workout.id)
+    setEntries(workout.entries)
+    setOpenId(null)
+  }
   return (
     <EditorPanel
       open={workout !== null}
@@ -66,14 +76,39 @@ export function SessionEditor({ workout, units, onClose, onSaved }: EditorProps)
       }
       description={current ? `${sessionSummary(current)}${current.note ? `. ${current.note}` : ''}` : ''}
     >
-      {workout && <EditorBody key={workout.id} workout={workout} units={units} onClose={onClose} onSaved={onSaved} />}
+      {workout && (
+        <EditorBody
+          key={workout.id}
+          workout={workout}
+          entries={entries}
+          setEntries={setEntries}
+          openId={openId}
+          setOpenId={setOpenId}
+          units={units}
+          onClose={onClose}
+          onSaved={onSaved}
+        />
+      )}
     </EditorPanel>
   )
 }
 
-function EditorBody({ workout, units, onClose, onSaved }: EditorProps & { workout: Workout }) {
-  const [entries, setEntries] = useState<WorkoutEntry[]>(workout.entries)
-  const [openId, setOpenId] = useState<string | null>(null)
+function EditorBody({
+  workout,
+  entries,
+  setEntries,
+  openId,
+  setOpenId,
+  units,
+  onClose,
+  onSaved,
+}: EditorProps & {
+  workout: Workout
+  entries: WorkoutEntry[]
+  setEntries: (update: (current: WorkoutEntry[]) => WorkoutEntry[]) => void
+  openId: string | null
+  setOpenId: (id: string | null) => void
+}) {
   const [busy, setBusy] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
 

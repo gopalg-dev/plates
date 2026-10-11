@@ -237,7 +237,7 @@ test('stats reflect the logged workout and bodyweight', async () => {
   await backdateJoin(60)
   await open(page, '/stats?tab=sessions')
   await expect(page.getByText('of 6 sessions')).toBeVisible()
-  await expect(page.getByText('Effort this week: hard.')).toBeVisible()
+  await expect(page.getByText(/effort hard\.$/)).toBeVisible()
   await expect(page.getByText('of 6 sessions').locator('..').getByText('1', { exact: true })).toBeVisible()
   // Picking a week in the calendar points the week numbers at that week.
   await page.getByRole('button', { name: 'Previous month', exact: true }).click()
@@ -281,6 +281,14 @@ test('stats reflect the logged workout and bodyweight', async () => {
   // weighed in at setup.
   await page.getByRole('tab', { name: 'Sessions' }).click()
   await expect(page.getByText(/^1,494\s*kg$/)).toBeVisible()
+  // The body map: back was trained, chest was planned and not yet; a tap names the number.
+  await expect(page.getByRole('group', { name: 'Front' })).toBeVisible()
+  await expect(page.getByRole('group', { name: 'Back' })).toBeVisible()
+  // A muscle is a group of polygons whose centre can fall between its halves, so the click is dispatched.
+  await page.getByRole('button', { name: /^Back: 3 of \d+ sets$/ }).dispatchEvent('click')
+  await expect(page.getByRole('button', { name: /^Back: 3 of \d+ sets$/ })).toHaveAttribute('aria-pressed', 'true')
+  await expect(page.getByRole('button', { name: /^Chest: 0 of \d+ sets$/ })).toBeVisible()
+  await snap(page, '08b-body-map')
 
   await page.getByRole('tab', { name: 'Body' }).click()
   await expect(page.getByText('No tape yet', { exact: false })).toBeVisible()
@@ -457,10 +465,9 @@ test('a day on the stats calendar opens its session to fix a set or remove it', 
   await expect(sheet).toBeVisible()
   await expect(sheet.getByText('Grip gave out on rows')).toBeVisible()
   await sheet.getByRole('button', { name: /Barbell Row/ }).click()
-  await sheet
-    .getByRole('region', { name: /Barbell Row/ })
-    .getByLabel('Set 1 reps', { exact: true })
-    .fill('9')
+  const reps = sheet.getByRole('region', { name: /Barbell Row/ }).getByLabel('Set 1 reps', { exact: true })
+  await reps.fill('9')
+  await expect(reps).toHaveValue('9')
   await snap(page, '13-history-edit')
   await sheet.getByRole('button', { name: 'Save changes' }).click()
   await expect(page.getByText('Session updated')).toBeVisible()

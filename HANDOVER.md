@@ -239,6 +239,41 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+46. Sessions tab tidy-up around the map. The week header is three quiet lines under the big
+    number: "1 week in a row, effort ok." and "18 hard sets · 2,202 kg · 2 min" (user: "try to
+    provide these information minimally"); the three `Figure` tiles are gone. From 1024px the week
+    section spans the tab with the summary left and the calendar right (user: "distribute this
+    information to take the right side empty space"), and the map section spans it too with the
+    two figures side by side from 640px, each scaling to its cell (`h-auto w-full max-w-[22rem]`),
+    which also stopped the figures overflowing onto the Export buttons. `SessionEditor` now holds
+    the edited entries itself and resets them when the session id changes: `EditorPanel` swaps
+    between a Drawer and a Dialog when the viewport crosses 768px, which remounts its content, and
+    a full-page screenshot in the e2e nudged the viewport across that line between typing a rep
+    and saving, so the typed change was lost (the "60 kg × 9" flake). The e2e now asserts the
+    field holds 9 before saving, and taps a map muscle with a dispatched click because a muscle
+    group's centre can fall between its two halves.
+45. Body map (user: "build a human body svg, that highlights the muscle groups… red - those parts
+    are not trained on that week, green - those parts are trained", then "looks too basic man… try
+    to build a real human like", "or look web for any source codes"). The figures are the polygon
+    data of react-body-highlighter by GV79 (MIT, notice kept in `src/lib/body-figures.ts`), a
+    1000 × 2200 box, front and back, its twenty-three muscle groups folded into the app's nine
+    (`make-polygons` mapping: front and back deltoids → shoulders, trapezius and upper back →
+    back, obliques → abs, soleus → calves; head, neck, forearms, knees, glutes, hips and lower
+    back stay in the body colour). `src/components/app/body-map.tsx`: `BodyMap` renders both
+    figures, every part with a page-coloured seam; `regionPaint(done, target)` is grey when the
+    plan has no sets for the muscle, red (`--destructive`) when it has and nothing is logged,
+    green (`--success`) from 0.4 to 1 towards the plan's number, so red means behind rather than
+    skipped. Each muscle is a focusable button labelled "Chest: 6 of 12 sets" and carries its name and
+    count as a label with a leader line in the margin beside the figure (`LABEL_SIDE` fixes the
+    side per muscle; crowded sides nudge later labels down), so the old hard-sets list under the
+    map is gone (user: "shall we combine this info to the figure"). A tap outlines the muscle in
+    the foreground colour. The body is `--muted-foreground` at 0.2 so it shows on light themes
+    (user: "in light theme hard to see"); each figure has a Front / Back caption (user: "specify
+    back and front"). `BodyMapLegend` has the three swatches. Sits at the top of the "Hard sets" section on the Sessions tab, following the
+    picked week. A 3D model was considered and declined (mesh and renderer weight, no free model
+    with split regions, WebGL on phones, a figure that must be turned to read); a first
+    hand-drawn version of rounded blocks was replaced by the polygons. Tests:
+    `tests/body-map.test.ts`; the e2e taps Back on the map after the first session.
 44. Custom split with little friction (user: "what if the user follows some other split which is
     not found in the list… simple and minimal options with less user friction to create a custom
     split"). Two layers. (a) Day editing on Plan: "Add a day" under the accordion opens a grid of

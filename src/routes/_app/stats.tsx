@@ -21,6 +21,7 @@ import {
   LogMeasurementsDialog,
   WeighInDialog,
 } from '#/components/app/body-dialogs'
+import { BodyMap, BodyMapLegend } from '#/components/app/body-map'
 import { DayIcon, dayColourClass, dayColourVar, dayInkClass } from '#/components/app/day-mark'
 import { ExportButtons } from '#/components/app/export-buttons'
 import { SessionEditor, sessionSummary } from '#/components/app/session-editor'
@@ -31,7 +32,6 @@ import { Button } from '#/components/ui/button'
 import { Calendar } from '#/components/ui/calendar'
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '#/components/ui/chart'
 import { Popover, PopoverContent, PopoverTrigger } from '#/components/ui/popover'
-import { Progress } from '#/components/ui/progress'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '#/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs'
@@ -40,8 +40,6 @@ import { longDate, monthYear, relativeDay, shortDate, signed } from '#/lib/forma
 import { deloadHint, effortLabel, effortThisWeek } from '#/lib/logic/effort'
 import { daysBetween } from '#/lib/logic/nudges'
 import {
-  MUSCLES,
-  MUSCLE_LABEL,
   addDays,
   bodyweightTrend,
   dayKey,
@@ -64,6 +62,7 @@ import {
   type Exercise,
   type LoadType,
   type MeasurementLog,
+  type Muscle,
   type Units,
   type Workout,
 } from '#/lib/types'
@@ -163,6 +162,7 @@ function StatsPage() {
   /** The session open for editing, and the day whose sessions are listed when there is more than one. */
   const [editing, setEditing] = useState<Workout | null>(null)
   const [dayOpen, setDayOpen] = useState<string | null>(null)
+  const [pickedMuscle, setPickedMuscle] = useState<Muscle | null>(null)
   const refresh = () => router.invalidate()
 
   const derived = useMemo(() => {
@@ -283,65 +283,70 @@ function StatsPage() {
 
         {/* Two columns only from 1024px: beside the sidebar a tablet leaves 448px, too narrow for two. */}
         <TabsContent value="sessions" className="mt-6 grid gap-10 lg:grid-cols-2 lg:gap-x-10">
-          <section aria-labelledby="week-h">
+          <section aria-labelledby="week-h" className="lg:col-span-2">
             <SectionHeading id="week-h" icon={CalendarDays}>
               {isThisWeek ? 'This week' : `Week of ${shortDate(noon(weekKey))}`}
             </SectionHeading>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="font-condensed text-6xl font-semibold leading-none tabular-nums">{sessions}</span>
-              <span className="text-muted-foreground">of {plan.days.length} sessions</span>
+            <div className="lg:grid lg:grid-cols-2 lg:gap-x-10">
+              <div>
+                <div className="mt-3 flex items-baseline gap-2">
+                  <span className="font-condensed text-6xl font-semibold leading-none tabular-nums">{sessions}</span>
+                  <span className="text-muted-foreground">of {plan.days.length} sessions</span>
+                </div>
+                {/* One quiet line each: the streak with the effort, and the week's totals. */}
+                {(streak > 0 || effort !== undefined) && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {[
+                      streak > 0 ? `${streak} ${streak === 1 ? 'week' : 'weeks'} in a row` : null,
+                      effort !== undefined ? `effort ${effortLabel(effort).toLowerCase()}` : null,
+                    ]
+                      .filter(Boolean)
+                      .join(', ')}
+                    .
+                  </p>
+                )}
+                <p className="mt-2 flex flex-wrap gap-x-3 text-sm tabular-nums">
+                  <span>{totals.sets} hard sets</span>
+                  <span className="text-muted-foreground" aria-hidden>
+                    ·
+                  </span>
+                  <span>
+                    {Math.round(totals.lifted).toLocaleString('en-US')} {units}
+                  </span>
+                  <span className="text-muted-foreground" aria-hidden>
+                    ·
+                  </span>
+                  <span>{totals.minutes} min</span>
+                </p>
+                {deload && (
+                  <p className="mt-3 rounded-lg border px-3 py-2 text-sm">
+                    Two hard weeks and no lift moved. Take a deload week: half the sets, same weights.
+                  </p>
+                )}
+              </div>
+              <ActivityCalendar
+                workouts={workouts}
+                now={now}
+                joinedAt={settings.joinedAt}
+                selected={weekKey}
+                onSelect={(monday) => setWeek(monday === thisWeek ? null : monday)}
+                onOpenDay={openDay}
+              />
             </div>
-            {streak > 0 && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                {streak} {streak === 1 ? 'week' : 'weeks'} in a row.
-              </p>
-            )}
-            {effort !== undefined && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                Effort {weekName}: {effortLabel(effort).toLowerCase()}.
-              </p>
-            )}
-            {deload && (
-              <p className="mt-3 rounded-lg border px-3 py-2 text-sm">
-                Two hard weeks and no lift moved. Take a deload week: half the sets, same weights.
-              </p>
-            )}
-            <dl className="mt-5 grid grid-cols-3 gap-3">
-              <Figure label="Hard sets" value={String(totals.sets)} />
-              <Figure label="Lifted" value={Math.round(totals.lifted).toLocaleString('en-US')} unit={units} />
-              <Figure label="Time" value={String(totals.minutes)} unit="min" />
-            </dl>
-            <ActivityCalendar
-              workouts={workouts}
-              now={now}
-              joinedAt={settings.joinedAt}
-              selected={weekKey}
-              onSelect={(monday) => setWeek(monday === thisWeek ? null : monday)}
-              onOpenDay={openDay}
-            />
           </section>
 
-          <section aria-labelledby="volume-h">
+          <section aria-labelledby="volume-h" className="lg:col-span-2">
             <SectionHeading id="volume-h" icon={Flame}>
               Hard sets {isThisWeek ? 'this week' : `, ${weekName}`}
             </SectionHeading>
-            <ul className="mt-3 space-y-3">
-              {MUSCLES.filter((m) => target[m] > 0).map((m) => (
-                <li key={m}>
-                  <div className="flex justify-between text-sm">
-                    <span>{MUSCLE_LABEL[m]}</span>
-                    <span className="tabular-nums text-muted-foreground">
-                      {volume[m]} of {target[m]}
-                    </span>
-                  </div>
-                  <Progress
-                    value={Math.min(100, (volume[m] / target[m]) * 100)}
-                    className="mt-1.5 h-1.5"
-                    aria-label={`${MUSCLE_LABEL[m]} sets`}
-                  />
-                </li>
-              ))}
-            </ul>
+            <BodyMap
+              done={volume}
+              target={target}
+              picked={pickedMuscle}
+              onPick={(m) => setPickedMuscle((cur) => (cur === m ? null : m))}
+              className="mt-4"
+            />
+            <BodyMapLegend className="mt-3 justify-center" />
           </section>
 
           {workouts.length > 0 && (
@@ -465,18 +470,6 @@ function StatsPage() {
 }
 
 /** One figure of the week: a label over a condensed number. */
-function Figure({ label, value, unit }: { label: string; value: string; unit?: string }) {
-  return (
-    <div>
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 font-condensed text-3xl font-semibold leading-none tabular-nums">
-        {value}
-        {unit && <span className="ml-1 text-sm font-normal text-muted-foreground">{unit}</span>}
-      </dd>
-    </div>
-  )
-}
-
 // ---------------------------------------------------------------- strength
 
 /** Pick a lift, see it week by week. */
