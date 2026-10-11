@@ -150,7 +150,7 @@ test('first session: no weight, no done; targets adopted; reps left; the summary
   await page.getByRole('button', { name: 'Start Push' }).click()
   await expect(page.getByText(/Started/)).toBeVisible()
   const bench = page.getByRole('region', { name: /Barbell Bench Press/ })
-  await expect(page.getByRole('button', { name: /Barbell Bench Press/ })).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByRole('button', { name: /^Barbell Bench Press/ })).toHaveAttribute('aria-expanded', 'true')
   // A weight set cannot be done without a weight.
   await expect(bench.getByRole('button', { name: 'Mark set 1 done' })).toBeDisabled()
   await bench.getByLabel('Set 1 weight', { exact: true }).fill('60')
@@ -171,7 +171,7 @@ test('first session: no weight, no done; targets adopted; reps left; the summary
   // The last set done: the exercise stays open for the reps-left answer, then moves on.
   await expect(bench.getByRole('radiogroup', { name: 'Reps left on set 4' })).toBeVisible()
   await bench.getByRole('radio', { name: '3+' }).click()
-  await expect(page.getByRole('button', { name: /Incline DB Press/ })).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByRole('button', { name: /^Incline DB Press/ })).toHaveAttribute('aria-expanded', 'true')
   await expect(page.getByText('4 of 16 sets done')).toBeVisible()
   await snap('03-bench-logged')
 
@@ -243,7 +243,7 @@ test('a week later the targets follow the last session and the method', async ()
   await expect(bench.getByLabel('Set 1 weight', { exact: true })).toHaveValue('65')
   await expect(bench.getByLabel('Set 1 reps', { exact: true })).toHaveValue('5')
   // Incline hit 12 on every set: up a step, back to 8.
-  await page.getByRole('button', { name: /Incline DB Press/ }).click()
+  await page.getByRole('button', { name: /^Incline DB Press/ }).click()
   const incline = page.getByRole('region', { name: /Incline DB Press/ })
   await expect(incline.getByLabel('Set 1 weight', { exact: true })).toHaveAttribute('placeholder', '22.5')
   await expect(incline.getByLabel('Set 1 reps', { exact: true })).toHaveAttribute('placeholder', '8')
@@ -336,7 +336,7 @@ test('fixing a set from the calendar moves the lift, removing a session removes 
   await expect(cell).toBeVisible()
   await cell.click({ force: true })
   const sheet = page.getByRole('dialog')
-  await sheet.getByRole('button', { name: /Barbell Bench Press/ }).click()
+  await sheet.getByRole('button', { name: /^Barbell Bench Press/ }).click()
   const reps = sheet.getByRole('region', { name: /Barbell Bench Press/ }).getByLabel('Set 3 reps', { exact: true })
   await reps.fill('10')
   await expect(reps).toHaveValue('10')

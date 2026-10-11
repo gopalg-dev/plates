@@ -381,6 +381,10 @@
     touch-action: manipulation;
   }
 
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
   /* Small buttons grow to a thumb-sized target on touch screens; desktop keeps the compact size. */
   @media (pointer: coarse) {
     [data-slot='button'][data-size='sm'],

@@ -117,8 +117,14 @@ test('logs a workout with the set logger', async () => {
   await expect(page.getByText('1/4')).toBeVisible()
   await snap(page, '05-today-logging')
 
+  // The still opens the library's view of the exercise in place.
+  await page.getByRole('button', { name: 'About Barbell Row' }).click()
+  await expect(page.getByRole('dialog', { name: 'Barbell Row' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog', { name: 'Barbell Row' })).toHaveCount(0)
+
   // Barbell Row: weight and reps, two sets.
-  await page.getByRole('button', { name: /Barbell Row/ }).click()
+  await page.getByRole('button', { name: /^Barbell Row/ }).click()
   const row = page.getByRole('region', { name: /Barbell Row/ })
   await row.getByLabel('Set 1 weight', { exact: true }).fill('60')
   await row.getByLabel('Set 1 reps', { exact: true }).fill('8')
@@ -150,10 +156,10 @@ test('plan shows the days and swaps an exercise for an alternate', async () => {
   await open(page, '/plan')
   await expect(page.getByRole('heading', { name: 'Plan' })).toBeVisible()
   await page.getByRole('button', { name: /Push A/ }).click()
-  await expect(page.getByRole('button', { name: /Decline DB Press/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Edit Decline DB Press' })).toBeVisible()
   await snap(page, '07-plan-day-open')
 
-  await page.getByRole('button', { name: /Decline DB Press/ }).click()
+  await page.getByRole('button', { name: 'Edit Decline DB Press' }).click()
   await expect(page.getByRole('dialog')).toBeVisible()
   await snap(page, '08-plan-editor')
   // The library fills the name, muscle and type in. Not saved here: the swap below wins.
@@ -165,7 +171,7 @@ test('plan shows the days and swaps an exercise for an alternate', async () => {
   const dipsRow = page.getByRole('dialog').getByRole('listitem').filter({ hasText: 'Weighted Dips' })
   await dipsRow.getByRole('button', { name: 'Use this' }).click()
   await expect(page.getByText('Switched to Weighted Dips')).toBeVisible()
-  await expect(page.getByRole('button', { name: /Weighted Dips/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Edit Weighted Dips' })).toBeVisible()
 
   // A day holds six: remove one, then add one in its place.
   await expect(page.getByRole('button', { name: 'Add exercise to Push A' })).toBeDisabled()
@@ -464,7 +470,7 @@ test('a day on the stats calendar opens its session to fix a set or remove it', 
   const sheet = page.getByRole('dialog')
   await expect(sheet).toBeVisible()
   await expect(sheet.getByText('Grip gave out on rows')).toBeVisible()
-  await sheet.getByRole('button', { name: /Barbell Row/ }).click()
+  await sheet.getByRole('button', { name: /^Barbell Row/ }).click()
   const reps = sheet.getByRole('region', { name: /Barbell Row/ }).getByLabel('Set 1 reps', { exact: true })
   await reps.fill('9')
   await expect(reps).toHaveValue('9')

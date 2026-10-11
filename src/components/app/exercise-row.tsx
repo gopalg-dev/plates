@@ -56,23 +56,26 @@ export function ExerciseRow({ entry, units, onChangeSet, onToggleDone, onAddSet,
 
   return (
     <AccordionItem value={entry.exerciseId}>
-      <AccordionTrigger className="items-center gap-3 py-3.5 text-base font-normal hover:no-underline [&>svg]:size-5 [&>svg]:translate-y-0">
+      {/* The still is its own button (it opens the library's view), so it sits beside the trigger, not inside it. */}
+      <div className="grid grid-cols-[auto_1fr] items-center gap-3">
         <ExerciseThumb name={entry.name} />
-        <span className="min-w-0 flex-1">
-          <span className="block font-medium leading-tight">{entry.name}</span>
-          <span className="mt-0.5 block text-sm text-muted-foreground">
-            {entry.sets.length} × {targetOf(entry)}
+        <AccordionTrigger className="items-center gap-3 py-3.5 text-base font-normal hover:no-underline [&>svg]:size-5 [&>svg]:translate-y-0">
+          <span className="min-w-0 flex-1">
+            <span className="block font-medium leading-tight">{entry.name}</span>
+            <span className="mt-0.5 block text-sm text-muted-foreground">
+              {entry.sets.length} × {targetOf(entry)}
+            </span>
           </span>
-        </span>
-        <span className={cn('text-sm tabular-nums', allDone ? 'text-success' : 'text-muted-foreground')}>
-          {doneCount}/{entry.sets.length}
-        </span>
-        {allDone && (
-          <span className="flex" aria-label="All sets done">
-            <Check className="size-5 text-success" aria-hidden />
+          <span className={cn('text-sm tabular-nums', allDone ? 'text-success' : 'text-muted-foreground')}>
+            {doneCount}/{entry.sets.length}
           </span>
-        )}
-      </AccordionTrigger>
+          {allDone && (
+            <span className="flex" aria-label="All sets done">
+              <Check className="size-5 text-success" aria-hidden />
+            </span>
+          )}
+        </AccordionTrigger>
+      </div>
       <AccordionContent className="pb-4 text-base">
         {entry.hint && <p className="mb-3 text-sm text-muted-foreground">{entry.hint}</p>}
         <div className={cn('mb-1 grid gap-2 px-1 text-xs text-muted-foreground', cols)}>

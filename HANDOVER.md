@@ -239,6 +239,18 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+53. The library's view from any row (user: "what if i want to know more about the exercise",
+    "without leaving the current page"). `ExerciseThumb` is a button, "About <name>", when the
+    name is in the library; it opens `LibraryDetail` (the still, the cues, what it works) as the
+    drawer or dialog the Library tab uses, over the page the row is on: Plan rows, the day preview
+    on Today, the rows of a session, and the session editor on Stats. A name the library does
+    not know keeps the grey tile and no tap. The session row moved the still out of the
+    accordion trigger (a button cannot hold a button) into a two-column grid beside it. The panel
+    is portaled, but React events bubble through portals, so the thumb wraps it in a
+    `display: contents` span that stops clicks, or a tap inside the view would count as a tap on
+    the Plan row beneath and open the editor. e2e locators that matched a row's button by the
+    exercise name alone now anchor at the start (`/^Barbell Row/`) or name the Edit button, since
+    "About Barbell Row" matches too.
 52. Sets on the Plan row against the editor (user: "under plan you can see 3x but under edit it
     shows 4"). The row shows `plannedSetsFor`, which under a year caps each exercise at 3 a
     session, while the editor shows the stored number. The editor's Sets field now says "Capped
