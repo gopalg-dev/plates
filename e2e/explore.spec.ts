@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 // A throwaway walkthrough that behaves like a user and cross-checks numbers between screens.
 // Not part of the suite; run with `bunx playwright test e2e/explore.spec.ts`.
 import { MongoClient } from 'mongodb'
@@ -390,6 +391,176 @@ test('library tags narrow the list and the detail steps through it', async () =>
   await snap('13-library-detail')
   await page.keyboard.press('Escape')
   expect(count).toMatch(/exercises?$/)
+})
+
+// ================================================================ pass three: deeper corners
+
+test('weight every session: a completed session earns a step on every set', async () => {
+  await open('/settings')
+  await page.getByRole('radio', { name: /Weight every session/ }).click()
+  await expect(page.getByText('Progression: Weight every session')).toBeVisible()
+  await open('/')
+  await page.getByRole('button', { name: /Pick another day/ }).click()
+  await page.getByRole('button', { name: 'Start Push' }).click()
+  const bench = page.getByRole('region', { name: /Barbell Bench Press/ })
+  // Last time 60, 60, 62.5, 62.5 with every set at or above 5 reps: the top weight plus a step.
+  await expect(bench.getByLabel('Set 1 weight', { exact: true })).toHaveAttribute('placeholder', '65')
+  await expect(bench.getByLabel('Set 4 weight', { exact: true })).toHaveAttribute('placeholder', '65')
+  await snap('15-linear-targets')
+
+  // Zen mode: one exercise at a time, kept in the URL across a reload.
+  await page.getByRole('button', { name: 'Session options' }).click()
+  await page.getByRole('menuitem', { name: 'Zen mode' }).click()
+  const zen = page.getByRole('dialog', { name: 'Zen mode' })
+  await expect(zen.getByText('1 of 5', { exact: true })).toBeVisible()
+  await zen.getByRole('button', { name: 'Mark set 1 done' }).click()
+  await expect(zen.getByLabel('Set 1 weight', { exact: true })).toHaveValue('65')
+  await zen.getByRole('button', { name: 'Next exercise' }).click()
+  await expect(zen.getByText('2 of 5', { exact: true })).toBeVisible()
+  await page.reload()
+  await page.locator('html[data-hydrated="true"]').waitFor({ state: 'attached' })
+  await expect(page.getByRole('dialog', { name: 'Zen mode' })).toBeVisible()
+  await snap('16-zen')
+  await page.getByRole('dialog', { name: 'Zen mode' }).getByRole('button', { name: 'Exit zen' }).click()
+  await expect(page.getByText('1 of 17 sets done')).toBeVisible()
+  await page.getByRole('button', { name: 'Session options' }).click()
+  await page.getByRole('menuitem', { name: 'Discard workout' }).click()
+  await page.getByRole('button', { name: 'Discard workout' }).click()
+  await open('/settings')
+  await page.getByRole('radio', { name: /Reps first, then weight/ }).click()
+  await expect(page.getByText('Progression: Reps first, then weight')).toBeVisible()
+})
+
+test('the fifth session brings the feedback prompt, once', async () => {
+  // Four finished sessions so far: the real one and three planted. The next one is the fifth.
+  await open('/')
+  await page.getByRole('button', { name: /Pick another day/ }).click()
+  await page.getByRole('button', { name: 'Start Push' }).click()
+  await page
+    .getByRole('region', { name: /Barbell Bench Press/ })
+    .getByRole('button', { name: 'Mark set 1 done' })
+    .click()
+  await page.getByRole('button', { name: 'Finish workout' }).click()
+  await page.getByRole('radio', { name: 'Easy' }).click()
+  await page.getByRole('button', { name: 'Save and finish' }).click()
+  await expect(page.getByRole('heading', { name: 'Workout saved' })).toBeVisible()
+  await expect(page.getByText('How is Plates for you?')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Send', exact: true })).toBeDisabled()
+  await page.getByRole('radio', { name: 'Good' }).click()
+  await snap('17-summary-feedback')
+  await page.getByRole('button', { name: 'Send', exact: true }).click()
+  await expect(page.getByText('Thanks, noted.')).toBeVisible()
+  await expect(page.getByText('How is Plates for you?')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Done' }).click()
+  const id = await userId()
+  const stored = await withDb((db) => db.collection('feedback').find({ userId: id }).toArray())
+  expect(stored).toHaveLength(1)
+  expect(stored[0]).toMatchObject({ mood: 3, trigger: 'summary', route: '/' })
+  // Straight after, no second prompt.
+  await page.getByRole('button', { name: /Pick another day/ }).click()
+  await page.getByRole('button', { name: 'Start Pull' }).click()
+  await page
+    .getByRole('region', { name: /Pull-ups/ })
+    .getByRole('button', { name: 'Mark set 1 done' })
+    .click()
+  await page.getByRole('button', { name: 'Finish workout' }).click()
+  await page.getByRole('button', { name: 'Skip' }).click()
+  await expect(page.getByRole('heading', { name: 'Workout saved' })).toBeVisible()
+  await expect(page.getByText('How is Plates for you?')).toHaveCount(0)
+  await page.getByRole('button', { name: 'Done' }).click()
+})
+
+test('by weekday, Today shows the day that sits on today', async () => {
+  await open('/settings')
+  await page.getByRole('radio', { name: 'By weekday' }).click()
+  await expect(page.getByText('Each day is on its weekday now')).toBeVisible()
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' })
+  await open('/plan')
+  await page.getByRole('button', { name: /^Legs/ }).first().click()
+  await page.getByRole('combobox', { name: 'Legs weekday' }).click()
+  await page.getByRole('option', { name: today }).click()
+  await expect(page.getByText(new RegExp(`${today}s$`))).toBeVisible()
+  await open('/')
+  await expect(page.getByRole('heading', { name: 'Legs' })).toBeVisible()
+  await snap('18-weekday-today')
+  await open('/settings')
+  await page.getByRole('radio', { name: 'Rolling' }).click()
+})
+
+test('an alternate swaps in on the plan and shows up on Today', async () => {
+  await open('/plan')
+  await page.getByRole('button', { name: /^Pull/ }).first().click()
+  await page.getByRole('button', { name: 'Edit Pull-ups' }).click()
+  await page.getByRole('button', { name: 'Use this' }).first().click()
+  await expect(page.getByText('Switched to Lat Pulldown')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Edit Lat Pulldown' })).toBeVisible()
+  await open('/')
+  await page.getByRole('button', { name: /Pick another day/ }).click()
+  await page.getByRole('button', { name: 'Start Pull' }).click()
+  await expect(page.getByRole('button', { name: /Lat Pulldown/ })).toBeVisible()
+  await page.getByRole('button', { name: 'Session options' }).click()
+  await page.getByRole('menuitem', { name: 'Discard workout' }).click()
+  await page.getByRole('button', { name: 'Discard workout' }).click()
+})
+
+test('the session editor adds and drops sets, and the week count follows', async () => {
+  await open('/stats?tab=sessions')
+  const today = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  // Today holds two sessions now (Push and Pull): the day opens a chooser.
+  await page.getByRole('button', { name: new RegExp(`^${today}, `) }).click({ force: true })
+  await page.getByRole('button', { name: 'Open Pull' }).click()
+  const sheet = page.getByRole('dialog')
+  await sheet.getByRole('button', { name: /Pull-ups/ }).click()
+  const pullups = sheet.getByRole('region', { name: /Pull-ups/ })
+  await pullups.getByRole('button', { name: 'Mark set 2 done' }).click()
+  await pullups.getByRole('button', { name: 'Add a set' }).click()
+  await expect(pullups.getByLabel('Set 5 reps', { exact: true })).toBeVisible()
+  await pullups.getByRole('button', { name: 'Remove set 5' }).click()
+  await expect(pullups.getByLabel('Set 5 reps', { exact: true })).toHaveCount(0)
+  await sheet.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByText('Session updated')).toBeVisible()
+  await expect(page.getByText('3 hard sets')).toBeVisible()
+  await snap('19-editor-sets')
+})
+
+test('under a year, the logger itself caps the sets', async () => {
+  await open('/settings')
+  await page.getByRole('radio', { name: /Under a year/ }).click()
+  await open('/')
+  await page.getByRole('button', { name: /Pick another day/ }).click()
+  await page.getByRole('button', { name: 'Start Push' }).click()
+  await expect(page.getByText('0 of 15 sets done')).toBeVisible()
+  await expect(
+    page.getByRole('region', { name: /Barbell Bench Press/ }).getByLabel('Set 4 weight', { exact: true }),
+  ).toHaveCount(0)
+  await page.getByRole('button', { name: 'Session options' }).click()
+  await page.getByRole('menuitem', { name: 'Discard workout' }).click()
+  await page.getByRole('button', { name: 'Discard workout' }).click()
+  await open('/settings')
+  await page.getByRole('radio', { name: /A year or more/ }).click()
+})
+
+test('an empty search says so, and the export holds every logged set', async () => {
+  await open('/library')
+  await page.getByLabel('Search the library').fill('zzzz')
+  await expect(page.getByText('Nothing matches')).toBeVisible()
+  await open('/stats?tab=sessions')
+  const csv = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Download CSV' }).click()
+  const file = await csv
+  const text = fs.readFileSync((await file.path())!, 'utf8')
+  const rows = text.trim().split('\n').length - 1
+  const id = await userId()
+  const expected = await withDb(async (db) => {
+    const ws = await db.collection('workouts').find({ userId: id, status: 'done' }).toArray()
+    return ws.reduce(
+      (n, w) =>
+        n +
+        w.entries.reduce((m: number, e: { sets: { done: boolean }[] }) => m + e.sets.filter((s) => s.done).length, 0),
+      0,
+    )
+  })
+  expect(rows).toBe(expected)
 })
 
 test('every look keeps the day colours and readable text', async () => {

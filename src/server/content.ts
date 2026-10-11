@@ -1,4 +1,4 @@
-import type { Db } from 'mongodb'
+import { MongoBulkWriteError, type Db } from 'mongodb'
 import type { Content, SplitTemplate } from '#/lib/content'
 import { LIBRARY, type LibraryExercise } from '#/lib/library'
 import { BUNDLED_SPLITS } from '#/lib/splits'
@@ -41,17 +41,36 @@ export async function seedContent(db: Db, { reset = false } = {}): Promise<SeedR
     ...rest,
     updatedAt,
   }))
-  if (newLibrary.length) await library.insertMany(newLibrary)
-  if (newSplits.length) await splits.insertMany(newSplits)
+  // Unordered, and duplicate keys are not errors: two first requests can seed at the same time.
+  const insert = async (
+    col: { insertMany: (docs: never[], opts: { ordered: boolean }) => Promise<unknown> },
+    docs: unknown[],
+  ) => {
+    if (docs.length === 0) return
+    try {
+      await col.insertMany(docs as never[], { ordered: false })
+    } catch (err) {
+      if (!(err instanceof MongoBulkWriteError) || err.code !== 11000) throw err
+    }
+  }
+  await insert(library, newLibrary)
+  await insert(splits, newSplits)
   return { library: newLibrary.length, splits: newSplits.length }
 }
 
 const CACHE_MS = 60_000
 let cache: { at: number; content: Content } | undefined
+let reading: Promise<Content> | undefined
 
 /** Both lists, read at most once a minute per server process; an empty collection is seeded first. */
 export async function readContent(): Promise<Content> {
   if (cache && Date.now() - cache.at < CACHE_MS) return cache.content
+  // One read at a time: concurrent first requests would each try to seed.
+  if (!reading) reading = readFresh().finally(() => (reading = undefined))
+  return reading
+}
+
+async function readFresh(): Promise<Content> {
   const db = await getDb()
   const [libraryCount, splitCount] = await Promise.all([
     db.collection('library').countDocuments({}, { limit: 1 }),

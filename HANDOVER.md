@@ -239,6 +239,18 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+50. Walkthrough, third pass (user: "we planned for recursive test runs"). Seven more steps in
+    `e2e/explore.spec.ts`: the linear method's targets, Zen mode across a reload, the feedback
+    prompt on the fifth session (and not on the sixth), the weekday schedule putting a day on
+    today, an alternate swapped in and showing on Today, add and remove set in the session editor,
+    the under-a-year cap in the logger itself, an empty library search and the CSV row count
+    against the database. Found and fixed: (a) two first requests on an empty database both tried
+    to seed the content and one died on a duplicate key (`E11000 … splits … ppl6`): `readContent`
+    now shares one in-flight read per process and `seedContent` inserts unordered and treats
+    duplicate keys as already seeded; (b) the library picker scrolled as a whole, so its title and
+    close button left the screen (user: "the title close button everything goes away as we
+    scroll"): the dialog is now a fixed header over a scrolling body, like `EditorPanel`. The
+    walkthrough runs 17 steps per viewport, 51 in all, clean on the rerun.
 49. Screen stays on during a session (user: "is it possible to keep the option to make the
     screen…", then "add it after the round"). `useWakeLock(active)` in `src/lib/use-wake-lock.ts`
     asks for a screen wake lock while `active` and the page is visible, asks again on

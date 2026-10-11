@@ -302,19 +302,22 @@ export function LibraryPicker({ onPick, trigger }: PickerProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto scrollbar-none sm:max-w-lg">
-        <DialogHeader>
+      {/* The title and the close button stay put; the search, tags and list scroll beneath them. */}
+      <DialogContent className="flex max-h-[90dvh] flex-col gap-0 p-0 sm:max-w-lg">
+        <DialogHeader className="p-6 pb-4">
           <DialogTitle>Pick from library</DialogTitle>
           <DialogDescription className="sr-only">Search, then use an exercise.</DialogDescription>
         </DialogHeader>
-        <LibraryList
-          autoFocus
-          action="Use"
-          onSelect={(ex) => {
-            onPick(ex)
-            setOpen(false)
-          }}
-        />
+        <div className="min-h-0 flex-1 overflow-y-auto scrollbar-none px-6 pb-6">
+          <LibraryList
+            autoFocus
+            action="Use"
+            onSelect={(ex) => {
+              onPick(ex)
+              setOpen(false)
+            }}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   )
