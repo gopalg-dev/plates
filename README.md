@@ -15,8 +15,8 @@ Four screens, one job each:
   every lift's best set, new bests, the week's count. Lifts that stopped moving, a week running out and a
   scale that is not moving show up here as one-line alerts. The header's menu switches the day or discards the session.
 - **Plan**: the days of your split, each exercise with its picture. Edit an exercise, swap in an
-  alternate, add or remove exercises (six per day at most), or bring your own plan from an Excel
-  template.
+  alternate, add or remove exercises (six per day at most), add a day of any kind (it starts with
+  five lifts), rename, reorder or remove days, or bring your own plan from an Excel template.
 - **Stats**, in three tabs. Lifts: pick a lift and see it week by week, the latest best set, a
   chart of each week's best set, a table reading "this week 62.5 kg × 7, last week 60 kg × 8,
   +2.5 kg", and recent bests. Sessions: the week's count, streak, hard sets, weight lifted and
@@ -32,7 +32,7 @@ Four screens, one job each:
   Settings and Sign out.
 
 First run asks five questions, one per screen: units, which split (nine templates from
-Push / Pull / Legs to Full body and the Arnold split), bodyweight, training age, and how the weight
+Push / Pull / Legs to Full body and the Arnold split, or your own: a kind for each of two to six days), bodyweight, training age, and how the weight
 should go up (reps then weight, weight every session, or the last set to as many reps as you can
 setting the next load). Days can run in a
 rolling order or sit on fixed weekdays, with Today showing a rest day or anything skipped this week.

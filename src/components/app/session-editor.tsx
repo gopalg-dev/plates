@@ -78,7 +78,8 @@ function EditorBody({ workout, units, onClose, onSaved }: EditorProps & { workou
   const [deleteOpen, setDeleteOpen] = useState(false)
 
   function updateSets(exerciseId: string, mutate: (sets: LoggedSet[]) => LoggedSet[]) {
-    setEntries(entries.map((e) => (e.exerciseId === exerciseId ? { ...e, sets: mutate(e.sets) } : e)))
+    // From the latest state, so two quick changes both land.
+    setEntries((current) => current.map((e) => (e.exerciseId === exerciseId ? { ...e, sets: mutate(e.sets) } : e)))
   }
 
   async function save() {

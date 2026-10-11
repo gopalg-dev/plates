@@ -70,7 +70,13 @@ export function planSourceInfo(
   dayCount: number,
 ): SplitInfo & { custom: boolean } {
   if (source === 'custom') {
-    return { id: DEFAULT_SPLIT, name: 'Custom plan', days: dayCount, fit: 'From your own file.', custom: true }
+    return {
+      id: DEFAULT_SPLIT,
+      name: 'Custom plan',
+      days: dayCount,
+      fit: 'Your own days, or your own file.',
+      custom: true,
+    }
   }
   return { ...splitInfoOf(splits, templateOf(source)), custom: false }
 }

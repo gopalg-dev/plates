@@ -239,6 +239,27 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+44. Custom split with little friction (user: "what if the user follows some other split which is
+    not found in the list… simple and minimal options with less user friction to create a custom
+    split"). Two layers. (a) Day editing on Plan: "Add a day" under the accordion opens a grid of
+    the eleven day kinds; a new day is named after its kind ("Push", then "Push 2") and starts with
+    that kind's block of five lifts (`DAY_BLOCKS`, `buildDay` in `src/lib/day-blocks.ts`, every
+    name in the library; `DAY_LABEL` moved there and re-exported from `day-mark.tsx`). Each open
+    day has a "Day" menu: rename or change kind (`DayDialog`/`DayForm`), move up/down, remove
+    (confirm; the plan keeps at least one day). Repo: `addDay` (assigns a weekday under the weekday
+    schedule, `MAX_DAYS` = 14), `updateDay`, `removeDay`, `moveDay`; server functions `addDayFn`,
+    `updateDayFn`, `removeDayFn`, `moveDayFn`. (b) "Your own" at the end of the split picker
+    (setup and Settings): two to six days, a kind per day from a Select with the day icon, add or
+    take a day away, the week shape underneath (`OwnDaysEditor`, `OWN_SPLIT = 'custom'`,
+    `DEFAULT_OWN_DAYS` = upper/lower ×2). Building calls `createCustomPlanFn({ types })` →
+    `repo.createCustomPlan` → `replacePlan(buildCustomDays(types))`, so it takes the custom slot
+    (repeated kinds read "Upper A", "Upper B"). In setup "Your own" always counts as switching and
+    says it replaces the plan of your own; in Settings a custom plan shows "Your own" as picked and
+    the button reads "Build my plan". The custom source's fit line is "Your own days, or your own
+    file." Sidebar: the app mark hides in the collapsed rail so the toggle sits centred over the
+    nav icons (user screenshot). Tests: `tests/day-blocks.test.ts`, repo tests for days and the
+    custom plan; e2e adds a day on Plan, renames, moves and removes it, and builds a five-day plan
+    of your own from Settings.
 43. Delete account and a privacy page (user: "delete their account and data, where we entirely
     remove their data trace from the db, while keeping a small log… a privacy page… enter a text
     to confirm deletion, with options to export their log"). `repo.deleteAccount(userId)` removes

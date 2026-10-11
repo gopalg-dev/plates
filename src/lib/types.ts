@@ -53,6 +53,8 @@ export interface Exercise {
 
 /** A day holds this many exercises at most: enough for a session, short enough for a phone screen. */
 export const MAX_EXERCISES_PER_DAY = 6
+/** A plan holds this many days at most: two weeks of rolling sessions. */
+export const MAX_DAYS = 14
 
 export interface PlanDay {
   id: string

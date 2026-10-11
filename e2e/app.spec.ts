@@ -182,6 +182,26 @@ test('plan shows the days and swaps an exercise for an alternate', async () => {
   await expect(page.getByText('Added to the day')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Edit Chest Dips' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Add exercise to Push A' })).toBeDisabled()
+
+  // Days themselves: add one of a kind, rename it, move it, remove it.
+  await page.getByRole('button', { name: 'Add a day' }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Arms', exact: true }).click()
+  await expect(page.getByText(/7 days$/)).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Arms/ }).first()).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByRole('button', { name: 'Edit Barbell Curl' })).toBeVisible()
+  await page.getByRole('button', { name: 'Arms options' }).click()
+  await page.getByRole('menuitem', { name: 'Rename or change kind' }).click()
+  await page.getByLabel('Name', { exact: true }).fill('Arm day')
+  await page.getByRole('button', { name: 'Save', exact: true }).click()
+  await expect(page.getByRole('button', { name: /^Arm day/ }).first()).toBeVisible()
+  await page.getByRole('button', { name: 'Arm day options' }).click()
+  await page.getByRole('menuitem', { name: 'Move up' }).click()
+  await expect(page.getByRole('button', { name: /^Arm day/ }).first()).toBeVisible()
+  await page.getByRole('button', { name: 'Arm day options' }).click()
+  await page.getByRole('menuitem', { name: 'Remove day' }).click()
+  await page.getByRole('button', { name: 'Remove day' }).click()
+  await expect(page.getByText('Arm day removed')).toBeVisible()
+  await expect(page.getByText(/6 days$/)).toBeVisible()
 })
 
 test('a weekday schedule puts each day on its weekday and Today follows the calendar', async () => {
@@ -585,6 +605,20 @@ test('settings change units, and start fresh wipes the data', async () => {
   await expect(page.getByText('Now on Upper / Lower')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Change split, on Upper / Lower' })).toBeVisible()
   await expect(page).toHaveURL(/\/settings$/)
+
+  // A plan of your own: pick the kind of each day, add one, build.
+  await page.getByRole('button', { name: 'Change split, on Upper / Lower' }).click()
+  await page.getByRole('radio', { name: /^Your own/ }).click()
+  await page.getByRole('button', { name: 'Add a day' }).click()
+  await page.getByRole('combobox', { name: 'Day 5 type' }).click()
+  await page.getByRole('option', { name: 'Arms' }).click()
+  await page.getByRole('button', { name: 'Build my plan' }).click()
+  await expect(page.getByText('Now on your own plan, 5 days')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Change split, on Custom plan' })).toBeVisible()
+  await open(page, '/plan')
+  await expect(page.getByText('Custom plan, 5 days', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Arms/ }).first()).toBeVisible()
+  await open(page, '/settings')
 
   await page.getByRole('button', { name: 'Start fresh' }).click()
   await expect(page.getByRole('button', { name: 'Wipe and start over' })).toBeDisabled()

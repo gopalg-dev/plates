@@ -6,12 +6,15 @@ import { assignWeekdays, type Finished } from '#/lib/logic/schedule'
 import { bodyweightAlert, stallAlerts, weekAlert, type Alert } from '#/lib/logic/alerts'
 import { attachBodyweight, plannedSetsFor, sessionsInWeek } from '#/lib/logic/stats'
 import { plannedPerWeek, summarize, type SessionSummary } from '#/lib/logic/summary'
+import { buildCustomDays, buildDay } from '#/lib/day-blocks'
 import { slug } from '#/lib/seed-plan'
 import { DEFAULT_SPLIT } from '#/lib/content'
 import { splitTemplate } from './content'
 import {
+  MAX_DAYS,
   MAX_EXERCISES_PER_DAY,
   type BodyweightLog,
+  type DayType,
   type Exercise,
   type LoggedSet,
   type MeasurementLog,
@@ -295,6 +298,58 @@ export async function removeExercise(userId: string, dayId: string, exerciseId: 
   if (day.exercises.length <= 1) throw new Error('A day needs at least one exercise')
   day.exercises = day.exercises.filter((e) => e.id !== exerciseId)
   return savePlan(userId, plan)
+}
+
+// ---- days ----
+
+/** A new day of one type at the end of the plan, with the block's exercises. Up to 14 days. */
+export async function addDay(userId: string, type: DayType): Promise<Plan> {
+  const [plan, settings] = await Promise.all([getPlan(userId), getSettings(userId)])
+  if (plan.days.length >= MAX_DAYS) throw new Error(`A plan holds up to ${MAX_DAYS} days`)
+  plan.days.push(buildDay(type, plan.days))
+  if (settings.schedule === 'weekday') plan.days = assignWeekdays(plan.days)
+  return savePlan(userId, plan)
+}
+
+/** Renames a day or changes its kind. The exercises stay. */
+export async function updateDay(
+  userId: string,
+  dayId: string,
+  patch: { name?: string; type?: DayType },
+): Promise<Plan> {
+  const plan = await getPlan(userId)
+  const day = plan.days.find((d) => d.id === dayId)
+  if (!day) throw new Error('Day not found')
+  if (patch.name !== undefined) day.name = patch.name
+  if (patch.type !== undefined) day.type = patch.type
+  return savePlan(userId, plan)
+}
+
+/** Takes a day out of the plan. Logged sessions keep their copy. A plan keeps at least one day. */
+export async function removeDay(userId: string, dayId: string): Promise<Plan> {
+  const plan = await getPlan(userId)
+  if (!plan.days.some((d) => d.id === dayId)) throw new Error('Day not found')
+  if (plan.days.length <= 1) throw new Error('A plan needs at least one day')
+  plan.days = plan.days.filter((d) => d.id !== dayId)
+  return savePlan(userId, plan)
+}
+
+/** Moves a day one place up or down the rolling order. */
+export async function moveDay(userId: string, dayId: string, direction: 'up' | 'down'): Promise<Plan> {
+  const plan = await getPlan(userId)
+  const i = plan.days.findIndex((d) => d.id === dayId)
+  if (i < 0) throw new Error('Day not found')
+  const j = direction === 'up' ? i - 1 : i + 1
+  if (j < 0 || j >= plan.days.length) return plan
+  const days = [...plan.days]
+  ;[days[i], days[j]] = [days[j], days[i]]
+  plan.days = days
+  return savePlan(userId, plan)
+}
+
+/** A plan of the user's own, one block per chosen type, in the custom slot. */
+export async function createCustomPlan(userId: string, types: DayType[]): Promise<Plan> {
+  return replacePlan(userId, buildCustomDays(types))
 }
 
 // ---- workouts ----

@@ -1,6 +1,6 @@
 import { createServerFn } from '@tanstack/react-start'
 import { z } from 'zod'
-import { DAY_TYPES, GOALS, MAX_EXERCISES_PER_DAY, PROGRESSIONS } from '#/lib/types'
+import { DAY_TYPES, GOALS, MAX_DAYS, MAX_EXERCISES_PER_DAY, PROGRESSIONS } from '#/lib/types'
 import { authOptions, currentUser } from './auth'
 import { readContent } from './content'
 import * as repo from './repo'
@@ -93,6 +93,36 @@ export const applySplitFn = createServerFn({ method: 'POST' })
 
 // ---- plan ----
 
+const dayType = z.enum(DAY_TYPES)
+
+export const addDayFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(z.object({ type: dayType }))
+  .handler(({ data, context }) => repo.addDay(context.userId, data.type))
+
+export const updateDayFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(
+    z.object({ dayId: z.string().min(1), name: z.string().trim().min(1).max(40).optional(), type: dayType.optional() }),
+  )
+  .handler(({ data, context }) => repo.updateDay(context.userId, data.dayId, { name: data.name, type: data.type }))
+
+export const removeDayFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(z.object({ dayId: z.string().min(1) }))
+  .handler(({ data, context }) => repo.removeDay(context.userId, data.dayId))
+
+export const moveDayFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(z.object({ dayId: z.string().min(1), direction: z.enum(['up', 'down']) }))
+  .handler(({ data, context }) => repo.moveDay(context.userId, data.dayId, data.direction))
+
+/** A plan of the user's own from a list of day types, in the custom slot. */
+export const createCustomPlanFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(z.object({ types: z.array(dayType).min(1).max(MAX_DAYS) }))
+  .handler(({ data, context }) => repo.createCustomPlan(context.userId, data.types))
+
 export const getPlanFn = createServerFn({ method: 'GET' })
   .middleware([authed])
   .handler(async ({ context }) => {
@@ -170,7 +200,7 @@ const daySchema = z.object({
 
 export const replacePlanFn = createServerFn({ method: 'POST' })
   .middleware([authed])
-  .validator(z.object({ days: z.array(daySchema).min(1).max(14), split: splitId.optional() }))
+  .validator(z.object({ days: z.array(daySchema).min(1).max(MAX_DAYS), split: splitId.optional() }))
   .handler(({ data, context }) => repo.replacePlan(context.userId, data.days, data.split))
 
 // ---- today / workouts ----

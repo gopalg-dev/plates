@@ -16,7 +16,7 @@ import { toast } from 'sonner'
 import { ExportButtons } from '#/components/app/export-buttons'
 import { SectionHeading } from '#/components/app/section-heading'
 import { ProgressionPicker } from '#/components/app/progression-picker'
-import { SplitPicker } from '#/components/app/split-picker'
+import { DEFAULT_OWN_DAYS, OWN_SPLIT, SplitPicker } from '#/components/app/split-picker'
 import { WeekShape } from '#/components/app/week-shape'
 import { Button } from '#/components/ui/button'
 import {
@@ -38,9 +38,17 @@ import { useContent } from '#/lib/use-content'
 import { cn } from '#/lib/utils'
 import { PROGRESSION_LABEL, progressionOf } from '#/lib/logic/progression'
 import { GOAL_DONE, GOAL_OPTIONS } from '#/lib/logic/goal'
-import type { Goal, Schedule, SplitId, TrainingAge, Units } from '#/lib/types'
+import type { DayType, Goal, Schedule, SplitId, TrainingAge, Units } from '#/lib/types'
 import { authClient } from '#/lib/auth-client'
-import { applySplitFn, deleteAccountFn, getSettingsFn, saveSettingsFn, setScheduleFn, startFreshFn } from '#/server/fns'
+import {
+  applySplitFn,
+  createCustomPlanFn,
+  deleteAccountFn,
+  getSettingsFn,
+  saveSettingsFn,
+  setScheduleFn,
+  startFreshFn,
+} from '#/server/fns'
 import { pageTitle } from '#/lib/page-title'
 import { errorMessage } from '#/lib/format'
 
@@ -61,19 +69,25 @@ function SettingsPage() {
   const { user } = Route.useRouteContext()
   const { splits } = useContent()
   const split = planSourceInfo(splits, settings.split, 0)
-  /** The template the plan is on, or empty for a custom plan so no option reads as picked. */
-  const currentSplit: SplitId | '' = split.custom ? '' : split.id
+  /** The template the plan is on, or "Your own" for a custom plan. */
+  const currentSplit: SplitId = split.custom ? OWN_SPLIT : split.id
   const [pickedSplit, setPickedSplit] = useState<SplitId | null>(null)
+  const [ownDays, setOwnDays] = useState<DayType[]>(DEFAULT_OWN_DAYS)
   const [splitOpen, setSplitOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
   const schedule: Schedule = settings.schedule ?? 'rolling'
 
   async function switchSplit() {
-    if (!pickedSplit || pickedSplit === currentSplit) return
+    if (!pickedSplit || (pickedSplit === currentSplit && pickedSplit !== OWN_SPLIT)) return
     setSwitching(true)
     try {
-      await applySplitFn({ data: { split: pickedSplit } })
-      toast.success(`Now on ${splitInfoOf(splits, pickedSplit).name}`)
+      if (pickedSplit === OWN_SPLIT) {
+        await createCustomPlanFn({ data: { types: ownDays } })
+        toast.success(`Now on your own plan, ${ownDays.length} days`)
+      } else {
+        await applySplitFn({ data: { split: pickedSplit } })
+        toast.success(`Now on ${splitInfoOf(splits, pickedSplit).name}`)
+      }
       setPickedSplit(null)
       setSplitOpen(false)
       await router.invalidate()
@@ -239,7 +253,7 @@ function SettingsPage() {
               </div>
             )}
             <p className={cn('text-muted-foreground', !split.custom && 'mt-1')}>{split.fit}</p>
-            {currentSplit && <WeekShape days={buildSplitFrom(splits, currentSplit)} className="mt-2.5" />}
+            {!split.custom && <WeekShape days={buildSplitFrom(splits, currentSplit)} className="mt-2.5" />}
           </div>
           <Dialog
             open={splitOpen}
@@ -257,7 +271,13 @@ function SettingsPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="min-h-0 overflow-y-auto scrollbar-none px-6 pb-4">
-                <SplitPicker splits={splits} value={pickedSplit ?? currentSplit} onChange={setPickedSplit} />
+                <SplitPicker
+                  splits={splits}
+                  value={pickedSplit ?? currentSplit}
+                  onChange={setPickedSplit}
+                  ownDays={ownDays}
+                  onOwnDaysChange={setOwnDays}
+                />
               </div>
               <DialogFooter className="border-t p-4">
                 <Button
@@ -270,9 +290,9 @@ function SettingsPage() {
                 >
                   Keep {split.name}
                 </Button>
-                {pickedSplit !== null && pickedSplit !== currentSplit && (
+                {pickedSplit !== null && (pickedSplit !== currentSplit || pickedSplit === OWN_SPLIT) && (
                   <Button onClick={switchSplit} disabled={switching}>
-                    Switch to {splitInfoOf(splits, pickedSplit).name}
+                    {pickedSplit === OWN_SPLIT ? 'Build my plan' : `Switch to ${splitInfoOf(splits, pickedSplit).name}`}
                   </Button>
                 )}
               </DialogFooter>

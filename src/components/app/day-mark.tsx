@@ -15,19 +15,7 @@ import {
 import { cn } from '#/lib/utils'
 import type { DayType } from '#/lib/types'
 
-export const DAY_LABEL: Record<DayType, string> = {
-  push: 'Push',
-  pull: 'Pull',
-  legs: 'Legs',
-  upper: 'Upper',
-  lower: 'Lower',
-  full: 'Full body',
-  chest: 'Chest',
-  back: 'Back',
-  shoulders: 'Shoulders',
-  arms: 'Arms',
-  core: 'Core',
-}
+export { DAY_LABEL } from '#/lib/day-blocks'
 
 type Family = 'push' | 'pull' | 'legs' | 'mixed'
 
@@ -64,10 +52,7 @@ const ink: Record<Family, string> = {
 /** A plate-coloured bar. Red is push, blue is pull, yellow is legs, grey is a mixed day. */
 export function DayMark({ type, className }: { type: DayType; className?: string }) {
   return (
-    <span
-      aria-hidden
-      className={cn('inline-block h-6 w-1.5 shrink-0 rounded-full', colour[family[type]], className)}
-    />
+    <span aria-hidden className={cn('inline-block h-6 w-1.5 shrink-0 rounded-full', colour[family[type]], className)} />
   )
 }
 
@@ -96,13 +81,14 @@ export function DayIcon({ type, className }: { type: DayType; className?: string
     <span
       aria-hidden
       className={cn(
-        'inline-flex size-10 shrink-0 items-center justify-center rounded-lg [&>svg]:size-[55%]',
+        'inline-flex size-10 shrink-0 items-center justify-center rounded-lg',
         colour[family[type]],
         ink[family[type]],
         className,
       )}
     >
-      <Icon strokeWidth={2.25} />
+      {/* The ink and the size sit on the glyph itself: menus and selects restyle a bare svg to their own grey. */}
+      <Icon strokeWidth={2.25} className={cn('size-[55%]', ink[family[type]])} />
     </span>
   )
 }

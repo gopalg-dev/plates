@@ -67,7 +67,10 @@ function isActive(pathname: string, to: string, exact: boolean): boolean {
 
 /** Two letters for the avatar: from the username or name, else the email. */
 function initials(who: string): string {
-  const words = who.replace(/@.*/, '').split(/[\s._-]+/).filter(Boolean)
+  const words = who
+    .replace(/@.*/, '')
+    .split(/[\s._-]+/)
+    .filter(Boolean)
   const letters = words.length >= 2 ? words[0][0] + words[1][0] : who.slice(0, 2)
   return letters.toUpperCase()
 }
@@ -81,7 +84,7 @@ function AppLayout() {
     <SidebarProvider>
       <Sidebar collapsible="icon">
         <SidebarHeader className="h-12 flex-row items-center justify-between gap-2 px-2 group-data-[collapsible=icon]:justify-center">
-          <p className="flex min-w-0 items-center gap-2 pl-1 font-condensed text-xl font-semibold leading-none group-data-[collapsible=icon]:pl-0">
+          <p className="flex min-w-0 items-center gap-2 pl-1 font-condensed text-xl font-semibold leading-none group-data-[collapsible=icon]:hidden">
             <AppMark className="size-7" />
             <span className="truncate group-data-[collapsible=icon]:hidden">Plates</span>
           </p>

@@ -161,6 +161,39 @@ suite('plan', () => {
     expect((await repo.applySplit(U, 'arnold6')).days[0].exercises[0].sets).toBe(9)
   })
 
+  it('adds, renames, moves and removes days, and keeps the last one', async () => {
+    await repo.applySplit(U, 'ppl3')
+    let plan = await repo.addDay(U, 'arms')
+    expect(plan.days.map((d) => d.name)).toEqual(['Pull A', 'Push A', 'Legs A', 'Arms'])
+    expect(plan.days[3].exercises.map((e) => e.name)).toContain('Barbell Curl')
+    plan = await repo.updateDay(U, 'arms', { name: 'Arm day', type: 'upper' })
+    expect(plan.days[3]).toMatchObject({ name: 'Arm day', type: 'upper' })
+    plan = await repo.moveDay(U, 'arms', 'up')
+    expect(plan.days.map((d) => d.id)).toEqual(['pull-a', 'push-a', 'arms', 'legs-a'])
+    plan = await repo.moveDay(U, 'pull-a', 'up')
+    expect(plan.days[0].id).toBe('pull-a')
+    plan = await repo.removeDay(U, 'arms')
+    expect(plan.days).toHaveLength(3)
+    await repo.removeDay(U, 'push-a')
+    await repo.removeDay(U, 'legs-a')
+    await expect(repo.removeDay(U, 'pull-a')).rejects.toThrow(/at least one/)
+    await expect(repo.updateDay(U, 'nope', { name: 'x' })).rejects.toThrow()
+    // On a weekday schedule a new day gets a weekday of its own.
+    await repo.setSchedule(U, 'weekday')
+    plan = await repo.addDay(U, 'legs')
+    expect(plan.days.every((d) => d.weekday !== undefined)).toBe(true)
+  })
+
+  it('builds a plan of your own in the custom slot', async () => {
+    const plan = await repo.createCustomPlan(U, ['upper', 'lower', 'upper', 'lower'])
+    expect(plan.days.map((d) => d.name)).toEqual(['Upper A', 'Lower A', 'Upper B', 'Lower B'])
+    expect((await repo.getSettings(U)).split).toBe('custom')
+    // A template keeps its own plan beside it.
+    expect((await repo.applySplit(U, 'ppl6')).days).toHaveLength(6)
+    await repo.saveSettings(U, { split: 'custom' })
+    expect((await repo.getPlan(U)).days).toHaveLength(4)
+  })
+
   it('gives an uploaded plan its own slot and has no template to reset it to', async () => {
     const days = (await repo.getPlan(U)).days.slice(0, 2)
     await repo.replacePlan(U, days)

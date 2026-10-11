@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { NumberField } from '#/components/app/number-field'
 import { ProgressionPicker } from '#/components/app/progression-picker'
-import { SplitPicker } from '#/components/app/split-picker'
+import { DEFAULT_OWN_DAYS, OWN_SPLIT, SplitPicker } from '#/components/app/split-picker'
 import { Button } from '#/components/ui/button'
 import { Field, FieldDescription } from '#/components/ui/field'
 import { Label } from '#/components/ui/label'
@@ -15,8 +15,15 @@ import { dayKey } from '#/lib/logic/stats'
 import { DEFAULT_SPLIT, templateOf } from '#/lib/content'
 import { defaultProgression } from '#/lib/logic/progression'
 import { GOAL_OPTIONS } from '#/lib/logic/goal'
-import type { Goal, Progression, SplitId, TrainingAge, Units } from '#/lib/types'
-import { applySplitFn, getContentFn, getSettingsFn, logBodyweightFn, saveSettingsFn } from '#/server/fns'
+import type { DayType, Goal, Progression, SplitId, TrainingAge, Units } from '#/lib/types'
+import {
+  applySplitFn,
+  createCustomPlanFn,
+  getContentFn,
+  getSettingsFn,
+  logBodyweightFn,
+  saveSettingsFn,
+} from '#/server/fns'
 import { getSessionFn } from '#/server/session'
 
 type Search = { step?: 'split' }
@@ -63,7 +70,8 @@ function SetupPage() {
   const navigate = useNavigate()
   const [step, setStep] = useState(search.step === 'split' ? SPLIT_STEP : 0)
   const [units, setUnits] = useState<Units>(initial.units)
-  const [split, setSplit] = useState<SplitId>(templateOf(initial.split))
+  const [split, setSplit] = useState<SplitId>(initial.split === OWN_SPLIT ? OWN_SPLIT : templateOf(initial.split))
+  const [ownDays, setOwnDays] = useState<DayType[]>(DEFAULT_OWN_DAYS)
   const [bodyweight, setBodyweight] = useState<number | undefined>(initial.bodyweight)
   const [goal, setGoal] = useState<Goal>(initial.goal ?? 'gain')
   const [trainingAge, setTrainingAge] = useState<TrainingAge>(initial.trainingAge)
@@ -75,8 +83,9 @@ function SetupPage() {
   // The split the plan is on now. Before the first setup there is none; data claimed from before
   // accounts existed has no split recorded but is on the default. A custom plan matches no template.
   const currentSplit: SplitId | undefined =
-    initial.split === 'custom' ? undefined : (initial.split ?? (initial.setupDone ? DEFAULT_SPLIT : undefined))
-  const switching = initial.setupDone && split !== currentSplit
+    initial.split === OWN_SPLIT ? undefined : (initial.split ?? (initial.setupDone ? DEFAULT_SPLIT : undefined))
+  // "Your own" always builds a fresh plan, over whatever the custom slot held.
+  const switching = initial.setupDone && (split !== currentSplit || split === OWN_SPLIT)
 
   async function finish() {
     setSaving(true)
@@ -92,7 +101,8 @@ function SetupPage() {
         },
       })
       // Another split shows its own plan: as left earlier, or fresh from the template. The same split changes nothing.
-      if (split !== currentSplit) await applySplitFn({ data: { split } })
+      if (split === OWN_SPLIT) await createCustomPlanFn({ data: { types: ownDays } })
+      else if (split !== currentSplit) await applySplitFn({ data: { split } })
       // The first setup records the answer to "What do you weigh today?" as today's weigh-in. A later run
       // only logs when the number was changed, so re-running setup does not invent a weigh-in.
       if (bodyweight && (!initial.setupDone || bodyweight !== initial.bodyweight)) {
@@ -154,10 +164,19 @@ function SetupPage() {
               <p className="mt-2 text-muted-foreground">
                 How the week is cut up. Every template is yours to edit afterwards, exercise by exercise.
               </p>
-              <SplitPicker splits={content.splits} value={split} onChange={setSplit} className="mt-8" />
+              <SplitPicker
+                splits={content.splits}
+                value={split}
+                onChange={setSplit}
+                ownDays={ownDays}
+                onOwnDaysChange={setOwnDays}
+                className="mt-8"
+              />
               {switching && (
                 <p className="mt-4 rounded-lg border px-3 py-2 text-sm">
-                  Each split keeps its own plan. Coming back to one finds it as you left it.
+                  {split === OWN_SPLIT
+                    ? 'Replaces the plan of your own you have now. Templates keep theirs.'
+                    : 'Each split keeps its own plan. Coming back to one finds it as you left it.'}
                 </p>
               )}
             </section>

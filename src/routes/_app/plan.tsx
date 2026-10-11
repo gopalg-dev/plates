@@ -1,5 +1,5 @@
 import { Link, createFileRoute, useRouter } from '@tanstack/react-router'
-import { Pencil, Plus, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, MoreHorizontal, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { DayIcon } from '#/components/app/day-mark'
@@ -30,8 +30,16 @@ import {
   ItemSeparator,
   ItemTitle,
 } from '#/components/ui/item'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '#/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import { Textarea } from '#/components/ui/textarea'
+import { DAY_LABEL } from '#/lib/day-blocks'
 import { MUSCLE_BY_DAY } from '#/lib/logic/plan-sheet'
 import { WEEKDAY_LONG, WEEK_ORDER } from '#/lib/logic/schedule'
 import { MUSCLES, MUSCLE_LABEL, plannedSetsFor } from '#/lib/logic/stats'
@@ -39,7 +47,10 @@ import { rowTap } from '#/lib/row-tap'
 import { planSourceInfo } from '#/lib/content'
 import { useContent } from '#/lib/use-content'
 import {
+  DAY_TYPES,
+  MAX_DAYS,
   MAX_EXERCISES_PER_DAY,
+  type DayType,
   type Exercise,
   type LoadType,
   type Muscle,
@@ -48,12 +59,16 @@ import {
   type Settings,
 } from '#/lib/types'
 import {
+  addDayFn,
   addExerciseFn,
   getPlanFn,
+  moveDayFn,
+  removeDayFn,
   removeExerciseFn,
   resetPlanFn,
   setDayWeekdayFn,
   swapExerciseFn,
+  updateDayFn,
   updateExerciseFn,
 } from '#/server/fns'
 import { pageTitle } from '#/lib/page-title'
@@ -90,9 +105,50 @@ function PlanPage() {
   /** The exercise being edited, or null for a new one on that day. */
   const [editing, setEditing] = useState<{ day: PlanDay; exercise: Exercise | null } | null>(null)
   const [openDay, setOpenDay] = useState<string | null>(null)
+  const [addOpen, setAddOpen] = useState(false)
+  const [renaming, setRenaming] = useState<PlanDay | null>(null)
+  const [removing, setRemoving] = useState<PlanDay | null>(null)
+  const [busy, setBusy] = useState(false)
   const { splits } = useContent()
   const split = planSourceInfo(splits, settings.split, plan.days.length)
   const schedule: Schedule = settings.schedule ?? 'rolling'
+
+  async function addDay(type: DayType) {
+    setBusy(true)
+    try {
+      const next = await addDayFn({ data: { type } })
+      setAddOpen(false)
+      await router.invalidate()
+      setOpenDay(next.days[next.days.length - 1]?.id ?? null)
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not add the day.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function moveDay(dayId: string, direction: 'up' | 'down') {
+    try {
+      await moveDayFn({ data: { dayId, direction } })
+      await router.invalidate()
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not move the day.'))
+    }
+  }
+
+  async function removeDay(day: PlanDay) {
+    setBusy(true)
+    try {
+      await removeDayFn({ data: { dayId: day.id } })
+      setRemoving(null)
+      toast.success(`${day.name} removed`)
+      await router.invalidate()
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not remove the day.'))
+    } finally {
+      setBusy(false)
+    }
+  }
 
   async function changeWeekday(dayId: string, weekday: number) {
     try {
@@ -118,18 +174,82 @@ function PlanPage() {
         onValueChange={(v) => setOpenDay(v || null)}
         className="mt-6 border-t"
       >
-        {plan.days.map((day) => (
+        {plan.days.map((day, i) => (
           <DaySection
             key={day.id}
             day={day}
             settings={settings}
             schedule={schedule}
+            position={i === 0 ? 'first' : i === plan.days.length - 1 ? 'last' : 'middle'}
+            onlyDay={plan.days.length === 1}
             onEdit={(exercise) => setEditing({ day, exercise })}
             onAdd={() => setEditing({ day, exercise: null })}
             onWeekday={(weekday) => changeWeekday(day.id, weekday)}
+            onRename={() => setRenaming(day)}
+            onMove={(direction) => moveDay(day.id, direction)}
+            onRemove={() => setRemoving(day)}
           />
         ))}
       </Accordion>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="mt-2 text-muted-foreground"
+        onClick={() => setAddOpen(true)}
+        disabled={plan.days.length >= MAX_DAYS}
+      >
+        <Plus aria-hidden />
+        Add a day
+      </Button>
+
+      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>What kind of day?</DialogTitle>
+            <DialogDescription>It starts with five lifts, yours to edit.</DialogDescription>
+          </DialogHeader>
+          <div className="grid grid-cols-3 gap-2">
+            {DAY_TYPES.map((t) => (
+              <Button
+                key={t}
+                variant="outline"
+                className="h-auto flex-col gap-2 py-3"
+                onClick={() => addDay(t)}
+                disabled={busy}
+              >
+                <DayIcon type={t} className="size-9 rounded-lg" />
+                <span className="text-sm">{DAY_LABEL[t]}</span>
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <DayDialog
+        day={renaming}
+        onClose={() => setRenaming(null)}
+        onSaved={async () => {
+          setRenaming(null)
+          await router.invalidate()
+        }}
+      />
+
+      <Dialog open={removing !== null} onOpenChange={(o) => !o && setRemoving(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove {removing?.name}?</DialogTitle>
+            <DialogDescription>Its exercises go with it. Logged sessions stay.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setRemoving(null)}>
+              Keep it
+            </Button>
+            <Button variant="destructive" onClick={() => removing && removeDay(removing)} disabled={busy}>
+              Remove day
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <section className="mt-10">
         <h2 className="font-condensed text-2xl font-semibold leading-none">Rules</h2>
@@ -168,12 +288,29 @@ interface DayProps {
   day: PlanDay
   settings: Settings
   schedule: Schedule
+  position: 'first' | 'middle' | 'last'
+  onlyDay: boolean
   onEdit: (exercise: Exercise) => void
   onAdd: () => void
   onWeekday: (weekday: number) => void
+  onRename: () => void
+  onMove: (direction: 'up' | 'down') => void
+  onRemove: () => void
 }
 
-function DaySection({ day, settings, schedule, onEdit, onAdd, onWeekday }: DayProps) {
+function DaySection({
+  day,
+  settings,
+  schedule,
+  position,
+  onlyDay,
+  onEdit,
+  onAdd,
+  onWeekday,
+  onRename,
+  onMove,
+  onRemove,
+}: DayProps) {
   const full = day.exercises.length >= MAX_EXERCISES_PER_DAY
   const sets = day.exercises.reduce((n, e) => n + plannedSetsFor(e.sets, settings.trainingAge), 0)
   const onWeekdays = schedule === 'weekday' && day.weekday !== undefined
@@ -190,6 +327,35 @@ function DaySection({ day, settings, schedule, onEdit, onAdd, onWeekday }: DayPr
         </span>
       </AccordionTrigger>
       <AccordionContent className="pb-3 text-base">
+        <div className="mb-2 flex items-center justify-end px-2">
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" aria-label={`${day.name} options`}>
+                <MoreHorizontal aria-hidden />
+                Day
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-44">
+              <DropdownMenuItem onSelect={onRename}>
+                <Pencil aria-hidden />
+                Rename or change kind
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => onMove('up')} disabled={position === 'first'}>
+                <ArrowUp aria-hidden />
+                Move up
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => onMove('down')} disabled={position === 'last'}>
+                <ArrowDown aria-hidden />
+                Move down
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onSelect={onRemove} disabled={onlyDay}>
+                <Trash2 aria-hidden />
+                Remove day
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         {schedule === 'weekday' && (
           <div className="mb-3 flex items-center gap-3 px-2">
             <FieldLabel htmlFor={`weekday-${day.id}`} className="text-muted-foreground">
@@ -557,6 +723,87 @@ function EditorForm({ day, exercise, onClose, onSaved }: FormProps) {
 // ---------------------------------------------------------------- account
 
 /** Phones have no sidebar, so the sign-out lives here as well. */
+// ---------------------------------------------------------------- day name and kind
+
+function DayDialog({
+  day,
+  onClose,
+  onSaved,
+}: {
+  day: PlanDay | null
+  onClose: () => void
+  onSaved: () => Promise<void>
+}) {
+  return (
+    <Dialog open={day !== null} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        {day && <DayForm key={day.id} day={day} onClose={onClose} onSaved={onSaved} />}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function DayForm({ day, onClose, onSaved }: { day: PlanDay; onClose: () => void; onSaved: () => Promise<void> }) {
+  const [name, setName] = useState(day.name)
+  const [type, setType] = useState<DayType>(day.type)
+  const [busy, setBusy] = useState(false)
+
+  async function save() {
+    setBusy(true)
+    try {
+      await updateDayFn({ data: { dayId: day.id, name: name.trim(), type } })
+      await onSaved()
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not save the day.'))
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        void save()
+      }}
+    >
+      <DialogHeader>
+        <DialogTitle>{day.name}</DialogTitle>
+        <DialogDescription className="sr-only">Rename the day or change its kind.</DialogDescription>
+      </DialogHeader>
+      <FieldGroup className="py-4">
+        <Field>
+          <FieldLabel htmlFor="day-name">Name</FieldLabel>
+          <Input id="day-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} autoFocus />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="day-type">Kind</FieldLabel>
+          <Select value={type} onValueChange={(v) => setType(v as DayType)}>
+            <SelectTrigger id="day-type" className="w-full" aria-label="Kind">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {DAY_TYPES.map((t) => (
+                <SelectItem key={t} value={t}>
+                  <DayIcon type={t} className="size-5 rounded" />
+                  {DAY_LABEL[t]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      </FieldGroup>
+      <DialogFooter>
+        <Button type="button" variant="ghost" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={busy || !name.trim()}>
+          Save
+        </Button>
+      </DialogFooter>
+    </form>
+  )
+}
+
 // ---------------------------------------------------------------- reset
 
 function ResetPlanButton({ template, onReset }: { template: string; onReset: () => void }) {
