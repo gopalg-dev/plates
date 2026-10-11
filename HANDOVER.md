@@ -269,8 +269,13 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     closes it. History: the link pushes with `state: { fromRow: true }`, so closing calls
     `history.back()` and the stack is left as it was; opened by a typed URL or a reload there is
     no such entry, so closing replaces the URL without the param. The session row keeps the still
-    outside the accordion trigger (a button cannot hold a link). The Library tab and the plan
-    editor's picker keep their own views, which carry Previous, Next and "Use this". e2e locators
+    outside the accordion trigger (a button cannot hold a link). The Library tab uses the same
+    dialog (user: "we can reuse this dialog component on the library page as well"): a row
+    navigates to `/library?exercise=<id>`, so every entry has a URL, and the page lends the dialog
+    its filtered list through `ExerciseListProvider` / `useExerciseList(list)` in the layout, which
+    is what puts Previous and Next in the footer; stepping replaces the id in place so the history
+    does not grow. The plan editor's picker keeps its own view: a selection flow inside an open
+    dialog, with "Use this". e2e locators
     that matched a row's button by the exercise name alone are anchored at the start, since the
     first version made the still a button that matched too; harmless now, kept.
 52. Sets on the Plan row against the editor (user: "under plan you can see 3x but under edit it

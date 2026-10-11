@@ -1,13 +1,34 @@
 import { useLocation, useNavigate, useSearch } from '@tanstack/react-router'
-import { findLibrary } from '#/lib/library'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { findLibrary, type LibraryExercise } from '#/lib/library'
 import { useContent } from '#/lib/use-content'
 import { LibraryDetail } from './library-list'
 
 declare module '@tanstack/react-router' {
   interface HistoryState {
-    /** Set by a row's picture when it opens the view: the entry was pushed, so closing can go back. */
+    /** Set by a row that opens the view: the entry was pushed, so closing can go back. */
     fromRow?: boolean
   }
+}
+
+/** The list the view steps through with Previous and Next. A page publishes its own while it is open. */
+const ListContext = createContext<{
+  among: LibraryExercise[] | null
+  setAmong: (list: LibraryExercise[] | null) => void
+}>({ among: null, setAmong: () => {} })
+
+export function ExerciseListProvider({ children }: { children: ReactNode }) {
+  const [among, setAmong] = useState<LibraryExercise[] | null>(null)
+  return <ListContext.Provider value={{ among, setAmong }}>{children}</ListContext.Provider>
+}
+
+/** For a page that lists exercises: the view then has Previous and Next through `list`, until the page leaves. */
+export function useExerciseList(list: LibraryExercise[]) {
+  const { setAmong } = useContext(ListContext)
+  useEffect(() => {
+    setAmong(list)
+    return () => setAmong(null)
+  }, [list, setAmong])
 }
 
 /**
@@ -21,6 +42,7 @@ export function ExerciseDialog() {
   const { state } = useLocation()
   const navigate = useNavigate()
   const { library } = useContent()
+  const { among } = useContext(ListContext)
   const ex = exercise ? findLibrary(library, exercise) : undefined
   const close = () => {
     // Opened from a row here, the entry was pushed: back is the entry before it, with no param.
@@ -28,5 +50,8 @@ export function ExerciseDialog() {
     if (state.fromRow) window.history.back()
     else void navigate({ to: '.', search: (prev) => ({ ...prev, exercise: undefined }), replace: true })
   }
-  return <LibraryDetail exercise={ex ?? null} onClose={close} />
+  // Previous and Next swap the id in place, so stepping through a list does not grow the history.
+  const step = (next: LibraryExercise) =>
+    void navigate({ to: '.', search: (prev) => ({ ...prev, exercise: next.id }), replace: true })
+  return <LibraryDetail exercise={ex ?? null} among={among ?? undefined} onStep={step} onClose={close} />
 }

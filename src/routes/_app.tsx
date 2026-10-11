@@ -41,7 +41,7 @@ import {
   useSidebar,
 } from '#/components/ui/sidebar'
 import { AppMark } from '#/components/app/app-mark'
-import { ExerciseDialog } from '#/components/app/exercise-dialog'
+import { ExerciseDialog, ExerciseListProvider } from '#/components/app/exercise-dialog'
 import { FeedbackDialog } from '#/components/app/feedback-form'
 import { THEME_OPTIONS, readTheme, saveTheme, type Theme } from '#/lib/theme'
 import { useSignOut } from '#/lib/use-sign-out'
@@ -96,72 +96,74 @@ function AppLayout() {
   // Accounts made from an emailed link have no username and an empty name.
   const who = user.username ?? (user.name || user.email)
   return (
-    <SidebarProvider>
-      <Sidebar collapsible="icon">
-        <SidebarHeader className="h-12 flex-row items-center justify-between gap-2 px-2 group-data-[collapsible=icon]:justify-center">
-          <p className="flex min-w-0 items-center gap-2 pl-1 font-condensed text-xl font-semibold leading-none group-data-[collapsible=icon]:hidden">
-            <AppMark className="size-7" />
-            <span className="truncate group-data-[collapsible=icon]:hidden">Plates</span>
-          </p>
-          <SidebarTrigger aria-label="Toggle sidebar" />
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarMenu>
-              {[...primary, ...secondary].map(({ to, label, icon: Icon, exact }) => (
-                <SidebarMenuItem key={to}>
-                  <SidebarMenuButton asChild isActive={isActive(pathname, to, exact)} tooltip={label}>
-                    <Link to={to}>
-                      <Icon aria-hidden />
-                      <span>{label}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroup>
-        </SidebarContent>
-        <SidebarFooter>
-          <AccountMenu who={who} email={user.email} />
-        </SidebarFooter>
-        <SidebarRail />
-      </Sidebar>
+    <ExerciseListProvider>
+      <SidebarProvider>
+        <Sidebar collapsible="icon">
+          <SidebarHeader className="h-12 flex-row items-center justify-between gap-2 px-2 group-data-[collapsible=icon]:justify-center">
+            <p className="flex min-w-0 items-center gap-2 pl-1 font-condensed text-xl font-semibold leading-none group-data-[collapsible=icon]:hidden">
+              <AppMark className="size-7" />
+              <span className="truncate group-data-[collapsible=icon]:hidden">Plates</span>
+            </p>
+            <SidebarTrigger aria-label="Toggle sidebar" />
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarGroup>
+              <SidebarMenu>
+                {[...primary, ...secondary].map(({ to, label, icon: Icon, exact }) => (
+                  <SidebarMenuItem key={to}>
+                    <SidebarMenuButton asChild isActive={isActive(pathname, to, exact)} tooltip={label}>
+                      <Link to={to}>
+                        <Icon aria-hidden />
+                        <span>{label}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroup>
+          </SidebarContent>
+          <SidebarFooter>
+            <AccountMenu who={who} email={user.email} />
+          </SidebarFooter>
+          <SidebarRail />
+        </Sidebar>
 
-      <SidebarInset className="min-w-0">
-        {/* Phones have no rail: a slim header opens the same sidebar as a sheet with every screen in it. */}
-        <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b bg-background/95 px-2 backdrop-blur md:hidden">
-          <SidebarTrigger aria-label="Open menu" />
-          <p className="flex items-center gap-2 font-condensed text-lg font-medium leading-none">
-            <AppMark />
-            Plates
-          </p>
-        </header>
-        <main className="mx-auto w-full max-w-2xl px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-16">
-          <Outlet />
-        </main>
-        <ExerciseDialog />
-      </SidebarInset>
+        <SidebarInset className="min-w-0">
+          {/* Phones have no rail: a slim header opens the same sidebar as a sheet with every screen in it. */}
+          <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b bg-background/95 px-2 backdrop-blur md:hidden">
+            <SidebarTrigger aria-label="Open menu" />
+            <p className="flex items-center gap-2 font-condensed text-lg font-medium leading-none">
+              <AppMark />
+              Plates
+            </p>
+          </header>
+          <main className="mx-auto w-full max-w-2xl px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-16">
+            <Outlet />
+          </main>
+          <ExerciseDialog />
+        </SidebarInset>
 
-      <nav
-        aria-label="Main"
-        className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-safe backdrop-blur md:hidden"
-      >
-        <ul className="grid grid-cols-3">
-          {primary.map(({ to, label, icon: Icon, exact }) => (
-            <li key={to}>
-              <Link
-                to={to}
-                activeOptions={{ exact }}
-                className="flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium text-muted-foreground data-[status=active]:text-foreground"
-              >
-                <Icon className="size-5" aria-hidden />
-                {label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </SidebarProvider>
+        <nav
+          aria-label="Main"
+          className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-safe backdrop-blur md:hidden"
+        >
+          <ul className="grid grid-cols-3">
+            {primary.map(({ to, label, icon: Icon, exact }) => (
+              <li key={to}>
+                <Link
+                  to={to}
+                  activeOptions={{ exact }}
+                  className="flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium text-muted-foreground data-[status=active]:text-foreground"
+                >
+                  <Icon className="size-5" aria-hidden />
+                  {label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </SidebarProvider>
+    </ExerciseListProvider>
   )
 }
 
