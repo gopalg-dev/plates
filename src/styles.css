@@ -1,0 +1,411 @@
+@import '@fontsource/barlow/400.css';
+@import '@fontsource/barlow/500.css';
+@import '@fontsource/barlow/600.css';
+@import '@fontsource/barlow-condensed/500.css';
+@import '@fontsource/barlow-condensed/600.css';
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: hsla(200, 16%, 96%, 1);
+  --foreground: hsla(210, 21%, 15%, 1);
+  --card: hsla(0, 0%, 100%, 1);
+  --card-foreground: hsla(210, 21%, 15%, 1);
+  --popover: hsla(0, 0%, 100%, 1);
+  --popover-foreground: hsla(210, 21%, 15%, 1);
+  --primary: hsla(210, 21%, 15%, 1);
+  --primary-foreground: hsla(200, 16%, 96%, 1);
+  --secondary: hsla(206, 16%, 92%, 1);
+  --secondary-foreground: hsla(210, 21%, 15%, 1);
+  --muted: hsla(206, 16%, 92%, 1);
+  --muted-foreground: hsla(211, 11%, 42%, 1);
+  --accent: hsla(206, 16%, 92%, 1);
+  --accent-foreground: hsla(210, 21%, 15%, 1);
+  --destructive: hsla(357, 69%, 47%, 1);
+  --destructive-foreground: hsla(0, 0%, 100%, 1);
+  --border: hsla(207, 14%, 85%, 1);
+  --input: hsla(208, 15%, 80%, 1);
+  --ring: hsla(216, 72%, 44%, 1);
+  --chart-1: hsla(216, 72%, 44%, 1);
+  --chart-2: hsla(146, 65%, 34%, 1);
+  --chart-3: hsla(48, 96%, 45%, 1);
+  --chart-4: hsla(357, 69%, 47%, 1);
+  --chart-5: hsla(211, 10%, 46%, 1);
+  --radius: 0.5rem;
+  --sidebar: hsla(0, 0%, 100%, 1);
+  --sidebar-foreground: hsla(210, 21%, 15%, 1);
+  --sidebar-primary: hsla(210, 21%, 15%, 1);
+  --sidebar-primary-foreground: hsla(200, 16%, 96%, 1);
+  --sidebar-accent: hsla(206, 16%, 92%, 1);
+  --sidebar-accent-foreground: hsla(210, 21%, 15%, 1);
+  --sidebar-border: hsla(207, 14%, 85%, 1);
+  --sidebar-ring: hsla(216, 72%, 44%, 1);
+
+  /* Purpose tokens that shadcn does not ship. Plate colours: red = push, blue = pull, yellow = legs. */
+  --day-push: hsla(357, 69%, 47%, 1);
+  --day-pull: hsla(216, 72%, 44%, 1);
+  --day-legs: hsla(47, 100%, 43%, 1);
+  --success: hsla(146, 65%, 34%, 1);
+  --success-foreground: hsla(0, 0%, 100%, 1);
+  /* Ink on the plates. White on red and blue, near-black on yellow; a theme with lighter plates overrides these. */
+  --day-push-ink: hsla(0, 0%, 100%, 1);
+  --day-pull-ink: hsla(0, 0%, 100%, 1);
+  --day-legs-ink: hsla(0, 0%, 0%, 0.8);
+
+  /* The typefaces, as tokens so a look can swap them. */
+  --app-font-sans: 'Barlow', ui-sans-serif, system-ui, sans-serif;
+  --app-font-condensed: 'Barlow Condensed', 'Barlow', ui-sans-serif, system-ui, sans-serif;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: hsla(210, 23%, 14%, 1);
+  --foreground: hsla(206, 24%, 94%, 1);
+  --card: hsla(210, 22%, 18%, 1);
+  --card-foreground: hsla(206, 24%, 94%, 1);
+  --popover: hsla(210, 22%, 18%, 1);
+  --popover-foreground: hsla(206, 24%, 94%, 1);
+  --primary: hsla(206, 24%, 94%, 1);
+  --primary-foreground: hsla(210, 23%, 14%, 1);
+  --secondary: hsla(209, 19%, 21%, 1);
+  --secondary-foreground: hsla(206, 24%, 94%, 1);
+  --muted: hsla(209, 19%, 21%, 1);
+  --muted-foreground: hsla(209, 13%, 65%, 1);
+  --accent: hsla(209, 19%, 21%, 1);
+  --accent-foreground: hsla(206, 24%, 94%, 1);
+  --destructive: hsla(357, 72%, 59%, 1);
+  --destructive-foreground: hsla(0, 0%, 100%, 1);
+  --border: hsla(209, 18%, 25%, 1);
+  --input: hsla(209, 17%, 29%, 1);
+  --ring: hsla(216, 75%, 61%, 1);
+  --chart-1: hsla(216, 75%, 61%, 1);
+  --chart-2: hsla(145, 53%, 46%, 1);
+  --chart-3: hsla(47, 86%, 56%, 1);
+  --chart-4: hsla(357, 72%, 59%, 1);
+  --chart-5: hsla(209, 13%, 63%, 1);
+  --sidebar: hsla(210, 22%, 18%, 1);
+  --sidebar-foreground: hsla(206, 24%, 94%, 1);
+  --sidebar-primary: hsla(206, 24%, 94%, 1);
+  --sidebar-primary-foreground: hsla(210, 23%, 14%, 1);
+  --sidebar-accent: hsla(209, 19%, 21%, 1);
+  --sidebar-accent-foreground: hsla(206, 24%, 94%, 1);
+  --sidebar-border: hsla(209, 18%, 25%, 1);
+  --sidebar-ring: hsla(216, 75%, 61%, 1);
+
+  --day-push: hsla(357, 72%, 59%, 1);
+  --day-pull: hsla(216, 75%, 61%, 1);
+  --day-legs: hsla(47, 86%, 56%, 1);
+  --success: hsla(145, 53%, 46%, 1);
+  --success-foreground: hsla(210, 23%, 14%, 1);
+}
+
+/*
+ * Light variants, picked in Settings and kept per device. Only token values change: the components,
+ * the type and the plate colours' meaning stay. Neither has a dark mode; the script never adds `.dark`
+ * while one is on.
+ */
+
+/* Chalk: the gym whiteboard. Warm chalk surface, graphite ink, flat with hairline rules, matte plates. */
+:root[data-theme='chalk'] {
+  color-scheme: light;
+  --background: hsla(40, 18%, 97%, 1);
+  --foreground: hsla(30, 6%, 12%, 1);
+  --card: hsla(40, 18%, 97%, 1);
+  --card-foreground: hsla(30, 6%, 12%, 1);
+  --popover: hsla(40, 20%, 99%, 1);
+  --popover-foreground: hsla(30, 6%, 12%, 1);
+  --primary: hsla(30, 6%, 12%, 1);
+  --primary-foreground: hsla(40, 18%, 97%, 1);
+  --secondary: hsla(40, 14%, 92%, 1);
+  --secondary-foreground: hsla(30, 6%, 12%, 1);
+  --muted: hsla(40, 14%, 92%, 1);
+  --muted-foreground: hsla(30, 5%, 42%, 1);
+  --accent: hsla(40, 14%, 92%, 1);
+  --accent-foreground: hsla(30, 6%, 12%, 1);
+  --destructive: hsla(4, 62%, 46%, 1);
+  --destructive-foreground: hsla(0, 0%, 100%, 1);
+  --border: hsla(38, 12%, 84%, 1);
+  --input: hsla(38, 12%, 78%, 1);
+  --ring: hsla(30, 6%, 12%, 1);
+  --chart-1: hsla(216, 55%, 42%, 1);
+  --chart-2: hsla(150, 45%, 34%, 1);
+  --chart-3: hsla(44, 90%, 46%, 1);
+  --chart-4: hsla(4, 62%, 46%, 1);
+  --chart-5: hsla(30, 5%, 46%, 1);
+  --radius: 0.375rem;
+  --sidebar: hsla(40, 16%, 94%, 1);
+  --sidebar-foreground: hsla(30, 6%, 12%, 1);
+  --sidebar-primary: hsla(30, 6%, 12%, 1);
+  --sidebar-primary-foreground: hsla(40, 18%, 97%, 1);
+  --sidebar-accent: hsla(40, 14%, 88%, 1);
+  --sidebar-accent-foreground: hsla(30, 6%, 12%, 1);
+  --sidebar-border: hsla(38, 12%, 84%, 1);
+  --sidebar-ring: hsla(30, 6%, 12%, 1);
+  --day-push: hsla(4, 62%, 46%, 1);
+  --day-pull: hsla(216, 55%, 42%, 1);
+  --day-legs: hsla(44, 90%, 46%, 1);
+  --success: hsla(150, 45%, 34%, 1);
+  --success-foreground: hsla(0, 0%, 100%, 1);
+}
+
+/*
+ * Pocket: a different app altogether. The device's own typeface instead of Barlow, big soft corners,
+ * white cards lifted off a grey page, and the pull blue as the primary colour instead of ink.
+ */
+:root[data-theme='pocket'] {
+  color-scheme: light;
+  --app-font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --app-font-condensed: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --background: hsla(220, 14%, 95%, 1);
+  --foreground: hsla(222, 20%, 16%, 1);
+  --card: hsla(0, 0%, 100%, 1);
+  --card-foreground: hsla(222, 20%, 16%, 1);
+  --popover: hsla(0, 0%, 100%, 1);
+  --popover-foreground: hsla(222, 20%, 16%, 1);
+  --primary: hsla(216, 72%, 44%, 1);
+  --primary-foreground: hsla(0, 0%, 100%, 1);
+  --secondary: hsla(220, 14%, 90%, 1);
+  --secondary-foreground: hsla(222, 20%, 16%, 1);
+  --muted: hsla(220, 14%, 91%, 1);
+  --muted-foreground: hsla(220, 9%, 44%, 1);
+  --accent: hsla(216, 72%, 94%, 1);
+  --accent-foreground: hsla(216, 72%, 30%, 1);
+  --destructive: hsla(357, 69%, 47%, 1);
+  --destructive-foreground: hsla(0, 0%, 100%, 1);
+  --border: hsla(220, 14%, 87%, 1);
+  --input: hsla(220, 14%, 82%, 1);
+  --ring: hsla(216, 72%, 44%, 1);
+  --chart-1: hsla(216, 72%, 44%, 1);
+  --chart-2: hsla(146, 65%, 34%, 1);
+  --chart-3: hsla(47, 100%, 43%, 1);
+  --chart-4: hsla(357, 69%, 47%, 1);
+  --chart-5: hsla(220, 9%, 46%, 1);
+  --radius: 1rem;
+  --sidebar: hsla(0, 0%, 100%, 1);
+  --sidebar-foreground: hsla(222, 20%, 16%, 1);
+  --sidebar-primary: hsla(216, 72%, 44%, 1);
+  --sidebar-primary-foreground: hsla(0, 0%, 100%, 1);
+  --sidebar-accent: hsla(216, 72%, 94%, 1);
+  --sidebar-accent-foreground: hsla(216, 72%, 30%, 1);
+  --sidebar-border: hsla(220, 14%, 87%, 1);
+  --sidebar-ring: hsla(216, 72%, 44%, 1);
+  --day-push: hsla(357, 69%, 47%, 1);
+  --day-pull: hsla(216, 72%, 44%, 1);
+  --day-legs: hsla(47, 100%, 43%, 1);
+  --success: hsla(146, 65%, 34%, 1);
+  --success-foreground: hsla(0, 0%, 100%, 1);
+}
+
+/* Popular themes on their own published palettes, picked from the same menu. Red, blue and yellow still mean push, pull and legs. */
+
+/* Dracula (draculatheme.com). */
+:root[data-theme='dracula'] {
+  color-scheme: dark;
+  --background: hsla(231, 15%, 18%, 1);
+  --foreground: hsla(60, 30%, 96%, 1);
+  --card: hsla(230, 15%, 24%, 1);
+  --card-foreground: hsla(60, 30%, 96%, 1);
+  --popover: hsla(230, 15%, 24%, 1);
+  --popover-foreground: hsla(60, 30%, 96%, 1);
+  --primary: hsla(265, 89%, 78%, 1);
+  --primary-foreground: hsla(231, 15%, 18%, 1);
+  --secondary: hsla(232, 14%, 31%, 1);
+  --secondary-foreground: hsla(60, 30%, 96%, 1);
+  --muted: hsla(232, 14%, 31%, 1);
+  --muted-foreground: hsla(60, 6%, 72%, 1);
+  --accent: hsla(232, 14%, 31%, 1);
+  --accent-foreground: hsla(60, 30%, 96%, 1);
+  --destructive: hsla(0, 100%, 67%, 1);
+  --destructive-foreground: hsla(231, 15%, 18%, 1);
+  --border: hsla(232, 14%, 31%, 1);
+  --input: hsla(225, 27%, 51%, 1);
+  --ring: hsla(265, 89%, 78%, 1);
+  --chart-1: hsla(191, 97%, 77%, 1);
+  --chart-2: hsla(135, 94%, 65%, 1);
+  --chart-3: hsla(65, 92%, 76%, 1);
+  --chart-4: hsla(0, 100%, 67%, 1);
+  --chart-5: hsla(225, 27%, 51%, 1);
+  --sidebar: hsla(235, 14%, 15%, 1);
+  --sidebar-foreground: hsla(60, 30%, 96%, 1);
+  --sidebar-primary: hsla(265, 89%, 78%, 1);
+  --sidebar-primary-foreground: hsla(231, 15%, 18%, 1);
+  --sidebar-accent: hsla(232, 14%, 31%, 1);
+  --sidebar-accent-foreground: hsla(60, 30%, 96%, 1);
+  --sidebar-border: hsla(232, 14%, 31%, 1);
+  --sidebar-ring: hsla(265, 89%, 78%, 1);
+  --day-push: hsla(0, 100%, 67%, 1);
+  --day-pull: hsla(191, 97%, 77%, 1);
+  --day-legs: hsla(65, 92%, 76%, 1);
+  /* Dracula's plates are pastel, so the ink is its background colour on all three. */
+  --day-push-ink: hsla(231, 15%, 18%, 1);
+  --day-pull-ink: hsla(231, 15%, 18%, 1);
+  --day-legs-ink: hsla(231, 15%, 18%, 1);
+  --success: hsla(135, 94%, 65%, 1);
+  --success-foreground: hsla(231, 15%, 18%, 1);
+}
+
+/* Catppuccin Latte (catppuccin.com), the light flavour. */
+:root[data-theme='latte'] {
+  color-scheme: light;
+  --background: hsla(220, 23%, 95%, 1);
+  --foreground: hsla(234, 16%, 35%, 1);
+  --card: hsla(220, 23%, 95%, 1);
+  --card-foreground: hsla(234, 16%, 35%, 1);
+  --popover: hsla(220, 22%, 92%, 1);
+  --popover-foreground: hsla(234, 16%, 35%, 1);
+  --primary: hsla(220, 91%, 54%, 1);
+  --primary-foreground: hsla(220, 23%, 95%, 1);
+  --secondary: hsla(223, 16%, 83%, 1);
+  --secondary-foreground: hsla(234, 16%, 35%, 1);
+  --muted: hsla(223, 16%, 83%, 1);
+  --muted-foreground: hsla(233, 10%, 47%, 1);
+  --accent: hsla(223, 16%, 83%, 1);
+  --accent-foreground: hsla(234, 16%, 35%, 1);
+  --destructive: hsla(347, 87%, 44%, 1);
+  --destructive-foreground: hsla(0, 0%, 100%, 1);
+  --border: hsla(225, 14%, 77%, 1);
+  --input: hsla(228, 11%, 65%, 1);
+  --ring: hsla(220, 91%, 54%, 1);
+  --chart-1: hsla(220, 91%, 54%, 1);
+  --chart-2: hsla(109, 58%, 40%, 1);
+  --chart-3: hsla(35, 77%, 49%, 1);
+  --chart-4: hsla(347, 87%, 44%, 1);
+  --chart-5: hsla(228, 11%, 65%, 1);
+  --sidebar: hsla(220, 22%, 92%, 1);
+  --sidebar-foreground: hsla(234, 16%, 35%, 1);
+  --sidebar-primary: hsla(220, 91%, 54%, 1);
+  --sidebar-primary-foreground: hsla(220, 23%, 95%, 1);
+  --sidebar-accent: hsla(223, 16%, 83%, 1);
+  --sidebar-accent-foreground: hsla(234, 16%, 35%, 1);
+  --sidebar-border: hsla(225, 14%, 77%, 1);
+  --sidebar-ring: hsla(220, 91%, 54%, 1);
+  --day-push: hsla(347, 87%, 44%, 1);
+  --day-pull: hsla(220, 91%, 54%, 1);
+  --day-legs: hsla(35, 77%, 49%, 1);
+  --success: hsla(109, 58%, 40%, 1);
+  --success-foreground: hsla(0, 0%, 100%, 1);
+}
+
+@theme inline {
+  --font-sans: var(--app-font-sans);
+  --font-condensed: var(--app-font-condensed);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-day-push: var(--day-push);
+  --color-day-pull: var(--day-pull);
+  --color-day-legs: var(--day-legs);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    margin: 0;
+    min-height: 100dvh;
+    font-variant-numeric: tabular-nums;
+    overscroll-behavior-y: none;
+  }
+
+  input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* No 300ms tap delay on anything tappable. */
+  button,
+  [role='button'],
+  a,
+  input,
+  label {
+    touch-action: manipulation;
+  }
+
+  /* Small buttons grow to a thumb-sized target on touch screens; desktop keeps the compact size. */
+  @media (pointer: coarse) {
+    [data-slot='button'][data-size='sm'],
+    [data-slot='button'][data-size='icon-sm'] {
+      min-height: 2.75rem;
+    }
+    [data-slot='button'][data-size='icon-sm'] {
+      min-width: 2.75rem;
+    }
+  }
+}
+
+/* Safe-area padding for the sticky bars on phones with a home indicator. */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Scrolls, but shows no scrollbar: dialogs and drawers that are a touch taller than the screen. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
