@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { expect, test, type Page } from '@playwright/test'
-import { backdateJoin, lastCode, lastMagicLink, resetDatabase, traceOf } from './db'
+import { backdateJoin, resetDatabase, traceOf } from './db'
 
 test.describe.configure({ mode: 'serial' })
 
@@ -17,9 +17,6 @@ const shots = 'e2e/screenshots'
 // The flows build on each other and the session cookie must survive between them, so every test
 // in a project shares one page and browser context instead of Playwright's fresh-context fixture.
 let page: Page
-/** The emailed sign-in link, kept so a later flow can show that it only works once. */
-let usedLink = ''
-
 test.beforeAll(async ({ browser }) => {
   await resetDatabase()
   page = await browser.newPage()
@@ -42,9 +39,7 @@ async function open(page: Page, path: string) {
  */
 async function hydrated(page: Page) {
   await page.locator('html[data-hydrated="true"]').waitFor({ state: 'attached' })
-  if (!/^\/(login|signup|setup|privacy)(\/|$)/.test(new URL(page.url()).pathname)) {
-    await page.locator('html[data-app-hydrated="true"]').waitFor({ state: 'attached' })
-  }
+  await page.locator('html[data-page-hydrated="true"]').waitFor({ state: 'attached' })
 }
 
 async function snap(page: Page, name: string) {
@@ -58,18 +53,16 @@ test('first run: create an account, then setup one question at a time', async ()
   await page.getByRole('link', { name: 'Create an account' }).click()
   await expect(page).toHaveURL(/\/signup$/)
   await hydrated(page)
+  // The URL moves before the page does: wait for the sign-up form, or the username lands in the sign-in box.
+  await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible()
   await page.getByLabel('Username').fill('alex')
   await page.getByLabel('Email').fill('alex@example.com')
   await page.getByLabel('Password', { exact: true }).fill('password123')
   await snap(page, '00-signup')
   await page.getByRole('button', { name: 'Create account' }).click()
-  // The address proves itself with the emailed six-digit code before the account is usable.
-  await expect(page.getByRole('heading', { name: 'Check your email' })).toBeVisible()
-  await page.getByRole('textbox', { name: 'Verification code' }).fill(await lastCode('alex@example.com'))
-  await snap(page, '00b-signup-code')
-  await page.getByRole('button', { name: 'Verify' }).click()
 
   await expect(page).toHaveURL(/\/setup$/)
+  await hydrated(page)
   await expect(page.getByRole('heading', { name: 'Which units do you lift in?' })).toBeVisible()
   await expect(page.getByText('1 of 5')).toBeVisible()
   await snap(page, '01-setup-units')
@@ -534,52 +527,21 @@ test('feedback is one tap and an optional line, from the account menu', async ()
   await expect(page.getByRole('heading', { name: 'How is Plates for you?' })).not.toBeVisible()
 })
 
-test('an emailed sign-in link signs a new user in and starts setup', async () => {
+test('accounts stay apart: a second user starts clean and the first signs back in by username', async () => {
   await signOut(page)
   await expect(page).toHaveURL(/\/login$/)
   await hydrated(page)
   await snap(page, '14-login')
 
-  await page.getByLabel('Email', { exact: true }).fill('link@example.com')
-  await page.getByRole('button', { name: 'Email me a sign-in link' }).click()
-  await expect(page.getByText('Check your email')).toBeVisible()
-  await snap(page, '15-link-sent')
-
-  usedLink = await lastMagicLink('link@example.com')
-  await page.goto(usedLink)
-  await expect(page).toHaveURL(/\/setup$/)
-  await hydrated(page)
-  await page.getByRole('button', { name: 'Continue' }).click()
-  // A different split: the plan starts from that template.
-  await page.getByRole('radio', { name: /^Full body/ }).click()
-  await page.getByRole('button', { name: 'Continue' }).click()
-  await page.getByRole('button', { name: 'Skip' }).click()
-  await page.getByRole('button', { name: 'Continue' }).click()
-  await page.getByRole('button', { name: 'Start training' }).click()
-  await expect(page.getByRole('heading', { name: 'Full body A' })).toBeVisible()
-  await open(page, '/plan')
-  await expect(page.getByText('Full body, 3 days', { exact: true })).toBeVisible()
-})
-
-test('accounts stay apart: a second user starts clean and the first signs back in by username', async () => {
-  await signOut(page)
-  await expect(page).toHaveURL(/\/login$/)
-  await hydrated(page)
-  // A sign-in link works once: opening it again lands on the sign-in page with the reason.
-  await page.goto(usedLink)
-  await expect(page).toHaveURL(/\/login\?error=/)
-  await hydrated(page)
-  await expect(page.getByRole('alert')).toContainText('already used or has expired')
-
   await page.getByRole('link', { name: 'Create an account' }).click()
   await expect(page).toHaveURL(/\/signup$/)
   await hydrated(page)
+  // The URL moves before the page does: wait for the sign-up form, or the username lands in the sign-in box.
+  await expect(page.getByRole('heading', { name: 'Create your account' })).toBeVisible()
   await page.getByLabel('Username').fill('sam')
   await page.getByLabel('Email').fill('sam@example.com')
   await page.getByLabel('Password', { exact: true }).fill('password123')
   await page.getByRole('button', { name: 'Create account' }).click()
-  await page.getByRole('textbox', { name: 'Verification code' }).fill(await lastCode('sam@example.com'))
-  await page.getByRole('button', { name: 'Verify' }).click()
   await expect(page).toHaveURL(/\/setup$/)
   await page.getByRole('button', { name: 'Continue' }).click()
   await page.getByRole('button', { name: 'Continue' }).click()
@@ -594,7 +556,6 @@ test('accounts stay apart: a second user starts clean and the first signs back i
   await expect(page).toHaveURL(/\/login$/)
   await hydrated(page)
 
-  await page.getByRole('button', { name: 'Sign in with a password instead' }).click()
   await page.getByLabel('Email or username').fill('alex')
   await page.getByLabel('Password', { exact: true }).fill('password123')
   await snap(page, '16-login-password')
@@ -732,7 +693,6 @@ test('delete account removes the user and every log, and says so on the sign-in 
   await expect(page.getByText('Your account and all of its data are deleted.')).toBeVisible()
 
   // The username no longer signs in, and the database holds no trace beyond the deletion log.
-  await page.getByRole('button', { name: 'Sign in with a password instead' }).click()
   await page.getByLabel('Email or username').fill('alex')
   await page.getByLabel('Password', { exact: true }).fill('password123')
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()

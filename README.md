@@ -101,7 +101,8 @@ default build settings, and set these environment variables for Production:
 | `BETTER_AUTH_URL`                          | the site's address, `https://<project>.vercel.app` or your domain, no trailing slash            |
 | `RESEND_API_KEY`, `MAIL_FROM`              | the Resend key and a sender on a domain verified at Resend                                      |
 | `FEEDBACK_TO`                              | optional: an address that gets a copy of every piece of feedback sent from the app              |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | only for Google sign-in, with `BETTER_AUTH_URL` + `/api/auth/callback/google` as a redirect URI |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in, the one door in production, with `BETTER_AUTH_URL` + `/api/auth/callback/google` as a redirect URI |
+| `AUTH_PASSWORD` | leave unset in production; `true` opens the password door (local, tests) |
 
 The function region is set in `vite.config.ts` (`regions: ['bom1']`, Mumbai): put it where the database is, or
 every page pays a long round trip per query. Node 24 or later. A change to a variable needs a redeploy. `bun run build` runs the same build
@@ -109,20 +110,20 @@ locally and `bun run preview` serves it.
 
 ## Accounts
 
-Three ways to sign in, all on `/login`:
+Two doors on `/login`, each open only where it is configured:
 
-- **Email link**: enter your email, open the link we send, and you are in. New addresses get an
-  account and go straight to setup. Links work for 15 minutes.
 - **Google**: shown once `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set. Create OAuth
   credentials in Google Cloud and add `BETTER_AUTH_URL` + `/api/auth/callback/google` as an
-  authorised redirect URI.
-- **Username and password**: create one on `/signup`. A six-digit code goes to the address and has
-  to be typed back before the account can sign in, so a made-up address never gets in. Sign in with
-  the username or the email.
+  authorised redirect URI. In production this is the only door: a sign-up costs a real Google
+  account, which is what keeps spam out.
+- **Username and password**: open only where `AUTH_PASSWORD=true` (the dev server, the tests).
+  Create one on `/signup` with a username, an email and a password; the account is signed in at
+  once and setup follows. Sign in with the username or the email. Leave the variable unset on
+  Vercel and the page shows Google alone, with no sign-up API behind it.
 
-Mail goes through [Resend](https://resend.com) when `RESEND_API_KEY` is set (`MAIL_FROM` is the
-sender). Without it, the sign-in link is printed by the dev server and kept in the `mail_outbox`
-collection, which is fine for local use and is what the tests rely on.
+No sign-in links and no emailed codes: those need a verified sender domain, and the app is meant
+to run without one. Mail goes through [Resend](https://resend.com) only for the copy of feedback
+sent to `FEEDBACK_TO`, when that and `RESEND_API_KEY` are set.
 
 The account menu has Send feedback: three faces and an optional line, stored with the account and
 mailed to `FEEDBACK_TO` when that is set. The same two fields appear at the foot of the finish summary

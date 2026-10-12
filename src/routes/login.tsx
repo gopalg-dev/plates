@@ -4,7 +4,7 @@ import { toast } from 'sonner'
 import { AuthFrame, authInput } from '#/components/app/auth-frame'
 import { Button } from '#/components/ui/button'
 import { PasswordInput } from '#/components/app/password-input'
-import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel, FieldSeparator } from '#/components/ui/field'
+import { Field, FieldError, FieldGroup, FieldLabel, FieldSeparator } from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
 import { authClient } from '#/lib/auth-client'
 import { getAuthOptionsFn } from '#/server/fns'
@@ -13,7 +13,7 @@ import { pageTitle } from '#/lib/page-title'
 
 export const Route = createFileRoute('/login')({
   head: () => ({ meta: [{ title: pageTitle('Sign in') }] }),
-  // A sign-in link that no longer works lands here with ?error=…, and the page says so.
+  // A Google sign-in that did not go through lands here with ?error=…, and the page says so.
   validateSearch: (search: Record<string, unknown>): { error?: string; deleted?: boolean } => ({
     ...(typeof search.error === 'string' && search.error ? { error: search.error } : {}),
     ...(search.deleted === true || search.deleted === 'true' ? { deleted: true } : {}),
@@ -26,10 +26,8 @@ export const Route = createFileRoute('/login')({
 })
 
 function LoginPage() {
-  const { google } = Route.useLoaderData()
+  const { google, password } = Route.useLoaderData()
   const { error, deleted } = Route.useSearch()
-  const [sentTo, setSentTo] = useState<string | null>(null)
-  const [withPassword, setWithPassword] = useState(false)
 
   return (
     <AuthFrame
@@ -37,107 +35,37 @@ function LoginPage() {
       intro="A gym logbook for the time between sets."
       footer={
         <>
-          New here?{' '}
-          <Link to="/signup" className="text-foreground underline-offset-4 hover:underline">
-            Create an account
-          </Link>
-          {' · '}
+          {password && (
+            <>
+              New here?{' '}
+              <Link to="/signup" className="text-foreground underline-offset-4 hover:underline">
+                Create an account
+              </Link>
+              {' · '}
+            </>
+          )}
           <Link to="/privacy" className="text-foreground underline-offset-4 hover:underline">
             Privacy
           </Link>
         </>
       }
     >
-      {sentTo ? (
-        <LinkSent email={sentTo} onReset={() => setSentTo(null)} />
-      ) : (
-        <div className="flex flex-col gap-8">
-          {deleted && (
-            <p role="status" className="rounded-lg border px-4 py-3 text-sm">
-              Your account and all of its data are deleted.
-            </p>
-          )}
-          {error && (
-            <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm">
-              That sign-in link was already used or has expired. Each link works once, for 15 minutes. Enter your email
-              for a fresh one.
-            </p>
-          )}
-          {google && (
-            <>
-              <GoogleButton />
-              <FieldSeparator>or</FieldSeparator>
-            </>
-          )}
-          {withPassword ? <PasswordForm /> : <MagicLinkForm onSent={setSentTo} />}
-          <Button
-            variant="link"
-            className="h-auto self-start px-0 text-muted-foreground"
-            onClick={() => setWithPassword(!withPassword)}
-          >
-            {withPassword ? 'Email me a sign-in link instead' : 'Sign in with a password instead'}
-          </Button>
-        </div>
-      )}
+      <div className="flex flex-col gap-8">
+        {deleted && (
+          <p role="status" className="rounded-lg border px-4 py-3 text-sm">
+            Your account and all of its data are deleted.
+          </p>
+        )}
+        {error && (
+          <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm">
+            That sign-in did not go through. Try again.
+          </p>
+        )}
+        {google && <GoogleButton />}
+        {google && password && <FieldSeparator>or</FieldSeparator>}
+        {password && <PasswordForm />}
+      </div>
     </AuthFrame>
-  )
-}
-
-// ---------------------------------------------------------------- email link
-
-function MagicLinkForm({ onSent }: { onSent: (email: string) => void }) {
-  const [email, setEmail] = useState('')
-  const [busy, setBusy] = useState(false)
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault()
-    const to = email.trim()
-    if (!to) return
-    setBusy(true)
-    // A used or expired link comes back to the sign-in page with ?error=…, which it explains.
-    const res = await authClient.signIn.magicLink({ email: to, callbackURL: '/', errorCallbackURL: '/login' })
-    setBusy(false)
-    if (res.error) return toast.error(res.error.message ?? 'Could not send the link.')
-    onSent(to)
-  }
-
-  return (
-    <form onSubmit={submit}>
-      <FieldGroup className="gap-6">
-        <Field>
-          <FieldLabel htmlFor="login-email">Email</FieldLabel>
-          <Input
-            id="login-email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            autoComplete="email"
-            required
-            className={authInput}
-          />
-          <FieldDescription>We email you a link that signs you in. No password needed.</FieldDescription>
-        </Field>
-        <Button type="submit" size="lg" className="h-12 text-base" disabled={busy}>
-          Email me a sign-in link
-        </Button>
-      </FieldGroup>
-    </form>
-  )
-}
-
-function LinkSent({ email, onReset }: { email: string; onReset: () => void }) {
-  return (
-    <div>
-      <p className="font-condensed text-2xl font-semibold leading-none">Check your email</p>
-      <p className="mt-3 text-muted-foreground">
-        We sent a sign-in link to <span className="text-foreground">{email}</span>. It works for 15 minutes. Open it on
-        the device you want to use.
-      </p>
-      <Button variant="link" className="mt-6 h-auto px-0 text-muted-foreground" onClick={onReset}>
-        Use a different email
-      </Button>
-    </div>
   )
 }
 
@@ -147,7 +75,7 @@ function GoogleButton() {
   const [busy, setBusy] = useState(false)
   async function go() {
     setBusy(true)
-    const res = await authClient.signIn.social({ provider: 'google', callbackURL: '/' })
+    const res = await authClient.signIn.social({ provider: 'google', callbackURL: '/', errorCallbackURL: '/login' })
     if (res.error) {
       toast.error(res.error.message ?? 'Could not start Google sign-in.')
       setBusy(false)

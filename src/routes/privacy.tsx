@@ -13,20 +13,20 @@ const SECTIONS: { title: string; body: string }[] = [
     body:
       'Your email address, a username and display name if you set one, your settings, your plan, and what you log: ' +
       'sessions with their sets, weigh-ins and tape measurements, and any feedback you send. Passwords are stored as a hash that cannot be ' +
-      'read back. Sign-in links and codes are kept only until they are used or expire.',
+      'read back.',
   },
   {
     title: 'What it is used for',
     body:
-      'Showing you your own plan, stats and targets, and signing you in. Mail goes out only for sign-in links and ' +
-      'verification codes. There is no advertising, no analytics tracking, and no profile of you beyond what you log.',
+      'Showing you your own plan, stats and targets, and signing you in. Mail goes out only when you send feedback and a ' +
+      'copy is set up to be delivered. There is no advertising, no analytics tracking, and no profile of you beyond what you log.',
   },
   {
     title: 'Who can see it',
     body:
-      'You. Your data is never sold, shared, or passed to another service, except the mail provider that delivers ' +
-      'sign-in links and codes to your own address, and the database host that stores it. Nobody else has an account ' +
-      'that can read yours.',
+      'You. Your data is never sold, shared, or passed to another service, except Google when you sign in with it, the ' +
+      'mail provider that delivers a copy of feedback you send, and the database host that stores it. Nobody else has ' +
+      'an account that can read yours.',
   },
   {
     title: 'Taking it with you',

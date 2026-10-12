@@ -11,7 +11,7 @@ import {
   Settings,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Avatar, AvatarFallback } from '#/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '#/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,6 +44,7 @@ import { AppMark } from '#/components/app/app-mark'
 import { ExerciseDialog, ExerciseListProvider } from '#/components/app/exercise-dialog'
 import { FeedbackDialog } from '#/components/app/feedback-form'
 import { THEME_OPTIONS, readTheme, saveTheme, type Theme } from '#/lib/theme'
+import { usePageHydrated } from '#/lib/use-page-hydrated'
 import { useSignOut } from '#/lib/use-sign-out'
 import { getContentFn, getShellFn } from '#/server/fns'
 
@@ -93,14 +94,7 @@ function initials(who: string): string {
 function AppLayout() {
   const { pathname } = useLocation()
   const { user } = Route.useRouteContext()
-  // The root marks the document hydrated when it hydrates, but this layout can follow a beat later
-  // (its data streams in). The e2e tests wait for this second mark before they tap anything here.
-  useEffect(() => {
-    document.documentElement.dataset.appHydrated = 'true'
-    return () => {
-      delete document.documentElement.dataset.appHydrated
-    }
-  }, [])
+  usePageHydrated()
   // Accounts made from an emailed link have no username and an empty name.
   const who = user.username ?? (user.name || user.email)
   return (
@@ -131,7 +125,7 @@ function AppLayout() {
             </SidebarGroup>
           </SidebarContent>
           <SidebarFooter>
-            <AccountMenu who={who} email={user.email} />
+            <AccountMenu who={who} email={user.email} image={user.image} />
           </SidebarFooter>
           <SidebarRail />
         </Sidebar>
@@ -176,7 +170,7 @@ function AppLayout() {
 }
 
 /** The profile row at the bottom of the sidebar. Opens a menu with Settings and Sign out. */
-function AccountMenu({ who, email }: { who: string; email: string }) {
+function AccountMenu({ who, email, image }: { who: string; email: string; image: string | null }) {
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const { isMobile } = useSidebar()
   const { signOut, busy } = useSignOut()
@@ -194,6 +188,8 @@ function AccountMenu({ who, email }: { who: string; email: string }) {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="size-8 rounded-md">
+                {/* Google's picture when there is one; the initials show until it loads, or always for a password account. */}
+                {image && <AvatarImage src={image} alt="" referrerPolicy="no-referrer" className="rounded-md" />}
                 <AvatarFallback className="rounded-md bg-primary text-xs font-semibold text-primary-foreground">
                   {initials(who)}
                 </AvatarFallback>

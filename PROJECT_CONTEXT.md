@@ -308,6 +308,10 @@ no Inter/Geist. Checked.
 - [x] 29. Content in the database: the split templates and the exercise library in `splits` and
       `library`, seeded from the bundled copies when empty or by `bun run db:seed`, read once per
       visit through the shell route. Editable without a deploy. HANDOVER.md item 35.
+- [x] 47. Google is the only door in production: the password door opens only where AUTH_PASSWORD=true.
+      HANDOVER.md item 68.
+- [x] 46. Google sign-in, and the emailed link and sign-up code removed: two doors, Google or username /
+      email with a password. HANDOVER.md item 67.
 - [x] 45. The deload hint at three lifts in four stuck, "too much" holding only the lifts that were not
       clearly fine, and a bodyweight lift under its range naming its alternate. HANDOVER.md item 65.
 - [x] 44. Two years of a beginner simulated through the real server code, every split × method, and the

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { usePageHydrated } from '#/lib/use-page-hydrated'
 import { AppMark } from './app-mark'
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
  * one sentence, then the form with room to breathe. Left aligned, phone first.
  */
 export function AuthFrame({ title, intro, children, footer }: Props) {
+  usePageHydrated()
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-12">
       <p className="flex items-center gap-2.5 text-muted-foreground">

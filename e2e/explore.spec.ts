@@ -4,7 +4,7 @@ import fs from 'node:fs'
 import { MongoClient } from 'mongodb'
 import { expect, test, type Page } from '@playwright/test'
 import { E2E_DB } from '../playwright.config'
-import { backdateJoin, lastCode, resetDatabase } from './db'
+import { backdateJoin, resetDatabase } from './db'
 
 test.describe.configure({ mode: 'serial' })
 
@@ -23,9 +23,7 @@ async function open(path: string) {
 /** The root's mark, then the app layout's: see `hydrated` in app.spec.ts. */
 async function hydrated() {
   await page.locator('html[data-hydrated="true"]').waitFor({ state: 'attached' })
-  if (!/^\/(login|signup|setup|privacy)(\/|$)/.test(new URL(page.url()).pathname)) {
-    await page.locator('html[data-app-hydrated="true"]').waitFor({ state: 'attached' })
-  }
+  await page.locator('html[data-page-hydrated="true"]').waitFor({ state: 'attached' })
 }
 const phone = () => (page.viewportSize()?.width ?? 0) < 768
 async function accountMenu() {
@@ -114,10 +112,8 @@ test('sign up and set up a plan of your own: push, pull, legs', async () => {
   await page.getByLabel('Email').fill(EMAIL)
   await page.getByLabel('Password', { exact: true }).fill('password123')
   await page.getByRole('button', { name: 'Create account' }).click()
-  await page.getByRole('textbox', { name: 'Verification code' }).fill(await lastCode(EMAIL))
-  await page.getByRole('button', { name: 'Verify' }).click()
   await expect(page).toHaveURL(/\/setup$/)
-  await page.locator('html[data-hydrated="true"]').waitFor({ state: 'attached' })
+  await hydrated()
 
   await page.getByRole('button', { name: 'Continue' }).click()
   await page.getByRole('radio', { name: /^Your own/ }).click()

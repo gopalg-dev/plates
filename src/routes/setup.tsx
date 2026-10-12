@@ -14,6 +14,7 @@ import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { dayKey } from '#/lib/logic/stats'
 import { DEFAULT_SPLIT, templateOf } from '#/lib/content'
 import { defaultProgression } from '#/lib/logic/progression'
+import { usePageHydrated } from '#/lib/use-page-hydrated'
 import { GOAL_OPTIONS } from '#/lib/logic/goal'
 import type { DayType, Goal, Progression, SplitId, TrainingAge, Units } from '#/lib/types'
 import {
@@ -65,6 +66,7 @@ const optionRow =
   'flex cursor-pointer items-start gap-3 rounded-lg border p-4 font-normal has-data-[state=checked]:border-foreground'
 
 function SetupPage() {
+  usePageHydrated()
   const { settings: initial, content } = Route.useLoaderData()
   const search = Route.useSearch()
   const navigate = useNavigate()

@@ -34,7 +34,8 @@ export default defineConfig({
       // Better Auth checks the request origin against this URL; the e2e server has its own port.
       BETTER_AUTH_URL: `http://localhost:${E2E_PORT}`,
       BETTER_AUTH_SECRET: 'e2e-only-secret-that-is-at-least-32-characters-long',
-      // No mail provider in tests: links and codes stay in the outbox collection, where the flows read them.
+      // The tests make accounts with a username and a password: the password door is open here.
+      AUTH_PASSWORD: 'true',
       RESEND_API_KEY: '',
     },
   },

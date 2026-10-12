@@ -239,6 +239,43 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+69. The page mark (found by the suite after the sign-up change: the username typed into the
+    sign-up form was gone at the click, with email and password still there). The root marks
+    `data-hydrated` when it hydrates; the route's own component can follow a beat later, and a
+    field typed in that gap is wiped by React's first render. `usePageHydrated()` in
+    `src/lib/use-page-hydrated.ts` sets `data-page-hydrated` once the page's tree is mounted
+    and clears it on unmount; the app layout (which had its own `data-app-hydrated`), the auth
+    frame (sign-in and sign-up) and the setup page call it, and the e2e `hydrated` helpers wait
+    for it on every page.
+68. Google only in production (user: "to avoid spamming the site, shall we only keep sign in with
+    google for now", "go"). `AUTH_PASSWORD=true` opens the password door: `emailAndPassword.enabled`
+    follows it, `authOptions()` reports `password`, the sign-in page shows the form and the
+    "Create an account" link only then, and `/signup` redirects to `/login` without it. It is set
+    in `.env` and in the Playwright server's env (the tests make accounts with a password), and
+    not on Vercel, so the live site has one door and no sign-up API to hit. The user's one
+    password account on the live site should sign in with Google once (same email links) before
+    the deploy, or it cannot be opened after.
+67. Two doors, no mail (user: "shall we hide the email link and email verifications from the UI,
+    just a signin with google or (username or gmail) with password, with create account"). The
+    emailed sign-in link and the sign-up code needed a verified sender domain at Resend (the
+    sandbox sender only reaches the account owner, which is what "Could not send the link." was),
+    and the user does not want to tie the app to a domain. Google sign-in was set up instead
+    (OAuth client in Google Cloud with the two callback URLs; `GOOGLE_CLIENT_ID` and
+    `GOOGLE_CLIENT_SECRET` in `.env` and on Vercel). `auth.ts` drops the `emailOTP` and
+    `magicLink` plugins and sets `requireEmailVerification: false`; the client drops their
+    plugins; the sign-in page is Google (when configured), "or", email or username + password;
+    the sign-up page is username, email, password → signed in → setup. `?error=` on the sign-in
+    page now reads as a Google sign-in that did not go through. The e2e sign-ups no longer type a
+    code and the emailed-link test is gone; `e2e/db.ts` keeps its outbox helpers unused.
+    `mail.ts` and `mail-templates.ts` stay for the feedback copy (`signInMail` and `codeMail`
+    are now unused). Privacy page and README say so. The account menu's avatar shows the Google
+    picture when the account has one (`SessionUser.image`, `AvatarImage` with
+    `referrerPolicy="no-referrer"`, which Google's image host needs), the initials otherwise.
+    The user's own account, made earlier by an emailed link with no name, signed in with Google and
+    kept the empty name and no picture: Better Auth links a trusted provider to the account with
+    that email but leaves the user record alone. `overrideUserInfoOnSignIn: true` on the Google
+    provider now refreshes name and image on every Google sign-in (email and username untouched),
+    and `accountLinking.updateUserInfoOnLink: true` does it at the moment of linking.
 66. The tape on a chart (user: "why we are not showing the weight like chart for the measurements
     as well. How about 3 measurements in different color in same chart"). `MeasurementsChart` on
     the Body tab, between the tape buttons and the table, once there are two tapes: arm, chest and
