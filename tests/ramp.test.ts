@@ -89,10 +89,12 @@ describe('rampOffer', () => {
     expect(rampOffer(pulldown, weekly, sparse, now, 'over1')).toBe(false)
   })
 
-  it('holds when a session was hard, unrated, or not completed', () => {
+  it('lets a hard session through, and holds on too much, unrated, or not completed', () => {
     // Each one is the climbing session from `fine` with one thing wrong, so only that gate is on trial.
     const hard = [...fine.slice(0, 3), session(2, entry([12, 11, 10], 52.5), 3)]
-    expect(rampOffer(pulldown, weekly, hard, now, 'over1')).toBe(false)
+    expect(rampOffer(pulldown, weekly, hard, now, 'over1')).toBe(true)
+    const tooMuch = [...fine.slice(0, 3), session(2, entry([12, 11, 10], 52.5), 4)]
+    expect(rampOffer(pulldown, weekly, tooMuch, now, 'over1')).toBe(false)
     const unrated = [...fine.slice(0, 3), session(2, entry([12, 11, 10], 52.5))]
     expect(rampOffer(pulldown, weekly, unrated, now, 'over1')).toBe(false)
     const short = [...fine.slice(0, 3), session(2, entry([12, 11, 7], 52.5), 2)]

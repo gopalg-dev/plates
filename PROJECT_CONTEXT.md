@@ -308,6 +308,11 @@ no Inter/Geist. Checked.
 - [x] 29. Content in the database: the split templates and the exercise library in `splits` and
       `library`, seeded from the bundled copies when empty or by `bun run db:seed`, read once per
       visit through the shell route. Editable without a deploy. HANDOVER.md item 35.
+- [x] 45. The deload hint at three lifts in four stuck, "too much" holding only the lifts that were not
+      clearly fine, and a bodyweight lift under its range naming its alternate. HANDOVER.md item 65.
+- [x] 44. Two years of a beginner simulated through the real server code, every split × method, and the
+      five rule changes it earned: ramp gate, stall and scale alerts said once, reps first as the default,
+      a one-step top set on big plates. HANDOVER.md item 64.
 - [x] 43. The smallest plate in Settings: a barbell steps by two of it, dumbbells by a rack step, machines
       by the stack. HANDOVER.md item 62.
 - [x] 42. The set ramp: a frequent, completed, fine, moving lift earns one set a week (caps 6 a lift,

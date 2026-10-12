@@ -53,6 +53,8 @@ export interface Suggestion {
 
 /** Sessions at the same top weight without reaching the top of the range before the load comes down. */
 export const STALL_SESSIONS = 3
+/** Sessions in a row of a bodyweight lift with every set under the range before its alternate is named. */
+export const UNDER_SESSIONS = 3
 
 export const PROGRESSION_OPTIONS: { value: Progression; title: string; detail: string; example: string }[] = [
   {
@@ -79,9 +81,14 @@ export const PROGRESSION_LABEL: Record<Progression, string> = Object.fromEntries
   PROGRESSION_OPTIONS.map((o) => [o.value, o.title]),
 ) as Record<Progression, string>
 
-/** Under a year of training adds weight every session; from then on, reps first. */
-export function defaultProgression(trainingAge: Settings['trainingAge']): Progression {
-  return trainingAge === 'under1' ? 'linear' : 'double'
+/**
+ * Reps first, then weight, whatever the training age. Weight every session was the first-year
+ * default, but a plate step is 5 kg on most barbells and a two-year simulation of a beginner on it
+ * failed a third of all sets and rated a hundred sessions "too much", for the same strength at the
+ * end as reps first. It stays as a choice.
+ */
+export function defaultProgression(_trainingAge: Settings['trainingAge']): Progression {
+  return 'double'
 }
 
 export function progressionOf(settings: Pick<Settings, 'trainingAge' | 'progression'>): Progression {
@@ -121,7 +128,7 @@ function listSets(indexes: number[]): string {
  * tenth to build back up. Bodyweight work at the top asks for a slower tempo; timed holds add 5 s.
  */
 export function suggestNext(
-  exercise: Pick<Exercise, 'repMin' | 'repMax' | 'muscle' | 'loadType'>,
+  exercise: Pick<Exercise, 'repMin' | 'repMax' | 'muscle' | 'loadType'> & Partial<Pick<Exercise, 'alternates'>>,
   targetSets: number,
   history: PastEntry[],
   units: Units,
@@ -164,7 +171,9 @@ export function suggestNext(
       }
     }
 
-    const hold = last.effort === 4
+    // "Too much" holds a lift, unless every set of it reached the top of the range: that lift was fine,
+    // and a bad bench should not stop the squat.
+    const hold = last.effort === 4 && !done.every((s) => (s.reps ?? 0) >= exercise.repMax)
     // Three or more reps left on the last set: the weight was light, whatever the rep count said.
     const light = !hold && (done[done.length - 1].left ?? 0) >= 3
 
@@ -173,8 +182,10 @@ export function suggestNext(
       const lastSet = done[done.length - 1]
       const r = lastSet.reps ?? 0
       const base = lastSet.weight ?? top
-      const steps =
-        (r < exercise.repMin ? -1 : r < exercise.repMax ? 0 : r < exercise.repMax + 3 ? 1 : 2) + (light ? 1 : 0)
+      // Reps to spare are already in the count: an all-out set has none. A big plate step (5 kg, 10 lb)
+      // is enough on its own: two of them is 10 kg, which skips weights that only just failed.
+      const bump = r < exercise.repMin ? -1 : r < exercise.repMax ? 0 : r < exercise.repMax + 3 ? 1 : 2
+      const steps = Math.min(bump, inc >= (units === 'kg' ? 5 : 10) ? 1 : 2)
       const next = hold ? base : Math.max(inc, base + steps * inc)
       const suggested = sets.map((_, i) => ({
         weight: next,
@@ -235,13 +246,19 @@ export function suggestNext(
   if (exercise.loadType === 'bodyweight') {
     const reps = done.map((s) => s.reps ?? 0)
     const allAtTop = done.length >= targetSets && reps.every((r) => r >= exercise.repMax)
-    return {
-      sets,
-      suggested: carry(done, targetSets, (s) => ({ reps: s.reps })),
-      hint: allAtTop
-        ? `You hit ${exercise.repMax} on every set. Slow the lowering to 3 seconds.`
-        : `Last time ${reps.join(', ')}. Add a rep where you can.`,
+    // Three sessions with every set under the range: the lift is too hard for now, and the plan may
+    // hold an easier way to the same muscle (pull-ups → lat pulldown).
+    const under =
+      past.length >= UNDER_SESSIONS &&
+      past.slice(0, UNDER_SESSIONS).every((h) => doneOf(h.entry).every((s) => (s.reps ?? 0) < exercise.repMin))
+    const alternate = exercise.alternates?.[0]
+    let hint = allAtTop
+      ? `You hit ${exercise.repMax} on every set. Slow the lowering to 3 seconds.`
+      : `Last time ${reps.join(', ')}. Add a rep where you can.`
+    if (under) {
+      hint = `Under ${exercise.repMin} for ${UNDER_SESSIONS} sessions.${alternate ? ` Switch to ${alternate} on Plan.` : ''}`
     }
+    return { sets, suggested: carry(done, targetSets, (s) => ({ reps: s.reps })), hint }
   }
 
   const secs = done.map((s) => s.seconds ?? 0)

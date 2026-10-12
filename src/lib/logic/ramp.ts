@@ -16,8 +16,12 @@ export const RAMP_MAX_WEEKLY = 20
 /** The lift must have been trained this often in these many days: a lift done once a month does not ramp. */
 export const RAMP_WINDOW_DAYS = 14
 export const RAMP_MIN_SESSIONS = 2
-/** Effort of 1 easy, 2 ok, 3 hard, 4 too much: at or under this, the sessions count as fine. */
-const RAMP_EFFORT_MAX = 2
+/**
+ * Effort of 1 easy, 2 ok, 3 hard, 4 too much: at or under this, the sessions count. Hard is the
+ * normal rating of a session whose targets sit at the top of the range, which is where the app
+ * puts them; a two-year simulation with "ok or easier" never earned a single set.
+ */
+const RAMP_EFFORT_MAX = 3
 
 /** Every planned set done, each reaching the bottom of the rep range (or the seconds). */
 export function completedInRange(entry: WorkoutEntry): boolean {
@@ -32,7 +36,7 @@ export function completedInRange(entry: WorkoutEntry): boolean {
 /**
  * Whether a lift has earned a set this week. Over a year of training only (under a year the logger
  * caps every lift at three), below both caps, not already ramped this week, trained at least twice
- * in the last two weeks with every one of those sessions completed in range and rated ok or easier,
+ * in the last two weeks with every one of those sessions completed in range and none rated too much,
  * and neither stuck nor slipping.
  */
 export function rampOffer(

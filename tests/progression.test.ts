@@ -154,10 +154,13 @@ describe('suggestNext for weight lifts', () => {
     expect(s.suggested?.[3]).toEqual({ weight: 60, reps: 8 })
   })
 
-  it('holds every weight after a session that was too much', () => {
-    const s = suggestNext(bench, 2, [session(60, [8, 8], 4)], 'kg')
+  it('holds a lift after a session that was too much, unless every set of it hit the top', () => {
+    const s = suggestNext(bench, 2, [session(60, [8, 7], 4)], 'kg')
     expect(s.suggested?.map((x) => x.weight)).toEqual([60, 60])
-    expect(s.hint).toBe('Last time 60 kg × 8, 8. That was too much; hold the weight.')
+    expect(s.hint).toBe('Last time 60 kg × 8, 7. That was too much; hold the weight.')
+    // Every set at the top: this lift was fine whatever the rest of the session felt like.
+    const fine = suggestNext(bench, 2, [session(60, [8, 8], 4)], 'kg')
+    expect(fine.suggested?.map((x) => x.weight)).toEqual([62.5, 62.5])
   })
 
   it('lets a set one rep short go up after an easy session', () => {
@@ -190,10 +193,10 @@ describe('suggestNext for weight lifts', () => {
 })
 
 describe('the progression methods', () => {
-  it('defaults by training age and reads the setting when there is one', () => {
-    expect(defaultProgression('under1')).toBe('linear')
+  it('defaults to reps first whatever the training age, and reads the setting when there is one', () => {
+    expect(defaultProgression('under1')).toBe('double')
     expect(defaultProgression('over1')).toBe('double')
-    expect(progressionOf({ trainingAge: 'under1' })).toBe('linear')
+    expect(progressionOf({ trainingAge: 'under1' })).toBe('double')
     expect(progressionOf({ trainingAge: 'under1', progression: 'topset' })).toBe('topset')
   })
 
@@ -227,6 +230,11 @@ describe('the progression methods', () => {
     expect(at(8).suggested?.map((x) => x.weight)).toEqual([62.5, 62.5, 62.5])
     expect(at(8).hint).toBe('Last set 60 kg × 8. Try 62.5 kg; last set as many as you can.')
     expect(at(11).suggested?.map((x) => x.weight)).toEqual([65, 65, 65])
+    // On a barbell the step is 5 kg: one step at most, whatever the count.
+    const bar = (reps: number) =>
+      suggestNext(bench, 3, [session(60, [5, 5, reps])], 'kg', 'topset', { equipment: 'barbell', plate: 2.5 })
+    expect(bar(11).suggested?.[0].weight).toBe(65)
+    expect(bar(8).suggested?.[0].weight).toBe(65)
     // The last set aims for the top of the range, the others for the bottom.
     expect(at(8).suggested?.map((x) => x.reps)).toEqual([5, 5, 8])
     // Too much holds the weight whatever the count.
@@ -250,6 +258,20 @@ describe('suggestNext for bodyweight and timed work', () => {
     expect(s.hint).toContain('3 seconds')
     expect(s.suggested?.map((x) => x.reps)).toEqual([12, 12, 12, 12])
     expect(s.sets.every((x) => !x.done && x.reps === undefined)).toBe(true)
+  })
+
+  it('names the alternate after three sessions under the range', () => {
+    const under = [body([4, 4, 3]), body([4, 3, 3]), body([4, 4, 4])]
+    const s = suggestNext({ ...pullups, alternates: ['Lat Pulldown'] }, 3, under, 'kg')
+    expect(s.hint).toBe('Under 6 for 3 sessions. Switch to Lat Pulldown on Plan.')
+    expect(suggestNext(pullups, 3, under, 'kg').hint).toBe('Under 6 for 3 sessions.')
+    // Two sessions under, or one set in range, is not yet that.
+    expect(suggestNext({ ...pullups, alternates: ['Lat Pulldown'] }, 3, under.slice(0, 2), 'kg').hint).toBe(
+      'Last time 4, 4, 3. Add a rep where you can.',
+    )
+    expect(suggestNext({ ...pullups, alternates: ['Lat Pulldown'] }, 3, [body([6, 4, 3]), ...under], 'kg').hint).toBe(
+      'Last time 6, 4, 3. Add a rep where you can.',
+    )
   })
 
   it('asks for a rep when below the top', () => {

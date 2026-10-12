@@ -64,12 +64,38 @@ export function strengthMoved(ws: Workout[], now: Date, days = 14): boolean | un
   return false
 }
 
-/** Two hard weeks in a row and no lift moved: take a deload week. */
+/**
+ * The share of lifts trained in the last `days` days that did not beat their best from the `days`
+ * before. Undefined when there is nothing to compare.
+ */
+export function stuckShare(ws: Workout[], now: Date, days = 14): number | undefined {
+  const recent = bestScores(ws, addDays(now, -days), addDays(now, 1))
+  const before = bestScores(ws, addDays(now, -2 * days), addDays(now, -days))
+  let compared = 0
+  let stuck = 0
+  for (const [id, score] of recent) {
+    const prev = before.get(id)
+    if (prev === undefined) continue
+    compared++
+    if (score <= prev + 1e-9) stuck++
+  }
+  return compared === 0 ? undefined : stuck / compared
+}
+
+/** Lifts stuck out of those compared before a deload is called for: three in four. */
+export const DELOAD_STUCK_SHARE = 0.75
+
+/**
+ * Two hard weeks in a row and most lifts stuck: take a deload week. "No lift moved at all" was the
+ * rule before; with a dozen lifts something always creeps, and a two-year simulation saw the hint
+ * once in twenty-four lifter-years.
+ */
 export function deloadHint(ws: Workout[], now: Date): boolean {
   const thisWeek = startOfWeek(now)
   const lastWeek = averageEffort(ws, addDays(thisWeek, -7), thisWeek)
   const weekBefore = averageEffort(ws, addDays(thisWeek, -14), addDays(thisWeek, -7))
   if (lastWeek === undefined || weekBefore === undefined) return false
   if (lastWeek < 3 || weekBefore < 3) return false
-  return strengthMoved(ws, now) === false
+  const share = stuckShare(ws, now)
+  return share !== undefined && share >= DELOAD_STUCK_SHARE
 }

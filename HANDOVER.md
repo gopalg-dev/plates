@@ -239,6 +239,42 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+65. The three the simulation left (user: "what about remaining 3 items", then "go"). (6) The deload
+    hint wanted no lift at all to move in two hard weeks; `stuckShare` now counts the lifts that
+    did not beat their best from the two weeks before, and the hint fires at three in four
+    (`DELOAD_STUCK_SHARE`) after two hard weeks. (7) "Too much" held every weight lift in the
+    session; it now holds only a lift that did not reach the top of its range on every set, so a
+    bad bench no longer stops a squat that was fine. (8) A bodyweight lift under its range for
+    three sessions (`UNDER_SESSIONS`) now reads "Under 6 for 3 sessions. Switch to Lat Pulldown on
+    Plan.", naming the plan's first alternate when it has one; `suggestNext` takes the
+    exercise's `alternates` for it, which `startWorkout` already passes with the plan exercise.
+    Also: the "said once" alerts look back two weeks, not one; the simulator showed a stall or a flat
+    scale flickering as sessions crossed the window's edge and being said every other week.
+64. Two years of a beginner, simulated (user: "let's say I'm a beginner ... using this application
+    for almost two years ... confirm whether the logics we added are working properly"; then
+    "based on different types of splits and progression we have"). `scripts/simulate.ts`
+    (`bun run db:simulate`) drives the real server code (`repo.startWorkout`, `saveEntrySets`,
+    `finishWorkout`, `acceptRamp`, `resetRamp`, `getTodayData`) against its own local database
+    (`scripts/sim-env.ts` sets MONGODB_DB before anything connects; the first draft used
+    `useDbForTests` from a second module instance and wrote into the dev database, cleaned up
+    since) with a fake clock walking 730 days, and a lifter model: a 60 kg beginner whose
+    strength grows fast then slows, whose reps follow Epley against the app's target, who rates
+    the session by reps left and failed sets. Matrix: full3, ppl3, ul4, ppl6 × linear, double,
+    topset. Findings and what changed: (1) the set ramp never fired in 5,000 sessions because
+    its gate wanted "ok or easier" and the app's own targets make sessions "hard"; the gate now
+    blocks only "too much". (2) The stall alert repeated every Monday for a year (150 to 176 per
+    lifter); `stallAlerts` now says it the week a stall starts (stuck now, not stuck a week ago)
+    and is quiet after. (3) The scale alert did the same (52 a year); `bodyweightAlert` is now
+    said once when the flat run starts. (4) Linear as the first-year default failed a third of
+    all sets with 5 kg barbell steps and rated 82 to 228 sessions "too much", for the same
+    strength at two years as reps first; `defaultProgression` is now reps first for everyone,
+    linear stays a choice. (5) The top set jumped two steps plus one for reps to spare (35 → 45
+    skipping the 40 that had just failed); on a 5 kg or 10 lb step it now takes one step, and
+    the reps-left tap no longer adds to an all-out count. Noted, not changed: the deload hint
+    fired once in 24 lifter-years (it wants no lift at all to move), "too much" holds every lift
+    in the session, a bodyweight lift under its range gets no nudge to its alternate, and the
+    sim's lifter model is a model (Epley, saturating gains), so absolute numbers are shape, not
+    truth. Two-year results, every setup: bench e1RM about 45 → 80 kg, squat about 75 → 150.
 63. Two days on one weekday (found by the walkthrough on a Tuesday). `weekdayView` took the first day
     on today's weekday; when that one was done and another day had been moved onto the same
     weekday, Today said "Done for today" with the other still waiting. It now prefers the day on

@@ -94,6 +94,28 @@ describe('deloadHint', () => {
     expect(deloadHint(ws, now)).toBe(false)
   })
 
+  it('fires when three lifts in four are stuck, not only when none moved', () => {
+    const lift = (id: string, weight: number): WorkoutEntry => ({
+      exerciseId: id,
+      name: id,
+      muscle: 'chest',
+      loadType: 'weight',
+      repMin: 5,
+      repMax: 8,
+      sets: [{ weight, reps: 8, done: true }],
+    })
+    const week = (daysBack: number, effort: number, weights: number[]): Workout => ({
+      ...session(daysAgo(daysBack), effort),
+      entries: weights.map((w, i) => lift(`l${i}`, w)),
+    })
+    // Four lifts; one moved: three in four stuck, two hard weeks.
+    const oneMoved = [week(19, 3, [60, 60, 60, 60]), week(6, 4, [60, 60, 60, 62.5])]
+    expect(deloadHint(oneMoved, now)).toBe(true)
+    // Two moved: half stuck is not a plateau.
+    const twoMoved = [week(19, 3, [60, 60, 60, 60]), week(6, 4, [60, 60, 62.5, 62.5])]
+    expect(deloadHint(twoMoved, now)).toBe(false)
+  })
+
   it('stays quiet when a week was easy or unrated', () => {
     expect(deloadHint([session(daysAgo(19), 1, 60), session(daysAgo(6), 4, 60)], now)).toBe(false)
     expect(deloadHint([session(daysAgo(19), undefined, 60), session(daysAgo(6), 4, 60)], now)).toBe(false)

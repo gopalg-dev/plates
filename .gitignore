@@ -20,3 +20,4 @@ e2e/screenshots
 
 # Local database exports (hold account hashes and session tokens)
 data/
+scripts/sim-*.json

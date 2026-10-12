@@ -18,11 +18,8 @@ function inRange(iso: string, start: Date, end: Date): boolean {
   return t >= start.getTime() && t < end.getTime()
 }
 
-/**
- * Lifts trained at least three times in the last four weeks whose best set never beat the best from
- * before those weeks. At most two, the longest-trained first.
- */
-export function stallAlerts(workouts: Workout[], now: Date): Alert[] {
+/** Lifts trained at least three times in the four weeks before `now` whose best set never beat the best from before those weeks. */
+function stalledLifts(workouts: Workout[], now: Date): { id: string; name: string }[] {
   const since = addDays(now, -STALL_WEEKS * 7)
   const end = addDays(now, 1)
   const recentBest = new Map<string, { name: string; sessions: number; score: number }>()
@@ -41,17 +38,31 @@ export function stallAlerts(workouts: Workout[], now: Date): Alert[] {
       }
     }
   }
-  const stuck: Alert[] = []
+  const stuck: { id: string; name: string }[] = []
   for (const [id, r] of recentBest) {
     const before = olderBest.get(id)
     if (before === undefined || r.sessions < STALL_MIN_SESSIONS || r.score > before) continue
-    stuck.push({
-      kind: 'stall',
-      title: `${r.name} has not moved in ${STALL_WEEKS} weeks.`,
-      detail: 'Swap it for an alternate on Plan, or take a lighter week on it.',
-    })
+    stuck.push({ id, name: r.name })
   }
-  return stuck.slice(0, 2)
+  return stuck
+}
+
+/**
+ * Lifts that stalled this week: stuck now and not a week ago. Said once, when it starts; a lift
+ * that stays stuck is on the Lifts tab under Stuck, not on Today every Monday for a year (a
+ * two-year simulation showed the same two lines 150 times). At most two.
+ */
+export function stallAlerts(workouts: Workout[], now: Date): Alert[] {
+  // Two weeks back, not one: a stall flickers as sessions cross the window's edge.
+  const before = new Set([-7, -14].flatMap((d) => stalledLifts(workouts, addDays(now, d)).map((s) => s.id)))
+  return stalledLifts(workouts, now)
+    .filter((s) => !before.has(s.id))
+    .slice(0, 2)
+    .map((s) => ({
+      kind: 'stall' as const,
+      title: `${s.name} has not moved in ${STALL_WEEKS} weeks.`,
+      detail: 'Swap it for an alternate on Plan, or take a lighter week on it.',
+    }))
 }
 
 /** When the sessions left this week are more than, or as many as, the days left in it. */
@@ -76,6 +87,13 @@ function avg(xs: number[]): number | undefined {
  * 0.1 kg a week says the food is wrong, not the training.
  */
 export function bodyweightAlert(logs: BodyweightLog[], goal: Goal | undefined, units: Units, now: Date): Alert | null {
+  // Said the week it starts, not every week the scale stays flat.
+  const alert = flatScale(logs, goal, units, now)
+  const said = [-7, -14].some((d) => flatScale(logs, goal, units, addDays(now, d)) !== null)
+  return alert && !said ? alert : null
+}
+
+function flatScale(logs: BodyweightLog[], goal: Goal | undefined, units: Units, now: Date): Alert | null {
   if (!goal || goal === 'hold') return null
   const end = addDays(now, 1)
   const weeks = [0, 1, 2].map((i) =>

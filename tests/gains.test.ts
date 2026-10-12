@@ -95,6 +95,9 @@ describe('alerts', () => {
     expect(stallAlerts([...ws.slice(0, 3), session('3', 6, [bench(65, 8)])], now)).toEqual([])
     expect(stallAlerts(ws.slice(0, 3), now)).toEqual([])
     expect(stallAlerts(ws.slice(1), now)).toEqual([])
+    // Already stuck a week ago (three sessions in that window too): said then, quiet now.
+    const longer = [session('old', 40, [bench(62.5, 8)]), session('0', 27, [bench(60, 8)]), ...ws.slice(1)]
+    expect(stallAlerts(longer, now)).toEqual([])
   })
 
   it('warns when the sessions left are as many as the days left in the week', () => {
@@ -129,6 +132,13 @@ describe('alerts', () => {
     const rising = flat.map((l, i) => ({ ...l, weight: 72 + ((18 - [0, 3, 6, 9, 12, 15, 18][i]) / 7) * 0.33 }))
     expect(bodyweightAlert(rising, 'gain', 'kg', now)).toBeNull()
     expect(bodyweightAlert(flat.slice(0, 3), 'gain', 'kg', now)).toBeNull()
+    // Flat for five weeks: it was said two weeks in, and is not said again.
+    const longFlat: BodyweightLog[] = [0, 3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33].map((d, i) => ({
+      id: String(i),
+      date: iso(d, 7),
+      weight: 72 + (i % 2) * 0.1,
+    }))
+    expect(bodyweightAlert(longFlat, 'gain', 'kg', now)).toBeNull()
   })
 
   it('reads the week-on-week change against the goal', () => {
@@ -159,6 +169,7 @@ describe('reps left in the tank', () => {
     expect(suggestNext(ex, 3, [past(1)], 'kg').suggested?.map((x) => x.weight)).toEqual([60, 60, 60])
     expect(suggestNext(ex, 3, [past(3, 4)], 'kg').suggested?.map((x) => x.weight)).toEqual([60, 60, 60])
     expect(suggestNext(ex, 3, [past(3)], 'kg', 'linear').suggested?.[0].weight).toBe(62.5)
-    expect(suggestNext(ex, 3, [past(3)], 'kg', 'topset').suggested?.[0].weight).toBe(62.5)
+    // The top set reads its own all-out count, not the reps-left tap.
+    expect(suggestNext(ex, 3, [past(3)], 'kg', 'topset').suggested?.[0].weight).toBe(60)
   })
 })

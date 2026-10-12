@@ -268,8 +268,8 @@ test('a week later the targets follow the last session and the method', async ()
   await open('/')
   await page.getByRole('button', { name: /Pick another day/ }).click()
   await page.getByRole('button', { name: 'Start Push' }).click()
-  // Last set 65 × 8 at the top of the range: one 5 kg barbell step, plus one for the reps to spare.
-  await expect(page.getByText('Last set 65 kg × 8. Try 75 kg; last set as many as you can.')).toBeVisible()
+  // Last set 65 × 8 at the top of the range: one 5 kg barbell step, and no more on a step that size.
+  await expect(page.getByText('Last set 65 kg × 8. Try 70 kg; last set as many as you can.')).toBeVisible()
   await expect(bench.getByLabel('Set 4 reps', { exact: true })).toHaveAttribute('placeholder', '8')
   await page.getByRole('button', { name: 'Session options' }).click()
   await page.getByRole('menuitem', { name: 'Discard workout' }).click()
