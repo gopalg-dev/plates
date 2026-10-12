@@ -301,6 +301,11 @@ test('stats reflect the logged workout and bodyweight', async () => {
   await expect(page.getByText('3 of 20')).toBeVisible()
   // Strength: pick a lift and the big number, the week chart and the week table follow it.
   await page.getByRole('tab', { name: 'Lifts' }).click()
+  // Lifts carry a trend; one week of history reads as new, and the chip narrows the list to those lifts.
+  await expect(page.getByRole('radio', { name: 'All' })).toBeVisible()
+  await page.getByRole('radio', { name: /^New/ }).click()
+  await expect(page.getByText('New', { exact: true })).toBeVisible()
+  await page.getByRole('radio', { name: 'All' }).click()
   await page.getByRole('combobox', { name: 'Lift' }).click()
   await page.getByRole('option', { name: 'Barbell Row' }).click()
   await expect(page.getByRole('combobox', { name: 'Lift' })).toHaveText('Barbell Row')

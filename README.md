@@ -17,7 +17,8 @@ Four screens, one job each:
 - **Plan**: the days of your split, each exercise with its picture. Edit an exercise, swap in an
   alternate, add or remove exercises (six per day at most), add a day of any kind (it starts with
   five lifts), rename, reorder or remove days, or bring your own plan from an Excel template.
-- **Stats**, in three tabs. Lifts: pick a lift and see it week by week, the latest best set, a
+- **Stats**, in three tabs. Lifts: chips sort the lifts by trend (climbing, stuck, slipping, idle, new);
+  pick a lift and see it week by week, the latest best set, a
   chart of each week's best set, a table reading "this week 62.5 kg × 7, last week 60 kg × 8,
   +2.5 kg", and recent bests. Sessions: the week's count, streak, hard sets, weight lifted and
   minutes, a month calendar where tapping a day opens that session to fix a set or remove it,

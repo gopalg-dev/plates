@@ -39,6 +39,7 @@ import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { longDate, monthYear, relativeDay, shortDate, signed } from '#/lib/format'
 import { deloadHint, effortLabel, effortThisWeek } from '#/lib/logic/effort'
 import { daysBetween } from '#/lib/logic/nudges'
+import { TRENDS, TREND_LABEL, liftTrend, type Trend } from '#/lib/logic/trend'
 import {
   addDays,
   bodyweightTrend,
@@ -473,26 +474,62 @@ function StatsPage() {
 // ---------------------------------------------------------------- strength
 
 /** Pick a lift, see it week by week. */
+/** A filter chip: a pill that fills in when pressed. */
+const chip =
+  'shrink-0 rounded-full px-3 data-[state=on]:border-foreground data-[state=on]:bg-foreground data-[state=on]:text-background'
+
 function StrengthPanel({ lifts, units, now }: { lifts: LiftData[]; units: Units; now: Date }) {
   const [liftId, setLiftId] = useState<string | null>(null)
+  const [trend, setTrend] = useState<Trend | 'all'>('all')
+  // What each lift is doing, and how many lifts are doing each thing. Chips show only for trends that have a lift.
+  const trends = useMemo(() => new Map(lifts.map((l) => [l.ex.id, liftTrend(l.weeks, now)])), [lifts, now])
+  const counts = useMemo(() => {
+    const out = new Map<Trend, number>()
+    for (const t of trends.values()) out.set(t, (out.get(t) ?? 0) + 1)
+    return out
+  }, [trends])
+  const shown = trend === 'all' ? lifts : lifts.filter((l) => trends.get(l.ex.id) === trend)
   // The lift with the most weeks behind it has the most to show. Plan order breaks ties.
-  const fallback = lifts.reduce((best, l) => (l.weeks.length > best.weeks.length ? l : best), lifts[0])
-  const selected = lifts.find((l) => l.ex.id === liftId) ?? fallback
+  const fallback = shown.reduce((best, l) => (l.weeks.length > best.weeks.length ? l : best), shown[0] ?? lifts[0])
+  const selected = shown.find((l) => l.ex.id === liftId) ?? fallback
 
   return (
     <div className="mt-3">
-      <Select value={selected.ex.id} onValueChange={setLiftId}>
-        <SelectTrigger className="w-full sm:w-80" aria-label="Lift">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {lifts.map((l) => (
-            <SelectItem key={l.ex.id} value={l.ex.id}>
-              {l.ex.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <ToggleGroup
+        type="single"
+        variant="outline"
+        size="sm"
+        spacing={2}
+        value={trend}
+        onValueChange={(v) => v && setTrend(v as Trend | 'all')}
+        aria-label="Lifts by trend"
+        className="flex-wrap justify-start"
+      >
+        <ToggleGroupItem value="all" className={chip}>
+          All
+        </ToggleGroupItem>
+        {TRENDS.filter((t) => counts.has(t)).map((t) => (
+          <ToggleGroupItem key={t} value={t} className={chip}>
+            {TREND_LABEL[t]}
+            <span className="tabular-nums opacity-60">{counts.get(t)}</span>
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      <div className="mt-3 flex items-center gap-3">
+        <Select value={selected.ex.id} onValueChange={setLiftId}>
+          <SelectTrigger className="w-full sm:w-80" aria-label="Lift">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {shown.map((l) => (
+              <SelectItem key={l.ex.id} value={l.ex.id}>
+                {l.ex.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <span className="shrink-0 text-sm text-muted-foreground">{TREND_LABEL[trends.get(selected.ex.id)!]}</span>
+      </div>
       <LiftProgress lift={selected.ex} weeks={selected.weeks} units={units} now={now} />
     </div>
   )

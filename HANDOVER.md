@@ -239,6 +239,16 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+60. Trend chips on the Lifts tab (user: "we can add more filters ... if I'm not progressing then
+    we should add some filter for not progressing ... it should be meaningful or fit for the
+    place"). `src/lib/logic/trend.ts`: `liftTrend(weeks, now)` reads a lift's weekly best sets
+    over the stall alert's four-week window, so Today and Stats never disagree: idle (no session
+    in 14 days), new (under three weeks of history), then the best of the last four weeks against
+    the best before them: climbing above, slipping five percent under, stuck otherwise; with no
+    history before the window the latest week stands against the weeks before it. The strength
+    panel shows a row of chips, All plus one per trend that has a lift, each with its count, and
+    the lift dropdown lists only the lifts of the pressed chip, every entry carrying its trend in
+    grey. Unit tests in `tests/trend.test.ts`.
 59. Repair for data the swap bug left behind (user: "I have some real workout data that has been
     added when we had that bug ... I need to add the weights"). Sessions logged while Lat Pulldown
     carried "bodyweight" have no weight field in the session editor, so the weights could not be
