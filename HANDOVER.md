@@ -239,6 +239,27 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+61. The set ramp (user: "do some research on progressive overload ... we'll be implementing this on
+    the frequent workouts sets count", then a four-week example, then "go"). Research: weekly sets
+    per muscle have a dose-response with diminishing returns (Schoenfeld 2017; Pelland et al.,
+    Sports Medicine 2025), the weekly total matters more than its split, and the coaching model
+    (Israetel / RP) ramps a set a week through a block, holds when recovery slips, then deloads.
+    `src/lib/logic/ramp.ts`: `rampOffer(ex, weeklyByMuscle, workouts, now, trainingAge)` is true
+    when the lifter is over a year in, the exercise is under 6 sets, its muscle under 20 planned
+    sets a week, it has not ramped this calendar week (`Exercise.ramp.at`), it was trained at
+    least twice in the last 14 days with every one of those sessions completed in range
+    (`completedInRange`: every set done at or above repMin) and rated ok or easier, and its trend
+    is neither stuck nor slipping. `startWorkout` reads 90 days of sessions and marks eligible
+    entries `rampOffer: true`; the row on Today and Zen show "+1 set to plan"; `acceptRampFn` →
+    `repo.acceptRamp` raises the plan exercise's sets (keeping `ramp.base`, the plan's own number,
+    and the week) and adds a blank set to the session aiming where the set before it aims; the
+    row shows it at once. Editing Sets by hand clears the ramp (the typed number is the plan).
+    The deload card on Stats grows a button, "Drop the extra sets on N lifts", → `resetRampFn` →
+    every ramped lift back to its base. Unit tests in `tests/ramp.test.ts`. Not done: an e2e
+    step (two completed, rated, in-range sessions inside two weeks are a walkthrough fixture; add
+    one to `explore.spec.ts` with `plantBenchSession`), and smaller plate steps on heavy upper-body
+    lifts (user asked whether steps should shrink as the bar gets heavy; answered: yes above
+    about 50 kg on upper lifts, pending whether the gym has 1.25 kg plates).
 60. Trend chips on the Lifts tab (user: "we can add more filters ... if I'm not progressing then
     we should add some filter for not progressing ... it should be meaningful or fit for the
     place"). `src/lib/logic/trend.ts`: `liftTrend(weeks, now)` reads a lift's weekly best sets

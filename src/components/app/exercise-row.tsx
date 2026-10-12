@@ -29,6 +29,8 @@ export interface ExerciseRowProps {
   onAddSet: () => void
   /** Drops the last set. Offered while that set is still unticked and it is not the only one. */
   onRemoveSet: () => void
+  /** Takes the set the ramp offered (`entry.rampOffer`): on the session and on the plan. Absent in the session editor. */
+  onRamp?: () => void
 }
 
 /** The nearest earlier set that has a value, so a blank set can borrow from it. */
@@ -44,7 +46,15 @@ function lastFilled(sets: LoggedSet[], index: number, key: 'weight' | 'reps' | '
  * One exercise in a session, as an accordion item: header row, and when open, the set logger.
  * Wrap a list of these in `<Accordion type="single" collapsible>`.
  */
-export function ExerciseRow({ entry, units, onChangeSet, onToggleDone, onAddSet, onRemoveSet }: ExerciseRowProps) {
+export function ExerciseRow({
+  entry,
+  units,
+  onChangeSet,
+  onToggleDone,
+  onAddSet,
+  onRemoveSet,
+  onRamp,
+}: ExerciseRowProps) {
   const doneCount = entry.sets.filter((s) => s.done).length
   const allDone = entry.sets.length > 0 && doneCount === entry.sets.length
   const canRemove = entry.sets.length > 1 && !entry.sets[entry.sets.length - 1].done
@@ -160,7 +170,17 @@ export function ExerciseRow({ entry, units, onChangeSet, onToggleDone, onAddSet,
             </ToggleGroup>
           </div>
         )}
-        <div className="mt-2 flex gap-1">
+        <div className="mt-2 flex flex-wrap items-center gap-1">
+          {entry.rampOffer && onRamp && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onRamp}
+              aria-label={`Add set ${entry.sets.length + 1} to the plan`}
+            >
+              +1 set to plan
+            </Button>
+          )}
           <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={onAddSet}>
             Add a set
           </Button>

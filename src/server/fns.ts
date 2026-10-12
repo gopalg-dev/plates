@@ -263,6 +263,15 @@ export const startWorkoutFn = createServerFn({ method: 'POST' })
   .validator(z.object({ dayId: z.string().min(1) }))
   .handler(({ data, context }) => repo.startWorkout(context.userId, data.dayId))
 
+export const acceptRampFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(z.object({ workoutId: z.string().length(24), exerciseId: z.string().min(1) }))
+  .handler(({ data, context }) => repo.acceptRamp(context.userId, data.workoutId, data.exerciseId))
+
+export const resetRampFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .handler(({ context }) => repo.resetRamp(context.userId))
+
 export const saveSetsFn = createServerFn({ method: 'POST' })
   .middleware([authed])
   .validator(

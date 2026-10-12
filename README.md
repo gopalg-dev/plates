@@ -11,7 +11,9 @@ Four screens, one job each:
 - **Today**: the next day in the rolling order, this week's sessions and the streak, exercise rows
   that expand into a set logger with plate-step buttons, each set showing the target worked out from
   last time (reps up, then weight up, set by set), a reps-left tap on the last set so a light
-  weight moves up sooner, and Finish with a one-tap effort check-in followed by what the session did:
+  weight moves up sooner, a "+1 set to plan" offer on a lift trained often, completed and felt fine
+  (one set a week, up to 6 a lift and 20 a muscle a week; the deload card drops them again), and
+  Finish with a one-tap effort check-in followed by what the session did:
   every lift's best set, new bests, the week's count. Lifts that stopped moving, a week running out and a
   scale that is not moving show up here as one-line alerts. The header's menu switches the day or discards the session.
 - **Plan**: the days of your split, each exercise with its picture. Edit an exercise, swap in an
@@ -89,13 +91,13 @@ The server side builds through Nitro (`nitro()` in `vite.config.ts`), which Verc
 own: import the repository at vercel.com/new, keep the detected TanStack Start preset and the
 default build settings, and set these environment variables for Production:
 
-| Variable | Value |
-|---|---|
-| `MONGODB_URI`, `MONGODB_DB` | a hosted MongoDB, for example an Atlas cluster, with the app's database name |
-| `BETTER_AUTH_SECRET` | a random string of 32+ characters, different from the one in `.env` |
-| `BETTER_AUTH_URL` | the site's address, `https://<project>.vercel.app` or your domain, no trailing slash |
-| `RESEND_API_KEY`, `MAIL_FROM` | the Resend key and a sender on a domain verified at Resend |
-| `FEEDBACK_TO` | optional: an address that gets a copy of every piece of feedback sent from the app |
+| Variable                                   | Value                                                                                           |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `MONGODB_URI`, `MONGODB_DB`                | a hosted MongoDB, for example an Atlas cluster, with the app's database name                    |
+| `BETTER_AUTH_SECRET`                       | a random string of 32+ characters, different from the one in `.env`                             |
+| `BETTER_AUTH_URL`                          | the site's address, `https://<project>.vercel.app` or your domain, no trailing slash            |
+| `RESEND_API_KEY`, `MAIL_FROM`              | the Resend key and a sender on a domain verified at Resend                                      |
+| `FEEDBACK_TO`                              | optional: an address that gets a copy of every piece of feedback sent from the app              |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | only for Google sign-in, with `BETTER_AUTH_URL` + `/api/auth/callback/google` as a redirect URI |
 
 The function region is set in `vite.config.ts` (`regions: ['bom1']`, Mumbai): put it where the database is, or
@@ -133,15 +135,15 @@ over any data logged before accounts existed.
 
 ## Scripts
 
-| Script | What it does |
-|---|---|
-| `bun run dev` | Dev server on port 3000 |
-| `bun run build` and `bun run preview` | Production build and a local preview |
-| `bun run typecheck` | TypeScript |
-| `bun run test` | Unit tests plus repository tests against the local Mongo in a `_test` database |
-| `bun run test:e2e` | Playwright flows on phone, tablet and desktop sizes, screenshots in `e2e/screenshots` |
-| `bun run test:explore` | a longer walkthrough as a user, time-travelling through the database; screenshots in `e2e/screenshots/explore` |
-| `bun run generate-routes` | Regenerate `src/routeTree.gen.ts` after adding a route file |
+| Script                                | What it does                                                                                                   |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `bun run dev`                         | Dev server on port 3000                                                                                        |
+| `bun run build` and `bun run preview` | Production build and a local preview                                                                           |
+| `bun run typecheck`                   | TypeScript                                                                                                     |
+| `bun run test`                        | Unit tests plus repository tests against the local Mongo in a `_test` database                                 |
+| `bun run test:e2e`                    | Playwright flows on phone, tablet and desktop sizes, screenshots in `e2e/screenshots`                          |
+| `bun run test:explore`                | a longer walkthrough as a user, time-travelling through the database; screenshots in `e2e/screenshots/explore` |
+| `bun run generate-routes`             | Regenerate `src/routeTree.gen.ts` after adding a route file                                                    |
 
 The repository tests skip themselves when no MongoDB is reachable. The end-to-end run starts its own
 dev server on port 3100 against a `_e2e` database and wipes it first. `node e2e/check-hydration.mjs`

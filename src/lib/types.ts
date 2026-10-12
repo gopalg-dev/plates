@@ -49,6 +49,8 @@ export interface Exercise {
   loadType: LoadType
   note?: string
   alternates?: string[]
+  /** Set while the set ramp has raised `sets` above the plan's own number: that number, and the week of the last step. */
+  ramp?: { base: number; at: string }
 }
 
 /** A day holds this many exercises at most: enough for a session, short enough for a phone screen. */
@@ -129,6 +131,8 @@ export interface WorkoutEntry {
   hint?: string
   /** One target per set, by index. Shown as placeholders and adopted when a set is marked done. */
   suggested?: SetTarget[]
+  /** This lift has earned one more set this week (see `lib/logic/ramp.ts`); a tap adds it, here and on the plan. */
+  rampOffer?: boolean
   sets: LoggedSet[]
 }
 

@@ -5,7 +5,15 @@ import { STALL_SESSIONS, progressionOf, suggestNext, type PastEntry } from '#/li
 import { assignWeekdays, type Finished } from '#/lib/logic/schedule'
 import { bodyweightAlert, stallAlerts, weekAlert, type Alert } from '#/lib/logic/alerts'
 import { feedbackDue, type FeedbackTrigger, type Mood } from '#/lib/logic/feedback'
-import { attachBodyweight, plannedSetsFor, sessionsInWeek } from '#/lib/logic/stats'
+import {
+  attachBodyweight,
+  dayKey,
+  plannedSetsFor,
+  plannedVolumeByMuscle,
+  sessionsInWeek,
+  startOfWeek,
+} from '#/lib/logic/stats'
+import { rampOffer } from '#/lib/logic/ramp'
 import { plannedPerWeek, summarize, type SessionSummary } from '#/lib/logic/summary'
 import { buildCustomDays, buildDay } from '#/lib/day-blocks'
 import { slug } from '#/lib/seed-plan'
@@ -263,6 +271,8 @@ export async function updateExercise(
   const day = plan.days.find((d) => d.id === dayId)
   const ex = day?.exercises.find((e) => e.id === exerciseId)
   if (!day || !ex) throw new Error('Exercise not found')
+  // A number typed by hand is the plan's number again: the ramp's memory of the old one goes.
+  if (patch.sets !== undefined) delete ex.ramp
   Object.assign(ex, patch)
   return savePlan(userId, plan)
 }
@@ -420,12 +430,21 @@ export async function lastFinishedEntry(userId: string, exerciseId: string): Pro
 }
 
 export async function startWorkout(userId: string, dayId: string): Promise<Workout> {
-  const [plan, settings] = await Promise.all([getPlan(userId), getSettings(userId)])
+  const [plan, settings, past, bodyweights] = await Promise.all([
+    getPlan(userId),
+    getSettings(userId),
+    listWorkouts(userId, { sinceDays: 90 }),
+    listBodyweights(userId, 60),
+  ])
   const day = plan.days.find((d) => d.id === dayId)
   if (!day) throw new Error('Day not found')
   const { workouts } = await cols()
   await workouts.deleteMany({ userId, status: 'in_progress' })
 
+  // The set ramp reads the last weeks of every lift: trained often, completed, felt fine, still moving.
+  const now = new Date()
+  const scored = attachBodyweight(past, bodyweights)
+  const weekly = plannedVolumeByMuscle(plan, settings.trainingAge)
   const entries: WorkoutEntry[] = []
   for (const ex of day.exercises) {
     const targetSets = plannedSetsFor(ex.sets, settings.trainingAge)
@@ -440,6 +459,7 @@ export async function startWorkout(userId: string, dayId: string): Promise<Worko
       repMax: ex.repMax,
       ...(s.hint ? { hint: s.hint } : {}),
       ...(s.suggested ? { suggested: s.suggested } : {}),
+      ...(rampOffer(ex, weekly, scored, now, settings.trainingAge) ? { rampOffer: true } : {}),
       sets: s.sets,
     })
   }
@@ -456,6 +476,46 @@ export async function startWorkout(userId: string, dayId: string): Promise<Worko
   }
   await workouts.insertOne(doc)
   return toWorkout(doc)
+}
+
+/**
+ * Takes the set the ramp offered: one more set on the plan's exercise (remembering the plan's own
+ * number and this week), and one more blank set on the session, aiming where the set before it aims.
+ */
+export async function acceptRamp(userId: string, workoutId: string, exerciseId: string): Promise<WorkoutEntry> {
+  const { workouts } = await cols()
+  const doc = await workouts.findOne({ _id: new ObjectId(workoutId), userId, status: 'in_progress' })
+  if (!doc) throw new Error('Workout not found')
+  const entry = doc.entries.find((e) => e.exerciseId === exerciseId)
+  if (!entry?.rampOffer) throw new Error('No set to add')
+  const plan = await getPlan(userId)
+  const ex = plan.days.find((d) => d.id === doc.dayId)?.exercises.find((e) => e.id === exerciseId)
+  if (!ex) throw new Error('Exercise not found')
+  ex.ramp = { base: ex.ramp?.base ?? ex.sets, at: dayKey(startOfWeek(new Date())) }
+  ex.sets += 1
+  await savePlan(userId, plan)
+  const last = entry.sets.length - 1
+  entry.sets = [...entry.sets, { done: false }]
+  if (entry.suggested?.[last]) entry.suggested = [...entry.suggested, { ...entry.suggested[last] }]
+  delete entry.rampOffer
+  await workouts.updateOne({ _id: doc._id }, { $set: { entries: doc.entries } })
+  return toWorkout(doc).entries.find((e) => e.exerciseId === exerciseId)!
+}
+
+/** The deload: every ramped lift goes back to the plan's own number of sets. Returns how many did. */
+export async function resetRamp(userId: string): Promise<number> {
+  const plan = await getPlan(userId)
+  let n = 0
+  for (const day of plan.days) {
+    for (const ex of day.exercises) {
+      if (!ex.ramp) continue
+      ex.sets = ex.ramp.base
+      delete ex.ramp
+      n++
+    }
+  }
+  if (n > 0) await savePlan(userId, plan)
+  return n
 }
 
 export async function saveEntrySets(

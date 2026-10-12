@@ -67,6 +67,7 @@ import type { Mood } from '#/lib/logic/feedback'
 import type { SessionSummary } from '#/lib/logic/summary'
 import type { TodayData } from '#/server/repo'
 import {
+  acceptRampFn,
   discardWorkoutFn,
   dismissFeedbackFn,
   finishWorkoutFn,
@@ -530,6 +531,18 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
     })
   }
 
+  /** Takes the set the ramp offered: the server adds it to the plan and the session; the row shows it at once. */
+  async function rampUp(exerciseId: string) {
+    try {
+      await flush()
+      const updated = await acceptRampFn({ data: { workoutId: workout.id, exerciseId } })
+      setEntries((es) => es.map((e) => (e.exerciseId === exerciseId ? updated : e)))
+      toast.success(`${updated.name}: ${updated.sets.length} sets from now on`)
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not add the set.'))
+    }
+  }
+
   function removeSet(exerciseId: string) {
     updateSets(exerciseId, (sets) => (sets.length > 1 && !sets[sets.length - 1].done ? sets.slice(0, -1) : sets), true)
   }
@@ -698,6 +711,7 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
             onToggleDone={(i) => toggleDone(entry.exerciseId, i)}
             onAddSet={() => addSet(entry.exerciseId)}
             onRemoveSet={() => removeSet(entry.exerciseId)}
+            onRamp={() => rampUp(entry.exerciseId)}
           />
         ))}
       </Accordion>
@@ -729,6 +743,7 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
           onToggleDone={toggleDone}
           onAddSet={addSet}
           onRemoveSet={removeSet}
+          onRamp={rampUp}
           onFinish={onFinishClick}
           onExit={() => setZen(false)}
         />

@@ -29,6 +29,7 @@ export interface ZenProps {
   onToggleDone: (exerciseId: string, index: number) => void
   onAddSet: (exerciseId: string) => void
   onRemoveSet: (exerciseId: string) => void
+  onRamp: (exerciseId: string) => void
   onFinish: () => void
   onExit: () => void
 }
@@ -47,6 +48,7 @@ export function ZenMode({
   onToggleDone,
   onAddSet,
   onRemoveSet,
+  onRamp,
   onFinish,
   onExit,
 }: ZenProps) {
@@ -244,7 +246,17 @@ export function ZenMode({
               </Button>
             )}
 
-            <div className="mt-2 flex justify-center gap-1">
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-1">
+              {entry.rampOffer && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onRamp(entry.exerciseId)}
+                  aria-label={`Add set ${entry.sets.length + 1} to the plan`}
+                >
+                  +1 set to plan
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="sm"

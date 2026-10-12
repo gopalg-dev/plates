@@ -36,7 +36,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '#/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
-import { longDate, monthYear, relativeDay, shortDate, signed } from '#/lib/format'
+import { longDate, monthYear, relativeDay, shortDate, signed, errorMessage } from '#/lib/format'
 import { deloadHint, effortLabel, effortThisWeek } from '#/lib/logic/effort'
 import { daysBetween } from '#/lib/logic/nudges'
 import { TRENDS, TREND_LABEL, liftTrend, type Trend } from '#/lib/logic/trend'
@@ -68,7 +68,8 @@ import {
   type Workout,
 } from '#/lib/types'
 import { cn } from '#/lib/utils'
-import { getStatsFn } from '#/server/fns'
+import { toast } from 'sonner'
+import { getStatsFn, resetRampFn } from '#/server/fns'
 
 type StatsTab = 'lifts' | 'sessions' | 'body'
 const TABS: StatsTab[] = ['lifts', 'sessions', 'body']
@@ -165,6 +166,17 @@ function StatsPage() {
   const [dayOpen, setDayOpen] = useState<string | null>(null)
   const [pickedMuscle, setPickedMuscle] = useState<Muscle | null>(null)
   const refresh = () => router.invalidate()
+  /** Lifts the set ramp has raised above the plan's own number. The deload card offers to drop them back. */
+  const ramped = plan.days.reduce((n, d) => n + d.exercises.filter((e) => e.ramp).length, 0)
+  async function dropRamp() {
+    try {
+      const n = await resetRampFn()
+      toast.success(`Back to the plan's sets on ${n} ${n === 1 ? 'lift' : 'lifts'}`)
+      await refresh()
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not drop the sets.'))
+    }
+  }
 
   const derived = useMemo(() => {
     const now = new Date()
@@ -320,9 +332,14 @@ function StatsPage() {
                   <span>{totals.minutes} min</span>
                 </p>
                 {deload && (
-                  <p className="mt-3 rounded-lg border px-3 py-2 text-sm">
-                    Two hard weeks and no lift moved. Take a deload week: half the sets, same weights.
-                  </p>
+                  <div className="mt-3 rounded-lg border px-3 py-2 text-sm">
+                    <p>Two hard weeks and no lift moved. Take a deload week: half the sets, same weights.</p>
+                    {ramped > 0 && (
+                      <Button variant="outline" size="sm" className="mt-2" onClick={() => void dropRamp()}>
+                        Drop the extra sets on {ramped} {ramped === 1 ? 'lift' : 'lifts'}
+                      </Button>
+                    )}
+                  </div>
                 )}
               </div>
               <ActivityCalendar
