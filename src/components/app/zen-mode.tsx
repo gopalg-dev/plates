@@ -1,4 +1,4 @@
-import { Check, ChevronLeft, ChevronRight, Minus, Plus, X } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '#/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '#/components/ui/dialog'
@@ -8,11 +8,12 @@ import type { LoggedSet, Units, Workout, WorkoutEntry } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { DayIcon } from './day-mark'
 import { LEFT_OPTIONS, canComplete, targetFor, targetOf } from './exercise-row'
+import { NumberField } from './number-field'
 
 /*
- * Zen mode: one exercise, one set, two numbers, one button. The screen is laid out like a phone's
- * clock app: the numbers are the biggest thing on it and the one action is a full-width pill under
- * them, so a thumb finds it without looking. Everything else stays small and grey.
+ * Zen mode: one exercise on the screen. Every set is listed with its numbers, so the sets already
+ * done stay in view; the set being worked sits on a pad of two tall fields with one full-width
+ * button under them, where a thumb finds it without looking. Everything else stays small and grey.
  */
 
 export interface ZenProps {
@@ -30,70 +31,6 @@ export interface ZenProps {
   onRemoveSet: (exerciseId: string) => void
   onFinish: () => void
   onExit: () => void
-}
-
-function round(n: number): number {
-  return Math.round(n * 100) / 100
-}
-
-interface BigNumberProps {
-  label: string
-  unit: string
-  value: number | undefined
-  /** Where the buttons step from while the field is still blank: the set's target, or the set before. */
-  base: number | undefined
-  step: number
-  placeholder: string
-  inputMode: 'decimal' | 'numeric'
-  onChange: (value: number | undefined) => void
-}
-
-/** A number big enough to read from the bench, with a round button either side of it. */
-function BigNumber({ label, unit, value, base, step, placeholder, inputMode, onChange }: BigNumberProps) {
-  const nudge = (dir: 1 | -1) => onChange(round(Math.max(0, (value ?? base ?? 0) + dir * step)))
-  return (
-    <div className="flex min-w-0 flex-col items-center">
-      <input
-        type="number"
-        inputMode={inputMode}
-        aria-label={label}
-        value={value ?? ''}
-        placeholder={placeholder}
-        step={step}
-        min={0}
-        onFocus={(e) => e.currentTarget.select()}
-        onChange={(e) => onChange(e.target.value === '' ? undefined : round(Math.max(0, Number(e.target.value))))}
-        className={cn(
-          'w-full min-w-0 rounded-lg bg-transparent text-center font-condensed text-7xl font-semibold tabular-nums leading-none text-foreground outline-none',
-          'placeholder:text-muted-foreground/40 focus-visible:ring-[3px] focus-visible:ring-ring/50',
-          '[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none',
-        )}
-      />
-      <span className="mt-1 text-sm text-muted-foreground">{unit}</span>
-      <div className="mt-3 flex gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-lg"
-          className="size-14 rounded-full"
-          aria-label={`Decrease ${label}`}
-          onClick={() => nudge(-1)}
-        >
-          <Minus className="size-5" aria-hidden />
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-lg"
-          className="size-14 rounded-full"
-          aria-label={`Increase ${label}`}
-          onClick={() => nudge(1)}
-        >
-          <Plus className="size-5" aria-hidden />
-        </Button>
-      </div>
-    </div>
-  )
 }
 
 /** One exercise filling the screen, over the whole app. Ticking the last set moves to the next exercise. */
@@ -120,7 +57,7 @@ export function ZenMode({
   const entry = entries[at]
   const last = at === entries.length - 1
 
-  // The set on the pad: the first not done, unless a dot was tapped to go back to another.
+  // The set on the pad: the first not done, unless a row was tapped to bring another back.
   const [pick, setPick] = useState<{ id: string; index: number } | null>(null)
   const firstOpen = entry.sets.findIndex((s) => !s.done)
   const index =
@@ -141,11 +78,21 @@ export function ZenMode({
   // Once every set of a weight exercise is done, the last thing to say is how many reps were left.
   const askLeft = weighted && allDone
   const showPill = !askLeft || pick?.id === entry.exerciseId
+  const cols = weighted ? 'grid-cols-[2rem_1fr_1fr_2rem]' : 'grid-cols-[2rem_1fr_2rem]'
 
   const toggle = () => {
     // Ticking a set moves the pad on to the next one; unticking keeps it here to be fixed.
     setPick(set.done ? { id: entry.exerciseId, index } : null)
     onToggleDone(entry.exerciseId, index)
+  }
+
+  /** A set's numbers for the list: what was logged, else what it is aiming for, greyed. */
+  const cell = (i: number, key: 'weight' | 'reps' | 'seconds') => {
+    const s = entry.sets[i]
+    const own = s[key]
+    if (own !== undefined) return <span>{own}</span>
+    const target = targetFor(entry, entry.sets, i, key) ?? (key === 'weight' ? undefined : entry.repMin)
+    return <span className="text-muted-foreground/60">{target ?? '–'}</span>
   }
 
   return (
@@ -170,9 +117,9 @@ export function ZenMode({
           </Button>
         </div>
 
-        <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col overflow-y-auto scrollbar-none px-5">
+        <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col overflow-y-auto scrollbar-none px-4">
           {/* Centred when the screen is tall enough, scrolling when it is not. */}
-          <div className="my-auto py-6">
+          <div className="my-auto py-5">
             <p className="text-sm tabular-nums text-muted-foreground">
               {at + 1} of {entries.length}
             </p>
@@ -182,7 +129,14 @@ export function ZenMode({
             </p>
             {entry.hint && <p className="mt-1 text-base text-muted-foreground">{entry.hint}</p>}
 
-            <ol className="mt-6 flex flex-wrap gap-3" aria-label="Sets">
+            {/* Every set with its numbers: logged ones as they were, the rest as their targets. A tap brings a set to the pad. */}
+            <div className={cn('mt-6 grid gap-2 px-3 text-xs text-muted-foreground', cols)}>
+              <span>Set</span>
+              {weighted && <span className="text-center">Weight, {units}</span>}
+              <span className="text-center">{timed ? 'Seconds' : 'Reps'}</span>
+              <span />
+            </div>
+            <ol className="mt-1 flex flex-col gap-1" aria-label="Sets">
               {entry.sets.map((s, i) => (
                 <li key={i}>
                   <button
@@ -191,60 +145,67 @@ export function ZenMode({
                     aria-current={i === index ? 'true' : undefined}
                     onClick={() => setPick({ id: entry.exerciseId, index: i })}
                     className={cn(
-                      'flex size-11 items-center justify-center rounded-full border text-base font-medium tabular-nums outline-none transition-colors',
+                      'block h-12 w-full rounded-lg px-3 text-left text-lg tabular-nums outline-none transition-colors',
                       'focus-visible:ring-[3px] focus-visible:ring-ring/50',
-                      s.done
-                        ? 'border-success bg-success text-success-foreground'
-                        : 'border-input bg-card text-muted-foreground',
-                      i === index && 'ring-2 ring-foreground ring-offset-2 ring-offset-background',
+                      i === index ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-accent/50',
                     )}
                   >
-                    {s.done ? <Check className="size-5" aria-hidden /> : i + 1}
+                    {/* The grid sits on a span: a button does not lay its children out as a grid. */}
+                    <span className={cn('grid h-full items-center gap-2', cols)}>
+                      <span className={cn('text-sm', i === index ? 'font-semibold' : 'text-muted-foreground')}>
+                        {i + 1}
+                      </span>
+                      {weighted && <span className="text-center">{cell(i, 'weight')}</span>}
+                      <span className="text-center">{cell(i, timed ? 'seconds' : 'reps')}</span>
+                      <span className="flex justify-end">
+                        {s.done && <Check className="size-5 text-success" aria-hidden />}
+                      </span>
+                    </span>
                   </button>
                 </li>
               ))}
             </ol>
 
-            <div className={cn('mt-8 grid gap-4', weighted ? 'grid-cols-2' : 'grid-cols-1')}>
+            <div className={cn('mt-5 grid gap-3', weighted ? 'grid-cols-2' : 'grid-cols-1')}>
               {weighted && (
-                <BigNumber
+                <NumberField
+                  size="lg"
                   label={`Set ${index + 1} weight`}
-                  unit={units}
                   value={set.weight}
                   base={prevWeight}
-                  step={incrementFor(entry.muscle, units)}
-                  placeholder={prevWeight !== undefined ? String(prevWeight) : '0'}
-                  inputMode="decimal"
                   onChange={(v) => onChangeSet(entry.exerciseId, index, { weight: v })}
+                  step={incrementFor(entry.muscle, units)}
+                  inputMode="decimal"
+                  placeholder={prevWeight !== undefined ? String(prevWeight) : '0'}
                 />
               )}
               {timed ? (
-                <BigNumber
+                <NumberField
+                  size="lg"
                   label={`Set ${index + 1} seconds`}
-                  unit="seconds"
                   value={set.seconds}
                   base={prevSeconds}
-                  step={5}
-                  placeholder={String(prevSeconds)}
-                  inputMode="numeric"
                   onChange={(v) => onChangeSet(entry.exerciseId, index, { seconds: v })}
+                  step={5}
+                  inputMode="numeric"
+                  placeholder={String(prevSeconds)}
                 />
               ) : (
-                <BigNumber
+                <NumberField
+                  size="lg"
                   label={`Set ${index + 1} reps`}
-                  unit="reps"
                   value={set.reps}
                   base={prevReps}
-                  step={1}
-                  placeholder={String(prevReps)}
-                  inputMode="numeric"
                   onChange={(v) => onChangeSet(entry.exerciseId, index, { reps: v })}
+                  step={1}
+                  inputMode="numeric"
+                  placeholder={String(prevReps)}
                 />
               )}
             </div>
 
             {askLeft && (
-              <div className="mt-8">
+              <div className="mt-5">
                 <p className="text-center text-sm text-muted-foreground">Reps left on set {entry.sets.length}</p>
                 <ToggleGroup
                   type="single"
@@ -270,7 +231,7 @@ export function ZenMode({
                 disabled={!set.done && !canComplete(entry, entry.sets, index)}
                 aria-label={`Mark set ${index + 1} ${set.done ? 'not done' : 'done'}`}
                 onClick={toggle}
-                className={cn('h-16 w-full rounded-full text-lg', askLeft ? 'mt-4' : 'mt-8')}
+                className="mt-3 h-14 w-full text-lg"
               >
                 {set.done ? (
                   <>Undo set {index + 1}</>
@@ -283,7 +244,7 @@ export function ZenMode({
               </Button>
             )}
 
-            <div className="mt-3 flex justify-center gap-1">
+            <div className="mt-2 flex justify-center gap-1">
               <Button
                 variant="ghost"
                 size="sm"

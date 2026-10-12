@@ -239,6 +239,13 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+58. A flaky "Open menu" on the phone viewport, found by the suite twice in one evening in two
+    different tests, each right after `open(page, '/')`. The trace showed the click landing and
+    nothing opening. Cause: `__root` sets `data-hydrated` when the root hydrates, but the `_app`
+    layout's data streams in and its subtree hydrates a beat later; a click in that gap hits
+    server HTML with no handler. The layout now sets `data-app-hydrated` in its own effect
+    (cleared on unmount), and the `hydrated` helpers in both specs wait for it on every page that
+    is not login, signup, setup or privacy.
 57. Zen mode laid out like a clock app (user: "in the zen mode, clearly there are lot of space try
     to find a way to utilize it (for example refer Pixel mobiles default android clock
     applications) - and the main actions more easily accessible", with the ui-styling,

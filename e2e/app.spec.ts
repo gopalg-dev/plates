@@ -35,9 +35,16 @@ async function open(page: Page, path: string) {
   await hydrated(page)
 }
 
-/** The root document sets this flag once React runs on the client. */
+/**
+ * The root document sets a flag once React runs on the client, and the app layout sets a second one
+ * once it has hydrated too (its data streams in after the root). On app pages, wait for both: a tap
+ * on the menu button between the two lands on server HTML and does nothing.
+ */
 async function hydrated(page: Page) {
   await page.locator('html[data-hydrated="true"]').waitFor({ state: 'attached' })
+  if (!/^\/(login|signup|setup|privacy)(\/|$)/.test(new URL(page.url()).pathname)) {
+    await page.locator('html[data-app-hydrated="true"]').waitFor({ state: 'attached' })
+  }
 }
 
 async function snap(page: Page, name: string) {

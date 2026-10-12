@@ -93,6 +93,14 @@ function initials(who: string): string {
 function AppLayout() {
   const { pathname } = useLocation()
   const { user } = Route.useRouteContext()
+  // The root marks the document hydrated when it hydrates, but this layout can follow a beat later
+  // (its data streams in). The e2e tests wait for this second mark before they tap anything here.
+  useEffect(() => {
+    document.documentElement.dataset.appHydrated = 'true'
+    return () => {
+      delete document.documentElement.dataset.appHydrated
+    }
+  }, [])
   // Accounts made from an emailed link have no username and an empty name.
   const who = user.username ?? (user.name || user.email)
   return (

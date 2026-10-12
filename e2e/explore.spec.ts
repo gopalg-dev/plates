@@ -18,7 +18,14 @@ async function snap(name: string) {
 }
 async function open(path: string) {
   await page.goto(path)
+  await hydrated()
+}
+/** The root's mark, then the app layout's: see `hydrated` in app.spec.ts. */
+async function hydrated() {
   await page.locator('html[data-hydrated="true"]').waitFor({ state: 'attached' })
+  if (!/^\/(login|signup|setup|privacy)(\/|$)/.test(new URL(page.url()).pathname)) {
+    await page.locator('html[data-app-hydrated="true"]').waitFor({ state: 'attached' })
+  }
 }
 const phone = () => (page.viewportSize()?.width ?? 0) < 768
 async function accountMenu() {
@@ -420,7 +427,7 @@ test('weight every session: a completed session earns a step on every set', asyn
   await zen.getByRole('button', { name: 'Next exercise' }).click()
   await expect(zen.getByText('2 of 5', { exact: true })).toBeVisible()
   await page.reload()
-  await page.locator('html[data-hydrated="true"]').waitFor({ state: 'attached' })
+  await hydrated()
   await expect(page.getByRole('dialog', { name: 'Zen mode' })).toBeVisible()
   await snap('16-zen')
   await page.getByRole('dialog', { name: 'Zen mode' }).getByRole('button', { name: 'Exit zen' }).click()
