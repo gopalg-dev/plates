@@ -308,6 +308,8 @@ no Inter/Geist. Checked.
 - [x] 29. Content in the database: the split templates and the exercise library in `splits` and
       `library`, seeded from the bundled copies when empty or by `bun run db:seed`, read once per
       visit through the shell route. Editable without a deploy. HANDOVER.md item 35.
+- [x] 40. Zen mode as a pad: one set, big numbers, one pill; and an alternate swap that brings the
+      alternate's own load type. HANDOVER.md items 56 and 57.
 - [x] 39. "Not now" on Today's weigh-in and tape reminders: quiet for a day or a week, longer each
       time, never gone for good. HANDOVER.md item 54.
 - [x] 38. The library's view of an exercise from its still on Plan, Today, a session and the session

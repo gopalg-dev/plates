@@ -89,6 +89,24 @@ suite('plan', () => {
     expect(ex.alternates).toEqual(['Decline DB Press', 'Close-Grip Bench Press', 'Weighted Push-ups'])
   })
 
+  it('a swapped-in alternate brings its own load type and muscle', async () => {
+    const plan = await repo.getPlan(U)
+    const day = plan.days.find((d) => d.exercises.some((e) => e.name === 'Pull-ups'))!
+    const pullUps = day.exercises.find((e) => e.name === 'Pull-ups')!
+    expect(pullUps.loadType).toBe('bodyweight')
+    const swapped = await repo.swapExercise(U, day.id, pullUps.id, 'Lat Pulldown')
+    const pulldown = swapped.days.find((d) => d.id === day.id)!.exercises.find((e) => e.name === 'Lat Pulldown')!
+    expect(pulldown.loadType).toBe('weight')
+    expect(pulldown.muscle).toBe('back')
+    const back = await repo.swapExercise(U, day.id, pulldown.id, 'Pull-ups')
+    expect(back.days.find((d) => d.id === day.id)!.exercises.find((e) => e.name === 'Pull-ups')!.loadType).toBe(
+      'bodyweight',
+    )
+    // A name the library does not know is guessed from the words in it.
+    const guessed = await repo.swapExercise(U, day.id, 'pull-ups', 'Deficit Push-ups')
+    expect(guessed.days.find((d) => d.id === day.id)!.exercises[0].loadType).toBe('bodyweight')
+  })
+
   it('rejects unknown exercises', async () => {
     await expect(repo.updateExercise(U, 'push-a', 'nope', { sets: 3 })).rejects.toThrow()
   })

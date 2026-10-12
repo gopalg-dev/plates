@@ -414,7 +414,9 @@ test('weight every session: a completed session earns a step on every set', asyn
   const zen = page.getByRole('dialog', { name: 'Zen mode' })
   await expect(zen.getByText('1 of 5', { exact: true })).toBeVisible()
   await zen.getByRole('button', { name: 'Mark set 1 done' }).click()
-  await expect(zen.getByLabel('Set 1 weight', { exact: true })).toHaveValue('65')
+  // The pad moves on to set 2, which starts from the same target; set 1's dot is ticked.
+  await expect(zen.getByRole('button', { name: 'Set 1, done' })).toBeVisible()
+  await expect(zen.getByLabel('Set 2 weight', { exact: true })).toHaveAttribute('placeholder', '65')
   await zen.getByRole('button', { name: 'Next exercise' }).click()
   await expect(zen.getByText('2 of 5', { exact: true })).toBeVisible()
   await page.reload()

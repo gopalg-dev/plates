@@ -239,6 +239,33 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+57. Zen mode laid out like a clock app (user: "in the zen mode, clearly there are lot of space try
+    to find a way to utilize it (for example refer Pixel mobiles default android clock
+    applications) - and the main actions more easily accessible", with the ui-styling,
+    ui-ux-pro-max and frontend-design skills). `src/components/app/zen-mode.tsx`, out of
+    `index.tsx`. One set at a time on a pad: the exercise name in the condensed face, the plan's
+    sets × reps and the target hint under it, a row of 44px dots for the sets (ticked ones green,
+    the one on the pad ringed; a tap brings any set back to the pad), then the numbers at 72px with
+    a 56px round − and + under each, then one full-width 64px pill, "Set N done" (or "Undo set N"
+    for a ticked set), then the small add/remove set buttons, and the Previous / Next / Finish bar
+    with 48px buttons. The pad follows the first unticked set; ticking moves it on. On a weight
+    exercise with every set ticked the reps-left question takes the pill's place, three 56px
+    options, and the pill shows again only for a set brought back by its dot. The exercise shown
+    is the current one, else the first with a set left, else the last (the old code fell back to
+    the first exercise once everything was ticked). Accessible names are unchanged ("Mark set N
+    done", "Set N weight", "Previous exercise", "Next exercise", "Exit zen"), so the e2e steps
+    held, except that the pad no longer shows set 1 after it is ticked: the walkthrough checks
+    the ticked dot and set 2's placeholder instead.
+56. An alternate brings its own load type (user: "on the push day, the default suggested exercise
+    was pull-ups ... I changed it to the alternate ... Lat Pulldown requires weights ... I'm not
+    seeing the weights"). `repo.swapExercise` changed only the name, so Pull-ups (bodyweight)
+    swapped to Lat Pulldown stayed bodyweight and the logger showed no weight field. Checked every
+    alternate pair in the templates and the day blocks: five cross a load type (Pull-ups ↔ Lat
+    Pulldown, Neutral-Grip Lat Pulldown → Chin-ups, Weighted Push-ups → Deficit Push-ups, Seated
+    DB Shoulder Press → Pike Push-ups). The swap now looks the new name up in the library and
+    takes its load type and muscle; a name the library does not know gets `guessLoad` from the
+    plan-sheet parser (push-ups, pull-ups, dips and the like read as bodyweight). Repo test added.
+    A plan that already holds a mis-typed exercise is fixed by Edit → Type, or by swapping again.
 55. The Vercel function sits in Mumbai (user: "the site feels slow, i deployed in free vercel").
     Measured on the live site through the user's own browser session: the HTML's first byte in 50
     ms, but a full server render of Today in about 2 s, Plan 1.7 s, Library 1.2 s, and a tab

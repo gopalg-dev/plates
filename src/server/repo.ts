@@ -10,7 +10,9 @@ import { plannedPerWeek, summarize, type SessionSummary } from '#/lib/logic/summ
 import { buildCustomDays, buildDay } from '#/lib/day-blocks'
 import { slug } from '#/lib/seed-plan'
 import { DEFAULT_SPLIT } from '#/lib/content'
-import { splitTemplate } from './content'
+import { readContent, splitTemplate } from './content'
+import { findLibraryByName } from '#/lib/library'
+import { guessLoad } from '#/lib/logic/plan-sheet'
 import {
   MAX_DAYS,
   MAX_EXERCISES_PER_DAY,
@@ -276,6 +278,10 @@ export async function swapExercise(userId: string, dayId: string, exerciseId: st
   const others = (ex.alternates ?? []).filter((a) => a !== name)
   ex.alternates = [ex.name, ...others]
   ex.name = name
+  // The alternate's own shape: Pull-ups are bodyweight, Lat Pulldown takes a weight. Unknown names are guessed.
+  const known = findLibraryByName((await readContent()).library, name)
+  ex.loadType = known?.loadType ?? guessLoad(name, '')
+  if (known) ex.muscle = known.muscle
   ex.id = uniqueId(
     slug(name),
     day.exercises.filter((e) => e !== ex).map((e) => e.id),

@@ -10,7 +10,7 @@ import { ExerciseThumb } from './exercise-thumb'
 import { NumberField } from './number-field'
 
 /** Reps left in the tank on the last set. Three or more tells the next session the weight was light. */
-const LEFT_OPTIONS = [
+export const LEFT_OPTIONS = [
   { value: '0', label: '0' },
   { value: '1', label: '1–2' },
   { value: '3', label: '3+' },

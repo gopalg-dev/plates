@@ -3,8 +3,6 @@ import {
   ArrowLeftRight,
   CalendarClock,
   CalendarX,
-  ChevronLeft,
-  ChevronRight,
   Flame,
   Focus,
   MoreHorizontal,
@@ -22,6 +20,7 @@ import { DayIcon } from '#/components/app/day-mark'
 import { ExerciseRow, completeSet, targetOf } from '#/components/app/exercise-row'
 import { ExerciseThumb } from '#/components/app/exercise-thumb'
 import { SectionHeading } from '#/components/app/section-heading'
+import { ZenMode } from '#/components/app/zen-mode'
 import { Accordion } from '#/components/ui/accordion'
 import { Button } from '#/components/ui/button'
 import {
@@ -62,15 +61,7 @@ import { plannedSetsFor, weeklyStreakOf } from '#/lib/logic/stats'
 import { useWakeLock } from '#/lib/use-wake-lock'
 import { rowTap } from '#/lib/row-tap'
 import { cn } from '#/lib/utils'
-import {
-  type LoggedSet,
-  type Plan,
-  type PlanDay,
-  type Settings,
-  type Units,
-  type Workout,
-  type WorkoutEntry,
-} from '#/lib/types'
+import { type LoggedSet, type Plan, type PlanDay, type Settings, type Workout, type WorkoutEntry } from '#/lib/types'
 import { FeedbackFields, useSendFeedback } from '#/components/app/feedback-form'
 import type { Mood } from '#/lib/logic/feedback'
 import type { SessionSummary } from '#/lib/logic/summary'
@@ -743,121 +734,6 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
         />
       )}
     </div>
-  )
-}
-
-// ---------------------------------------------------------------- zen mode
-
-interface ZenProps {
-  workout: Workout
-  entries: WorkoutEntry[]
-  current: string | null
-  units: Units
-  doneSets: number
-  totalSets: number
-  busy: boolean
-  onCurrent: (exerciseId: string) => void
-  onChangeSet: (exerciseId: string, index: number, patch: Partial<LoggedSet>) => void
-  onToggleDone: (exerciseId: string, index: number) => void
-  onAddSet: (exerciseId: string) => void
-  onRemoveSet: (exerciseId: string) => void
-  onFinish: () => void
-  onExit: () => void
-}
-
-/** One exercise filling the screen, over the whole app. Ticking the last set moves to the next exercise. */
-function ZenMode({
-  workout,
-  entries,
-  current,
-  units,
-  doneSets,
-  totalSets,
-  busy,
-  onCurrent,
-  onChangeSet,
-  onToggleDone,
-  onAddSet,
-  onRemoveSet,
-  onFinish,
-  onExit,
-}: ZenProps) {
-  const at = Math.max(
-    0,
-    entries.findIndex((e) => e.exerciseId === current),
-  )
-  const entry = entries[at]
-  const last = at === entries.length - 1
-  return (
-    <Dialog open onOpenChange={(o) => !o && onExit()}>
-      {/* The whole screen, over the app. The dialog locks the page scroll behind it. */}
-      <DialogContent
-        showCloseButton={false}
-        aria-label="Zen mode"
-        className="inset-0 flex h-auto w-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 p-0 sm:max-w-none"
-      >
-        <DialogTitle className="sr-only">Zen mode</DialogTitle>
-        <DialogDescription className="sr-only">One exercise at a time.</DialogDescription>
-        <div className="flex shrink-0 items-center justify-between gap-3 px-4 pt-safe">
-          <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
-            <DayIcon type={workout.dayType} className="size-6 rounded-md" />
-            {workout.dayName}
-          </p>
-          <Button variant="ghost" size="sm" className="mt-3 -mr-2" onClick={onExit}>
-            <X aria-hidden />
-            Exit zen
-          </Button>
-        </div>
-        <div className="mx-auto min-h-0 w-full max-w-2xl flex-1 overflow-y-auto scrollbar-none px-4 pb-6">
-          <p className="mt-6 text-sm tabular-nums text-muted-foreground">
-            {at + 1} of {entries.length}
-          </p>
-          <Accordion type="single" value={entry.exerciseId} className="mt-1 border-t">
-            <ExerciseRow
-              key={entry.exerciseId}
-              entry={entry}
-              units={units}
-              onChangeSet={(i, patch) => onChangeSet(entry.exerciseId, i, patch)}
-              onToggleDone={(i) => onToggleDone(entry.exerciseId, i)}
-              onAddSet={() => onAddSet(entry.exerciseId)}
-              onRemoveSet={() => onRemoveSet(entry.exerciseId)}
-            />
-          </Accordion>
-        </div>
-        <div className="shrink-0 border-t px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
-          <div className="mx-auto flex w-full max-w-2xl items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={at === 0}
-              onClick={() => onCurrent(entries[at - 1].exerciseId)}
-              aria-label="Previous exercise"
-            >
-              <ChevronLeft aria-hidden />
-              Previous
-            </Button>
-            <p className="flex-1 text-center text-sm tabular-nums text-muted-foreground">
-              {doneSets} of {totalSets} sets done
-            </p>
-            {last ? (
-              <Button size="sm" onClick={onFinish} disabled={busy}>
-                Finish workout
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onCurrent(entries[at + 1].exerciseId)}
-                aria-label="Next exercise"
-              >
-                Next
-                <ChevronRight aria-hidden />
-              </Button>
-            )}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
   )
 }
 
