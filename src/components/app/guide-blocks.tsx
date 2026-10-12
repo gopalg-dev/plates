@@ -45,7 +45,7 @@ export function Ladder() {
           const jump = i > 0 && weight > LADDER[i - 1].weight
           return (
             <li key={`${weight}x${reps}`} className="flex flex-col">
-              <span className="text-xs text-muted-foreground">Session {i + 1}</span>
+              <span className="text-sm text-muted-foreground">Session {i + 1}</span>
               <span
                 className={cn(
                   'mt-1 font-condensed text-3xl font-semibold leading-none tabular-nums sm:text-4xl',
@@ -92,7 +92,7 @@ export function DayKinds() {
   return (
     <ul className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
       {DAY_TYPES.map((type) => (
-        <li key={type} className="flex items-center gap-2.5 text-sm">
+        <li key={type} className="flex items-center gap-2.5">
           <DayIcon type={type} className="size-8" />
           {DAY_LABEL[type]}
         </li>
@@ -127,7 +127,7 @@ export function TrendShapes() {
       {TREND_SHAPES.map(({ trend, values, reads }) => (
         <li key={trend} className="flex items-center gap-4">
           <Sparkline values={values} className="text-foreground" />
-          <p className="text-sm">
+          <p>
             <span className="font-medium text-foreground">{TREND_LABEL[trend]}</span>{' '}
             <span className="text-muted-foreground">{reads}</span>
           </p>

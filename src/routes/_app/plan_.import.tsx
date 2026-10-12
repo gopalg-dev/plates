@@ -201,7 +201,7 @@ function ImportPage() {
 
   return (
     <div>
-      <Link to="/plan" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+      <Link to="/plan" className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground">
         <ChevronLeft className="size-4" aria-hidden />
         Plan
       </Link>
@@ -253,15 +253,15 @@ function ImportPage() {
           <h2 id="preview-h" className="font-condensed text-2xl font-semibold leading-none">
             Preview
           </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-muted-foreground">
             {fileName}: {parsed.days.length} {parsed.days.length === 1 ? 'day' : 'days'}, {exerciseCount} exercises.
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-muted-foreground">
             {parsed.split ? `Template: ${splitInfoOf(splits, parsed.split).name}.` : 'Custom plan.'}
           </p>
 
           {parsed.warnings.length > 0 && (
-            <div className="mt-4 rounded-lg border px-3 py-2 text-sm">
+            <div className="mt-4 rounded-lg border px-3 py-2">
               <p className="font-medium">Check these rows</p>
               <ul className="mt-1 space-y-0.5 text-muted-foreground">
                 {parsed.warnings.map((w) => (
@@ -420,7 +420,7 @@ function ImportPage() {
               </li>
             ))}
           </ol>
-          <p className="mt-2 text-xs text-muted-foreground">Columns: sets, low, high, type, muscle.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Columns: sets, low, high, type, muscle.</p>
 
           <div className="mt-6 flex items-center gap-3">
             <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
@@ -456,7 +456,7 @@ function ImportPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-            {problem && <p className="text-sm text-muted-foreground">{problem}</p>}
+            {problem && <p className="text-muted-foreground">{problem}</p>}
           </div>
         </section>
       )}

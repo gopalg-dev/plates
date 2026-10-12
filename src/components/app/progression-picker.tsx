@@ -24,7 +24,7 @@ export function ProgressionPicker({
         return (
           <Label
             key={o.value}
-            className="flex cursor-pointer items-start gap-3 rounded-lg border p-4 font-normal has-data-[state=checked]:border-foreground"
+            className="flex cursor-pointer items-start gap-3 rounded-lg border p-4 text-base font-normal has-data-[state=checked]:border-foreground"
           >
             <RadioGroupItem value={o.value} className="mt-0.5" />
             <span className="min-w-0 flex-1">
@@ -32,8 +32,8 @@ export function ProgressionPicker({
                 <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                 {o.title}
               </span>
-              <span className="mt-0.5 block text-sm text-muted-foreground">{o.detail}</span>
-              <span className="mt-2 block rounded-md bg-muted px-2.5 py-1.5 text-sm tabular-nums">{o.example}</span>
+              <span className="mt-0.5 block text-muted-foreground">{o.detail}</span>
+              <span className="mt-2 block rounded-md bg-muted px-2.5 py-1.5 tabular-nums">{o.example}</span>
             </span>
           </Label>
         )

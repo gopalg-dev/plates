@@ -50,7 +50,7 @@ const row = 'w-max justify-start py-0.5'
 function TagRow({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
   return (
     <div className={className}>
-      <p className="mb-1 text-xs text-muted-foreground">{label}</p>
+      <p className="mb-1 text-sm text-muted-foreground">{label}</p>
       <ScrollArea className="-mx-4">
         <div className="px-4 pb-2">{children}</div>
         <ScrollBar orientation="horizontal" className="mx-4 h-2" />
@@ -161,7 +161,7 @@ export function LibraryList({ onSelect, action = 'Open', autoFocus, stickySearch
         </Empty>
       ) : (
         <>
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-3 text-muted-foreground">
             {results.length} {results.length === 1 ? 'exercise' : 'exercises'}
           </p>
           <ItemGroup className="mt-1 border-y">
@@ -243,12 +243,12 @@ export function LibraryDetail({ exercise, onClose, action, among, onStep }: Deta
             />
             {/* A fixed height from tablets up, so the dialog does not jump between exercises. */}
             <div className="md:h-64 md:overflow-y-auto md:scrollbar-none">
-              <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm md:mt-0">
+              <ol className="mt-4 list-decimal space-y-2 pl-5 md:mt-0">
                 {exercise.cues.map((c) => (
                   <li key={c}>{c}</li>
                 ))}
               </ol>
-              <p className="mt-4 text-sm text-muted-foreground">Works: {exercise.muscles.join(', ')}.</p>
+              <p className="mt-4 text-muted-foreground">Works: {exercise.muscles.join(', ')}.</p>
             </div>
           </div>
           {action && <div className="mt-5">{action}</div>}

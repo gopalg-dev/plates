@@ -118,7 +118,12 @@ function AppLayout() {
               <SidebarMenu>
                 {[...primary, ...secondary].map(({ to, label, icon: Icon, exact }) => (
                   <SidebarMenuItem key={to}>
-                    <SidebarMenuButton asChild isActive={isActive(pathname, to, exact)} tooltip={label}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={isActive(pathname, to, exact)}
+                      tooltip={label}
+                      className="h-9 text-base"
+                    >
                       <Link to={to}>
                         <Icon aria-hidden />
                         <span>{label}</span>
@@ -203,10 +208,10 @@ function AccountMenu({ who, email, image }: { who: string; email: string; image:
                   {initials(who)}
                 </AvatarFallback>
               </Avatar>
-              <span className="grid flex-1 text-left text-sm leading-tight">
+              <span className="grid flex-1 text-left text-base leading-tight">
                 <span className="truncate font-medium">{who}</span>
                 {/* An account made from an emailed link has only its email: no point showing it twice. */}
-                {email !== who && <span className="truncate text-xs text-muted-foreground">{email}</span>}
+                {email !== who && <span className="truncate text-sm text-muted-foreground">{email}</span>}
               </span>
               <ChevronsUpDown className="ml-auto size-4" aria-hidden />
             </SidebarMenuButton>
@@ -217,12 +222,12 @@ function AccountMenu({ who, email, image }: { who: string; email: string; image:
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuLabel className="font-normal">
+            <DropdownMenuLabel className="text-base font-normal">
               <span className="block truncate font-medium">{who}</span>
-              {email !== who && <span className="block truncate text-xs text-muted-foreground">{email}</span>}
+              {email !== who && <span className="block truncate text-sm text-muted-foreground">{email}</span>}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
+            <DropdownMenuItem asChild className="text-base">
               <Link to="/settings">
                 <Settings aria-hidden />
                 Settings
@@ -230,7 +235,7 @@ function AccountMenu({ who, email, image }: { who: string; email: string; image:
             </DropdownMenuItem>
             {/* The look belongs to the device, not the account, so it lives here rather than in Settings. */}
             <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
+              <DropdownMenuSubTrigger className="text-base">
                 <Palette aria-hidden className="text-muted-foreground" />
                 Look
               </DropdownMenuSubTrigger>
@@ -243,19 +248,19 @@ function AccountMenu({ who, email, image }: { who: string; email: string; image:
                   }}
                 >
                   {THEME_OPTIONS.map((o) => (
-                    <DropdownMenuRadioItem key={o.value} value={o.value}>
+                    <DropdownMenuRadioItem key={o.value} value={o.value} className="text-base">
                       {o.label}
                     </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
-            <DropdownMenuItem onSelect={() => setFeedbackOpen(true)}>
+            <DropdownMenuItem onSelect={() => setFeedbackOpen(true)} className="text-base">
               <MessageSquare aria-hidden className="text-muted-foreground" />
               Send feedback
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => void signOut()} disabled={busy}>
+            <DropdownMenuItem onSelect={() => void signOut()} disabled={busy} className="text-base">
               <LogOut aria-hidden />
               Sign out
             </DropdownMenuItem>

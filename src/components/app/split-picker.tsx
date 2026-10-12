@@ -13,7 +13,7 @@ import { WeekShape } from './week-shape'
 
 /** The row an option sits in. */
 export const splitOptionRow =
-  'flex cursor-pointer items-start gap-3 rounded-lg border p-4 font-normal has-data-[state=checked]:border-foreground'
+  'flex cursor-pointer items-start gap-3 rounded-lg border p-4 text-base font-normal has-data-[state=checked]:border-foreground'
 
 /** The id the picker uses for a plan the user lays out day by day. */
 export const OWN_SPLIT = 'custom'
@@ -33,7 +33,7 @@ export function SplitOptionBody({ split, template }: { split: SplitInfo; templat
           {split.days} {split.days === 1 ? 'day' : 'days'}
         </span>
       </span>
-      <span className="mt-0.5 block text-sm text-muted-foreground">{split.fit}</span>
+      <span className="mt-0.5 block text-muted-foreground">{split.fit}</span>
       <WeekShape days={template.days} className="mt-2.5" />
     </span>
   )
@@ -148,7 +148,7 @@ export function SplitPicker({
                 {(keeping ? ownPlan.days : ownDays.length) === 1 ? 'day' : 'days'}
               </span>
             </span>
-            <span className="mt-0.5 block text-sm text-muted-foreground">
+            <span className="mt-0.5 block text-muted-foreground">
               {keeping
                 ? 'Your plan, as you left it.'
                 : 'Pick a kind for each day. Each starts with five lifts to edit.'}

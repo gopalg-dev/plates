@@ -185,7 +185,7 @@ function SummaryDialog({
         )}
         {asking && (
           <div className="border-t pt-4">
-            <p className="mb-2 text-sm font-medium">How is Plates for you?</p>
+            <p className="mb-2 font-medium">How is Plates for you?</p>
             <FeedbackFields mood={mood} text={text} onMood={setMood} onText={setText} compact />
           </div>
         )}
@@ -308,7 +308,7 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
               ) : (
                 <Scale className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
               )}
-              <p className="min-w-0 flex-1 text-sm">
+              <p className="min-w-0 flex-1">
                 <span className="font-medium">{a.title}</span> <span className="text-muted-foreground">{a.detail}</span>
               </p>
             </li>
@@ -323,7 +323,7 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
           ) : (
             <Ruler className="size-5 shrink-0 text-muted-foreground" aria-hidden />
           )}
-          <p className="min-w-0 flex-1 text-sm">
+          <p className="min-w-0 flex-1">
             <span className="font-medium">{nudge.title}</span>{' '}
             <span className="text-muted-foreground">{nudge.detail}</span>
           </p>
@@ -351,7 +351,7 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
                 <DayIcon type={d.type} className="size-8 rounded-md" />
                 <span className="min-w-0 flex-1">
                   <span className="block font-medium">{d.name}</span>
-                  <span className="block text-sm text-muted-foreground">{weekdayOf(d)}</span>
+                  <span className="block text-muted-foreground">{weekdayOf(d)}</span>
                 </span>
                 <Button variant="outline" size="sm" onClick={() => start(d.id)} disabled={starting !== null}>
                   Do it now
@@ -724,7 +724,7 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
 
       <div className="sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] z-30 -mx-4 mt-6 border-t bg-background/95 px-4 py-3 backdrop-blur md:bottom-0 md:-mx-8 md:px-8">
         <div className="flex items-center gap-3">
-          <p className="min-w-0 flex-1 text-sm tabular-nums text-muted-foreground">
+          <p className="min-w-0 flex-1 tabular-nums text-muted-foreground">
             {doneSets} of {totalSets} sets done
           </p>
           <Button onClick={onFinishClick} disabled={busy} className="shrink-0">

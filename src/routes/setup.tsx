@@ -64,7 +64,7 @@ const ageOptions: { value: TrainingAge; title: string; detail: string }[] = [
 ]
 
 const optionRow =
-  'flex cursor-pointer items-start gap-3 rounded-lg border p-4 font-normal has-data-[state=checked]:border-foreground'
+  'flex cursor-pointer items-start gap-3 rounded-lg border p-4 text-base font-normal has-data-[state=checked]:border-foreground'
 
 function SetupPage() {
   usePageHydrated()
@@ -176,7 +176,7 @@ function SetupPage() {
                 className="mt-8"
               />
               {switching && (
-                <p className="mt-4 rounded-lg border px-3 py-2 text-sm">
+                <p className="mt-4 rounded-lg border px-3 py-2">
                   {split === OWN_SPLIT
                     ? 'Replaces the plan of your own you have now. Templates keep theirs.'
                     : 'Each split keeps its own plan. Coming back to one finds it as you left it.'}
@@ -233,7 +233,7 @@ function SetupPage() {
                     <RadioGroupItem value={o.value} className="mt-0.5" />
                     <span>
                       <span className="block font-medium">{o.title}</span>
-                      <span className="mt-0.5 block text-sm text-muted-foreground">{o.detail}</span>
+                      <span className="mt-0.5 block text-muted-foreground">{o.detail}</span>
                     </span>
                   </Label>
                 ))}

@@ -62,14 +62,14 @@ export function More({ title = 'How it decides', children }: { title?: string; c
     <Collapsible className="group/more mt-4">
       <CollapsibleTrigger
         className={cn(
-          'inline-flex items-center gap-1.5 rounded-md text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
+          'inline-flex items-center gap-1.5 rounded-md font-medium text-muted-foreground transition-colors hover:text-foreground',
           focusRing,
         )}
       >
         <ChevronDown aria-hidden className="size-4 transition-transform group-data-[state=open]/more:rotate-180" />
         {title}
       </CollapsibleTrigger>
-      <CollapsibleContent className="mt-3 border-l-2 pl-4 text-sm text-muted-foreground">{children}</CollapsibleContent>
+      <CollapsibleContent className="mt-3 border-l-2 pl-4 text-muted-foreground">{children}</CollapsibleContent>
     </Collapsible>
   )
 }
@@ -77,7 +77,7 @@ export function More({ title = 'How it decides', children }: { title?: string; c
 /** The one piece of advice in a section that matters most. */
 export function Tip({ children }: { children: ReactNode }) {
   return (
-    <aside className="mt-5 flex gap-3 rounded-lg bg-muted px-4 py-3 text-sm text-foreground">
+    <aside className="mt-5 flex gap-3 rounded-lg bg-muted px-4 py-3 text-foreground">
       <Lightbulb className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden />
       <p>{children}</p>
     </aside>

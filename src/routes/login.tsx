@@ -52,12 +52,12 @@ function LoginPage() {
     >
       <div className="flex flex-col gap-8">
         {deleted && (
-          <p role="status" className="rounded-lg border px-4 py-3 text-sm">
+          <p role="status" className="rounded-lg border px-4 py-3">
             Your account and all of its data are deleted.
           </p>
         )}
         {error && (
-          <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm">
+          <p role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 px-4 py-3">
             That sign-in did not go through. Try again.
           </p>
         )}

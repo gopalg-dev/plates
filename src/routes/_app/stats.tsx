@@ -259,7 +259,7 @@ function StatsPage() {
               Strength
             </SectionHeading>
             {lifts.length === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">Nothing logged yet.</p>
+              <p className="mt-3 text-muted-foreground">Nothing logged yet.</p>
             ) : (
               <StrengthPanel lifts={lifts} units={units} now={now} />
             )}
@@ -270,7 +270,7 @@ function StatsPage() {
               Recent bests
             </SectionHeading>
             {prs.length === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">None yet.</p>
+              <p className="mt-3 text-muted-foreground">None yet.</p>
             ) : (
               <ul className="mt-3 divide-y border-y">
                 {prs.slice(0, 8).map((pr) => (
@@ -301,7 +301,7 @@ function StatsPage() {
                 </div>
                 {/* One quiet line each: the streak with the effort, and the week's totals. */}
                 {(streak > 0 || effort !== undefined) && (
-                  <p className="mt-2 text-sm text-muted-foreground">
+                  <p className="mt-2 text-muted-foreground">
                     {[
                       streak > 0 ? `${streak} ${streak === 1 ? 'week' : 'weeks'} in a row` : null,
                       effort !== undefined ? `effort ${effortLabel(effort).toLowerCase()}` : null,
@@ -311,7 +311,7 @@ function StatsPage() {
                     .
                   </p>
                 )}
-                <p className="mt-2 flex flex-wrap gap-x-3 text-sm tabular-nums">
+                <p className="mt-2 flex flex-wrap gap-x-3 tabular-nums">
                   <span>{totals.sets} hard sets</span>
                   <span className="text-muted-foreground" aria-hidden>
                     ·
@@ -325,7 +325,7 @@ function StatsPage() {
                   <span>{totals.minutes} min</span>
                 </p>
                 {deload && (
-                  <div className="mt-3 rounded-lg border px-3 py-2 text-sm">
+                  <div className="mt-3 rounded-lg border px-3 py-2">
                     <p>Two hard weeks and no lift moved. Take a deload week: half the sets, same weights.</p>
                     {ramped > 0 && (
                       <Button variant="outline" size="sm" className="mt-2" onClick={() => void dropRamp()}>
@@ -386,7 +386,7 @@ function StatsPage() {
                   <span className="text-muted-foreground">{units}</span>
                 </div>
                 {bw.weekAvg !== undefined ? (
-                  <p className="mt-2 text-sm text-muted-foreground">
+                  <p className="mt-2 text-muted-foreground">
                     7-day average {fmtWeight(bw.weekAvg, units)}
                     {bw.changePct !== undefined
                       ? `, ${signed(bw.changePct, 1)}% vs last week. ${paceNote(bw.changePct, settings.goal)}`
@@ -394,7 +394,7 @@ function StatsPage() {
                   </p>
                 ) : null}
                 {bw.latestDate && (
-                  <p className="mt-1 text-sm text-muted-foreground">Last logged {relativeDay(bw.latestDate, now)}.</p>
+                  <p className="mt-1 text-muted-foreground">Last logged {relativeDay(bw.latestDate, now)}.</p>
                 )}
               </div>
               <LogBodyweightDialog units={units} onLogged={refresh} />
@@ -738,7 +738,8 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
   }
 
   return (
-    <div className="mt-5 max-w-xs">
+    // The full width on phones, where square days make thumb-sized cells; a compact block from 640px up.
+    <div className="mt-5 sm:max-w-xs">
       <div className="flex items-center gap-2">
         <Popover open={jumpOpen} onOpenChange={setJumpOpen}>
           <PopoverTrigger asChild>
@@ -772,7 +773,7 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
             />
           </PopoverContent>
         </Popover>
-        <p className="min-w-0 truncate text-xs text-muted-foreground">
+        <p className="min-w-0 truncate text-sm text-muted-foreground">
           {sessions} {sessions === 1 ? 'session' : 'sessions'}
         </p>
         <div className="ml-auto flex shrink-0">
@@ -798,7 +799,10 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
           </Button>
         </div>
       </div>
-      <div className="mt-1 grid grid-cols-7 gap-1 px-1 text-center text-xs text-muted-foreground" aria-hidden>
+      <div
+        className="mt-1 grid grid-cols-7 gap-1 px-1 text-center text-sm text-muted-foreground sm:text-xs"
+        aria-hidden
+      >
         {WEEKDAYS.map((d, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: the weekday letters repeat (T, S); the column is the identity
           <span key={i}>{d}</span>
@@ -812,7 +816,7 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
             <div
               key={week.start}
               className={cn(
-                'grid grid-cols-7 gap-1 rounded-md p-1 text-xs tabular-nums',
+                'grid grid-cols-7 gap-1 rounded-md p-1 text-sm tabular-nums sm:text-xs',
                 isSelected && 'bg-foreground/10',
               )}
             >
@@ -899,7 +903,7 @@ function BodyweightChart({ logs, units, now, onPick }: ChartProps) {
   return (
     <div className="mt-5">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground">
           {data.length === 0 ? 'No weigh-ins in this range.' : `${data.length} ${data.length === 1 ? 'log' : 'logs'}`}
         </p>
         <ToggleGroup
@@ -1067,7 +1071,7 @@ function MeasurementsChart({
         {action}
       </div>
       <div className="mt-3 flex items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground">
           {data.length === 0 ? 'No tapes in this range.' : `${data.length} ${data.length === 1 ? 'tape' : 'tapes'}`}
         </p>
         <ToggleGroup
@@ -1171,7 +1175,7 @@ function Measurements({
   if (!last) {
     return (
       <div className="mt-3">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground">
           No tape yet. Arm, chest and waist set the baseline. Then every {TAPE_DAYS} days.
         </p>
         <div className="mt-3">
@@ -1207,7 +1211,7 @@ function Measurements({
           )
         })}
       </dl>
-      <p className="mt-3 text-sm text-muted-foreground">
+      <p className="mt-3 text-muted-foreground">
         Last measured {longDate(last.date)}, {ago <= 0 ? 'today' : ago === 1 ? 'yesterday' : `${ago} days ago`}.{' '}
         {overdue ? 'Tape day is due now.' : `Next tape day ${longDate(due.toISOString())}.`}
       </p>

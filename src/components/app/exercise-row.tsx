@@ -75,7 +75,7 @@ export function ExerciseRow({
         <AccordionTrigger className="items-center gap-3 py-3.5 text-base font-normal hover:no-underline [&>svg]:size-5 [&>svg]:translate-y-0">
           <span className="min-w-0 flex-1">
             <span className="block font-medium leading-tight">{entry.name}</span>
-            <span className="mt-0.5 block text-sm text-muted-foreground">
+            <span className="mt-0.5 block text-muted-foreground">
               {entry.sets.length} × {targetOf(entry)}
             </span>
           </span>
@@ -91,8 +91,8 @@ export function ExerciseRow({
         </AccordionTrigger>
       </div>
       <AccordionContent className="pb-4 text-base">
-        {entry.hint && <p className="mb-3 text-sm text-muted-foreground">{entry.hint}</p>}
-        <div className={cn('mb-1 grid gap-2 px-1 text-xs text-muted-foreground', cols)}>
+        {entry.hint && <p className="mb-3 text-muted-foreground">{entry.hint}</p>}
+        <div className={cn('mb-1 grid gap-2 px-1 text-sm text-muted-foreground', cols)}>
           <span>Set</span>
           {weighted && <span className="text-center">Weight, {units}</span>}
           <span className="text-center">{timed ? 'Seconds' : 'Reps'}</span>
@@ -157,7 +157,7 @@ export function ExerciseRow({
         </ol>
         {weighted && entry.sets[entry.sets.length - 1].done && (
           <div className="mt-3 flex items-center gap-3">
-            <span className="text-sm text-muted-foreground">Reps left</span>
+            <span className="text-muted-foreground">Reps left</span>
             <ToggleGroup
               type="single"
               variant="outline"

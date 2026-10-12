@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { DayIcon } from '#/components/app/day-mark'
 import { EditorPanel, PanelFooter } from '#/components/app/editor-panel'
+import { ExerciseNameField } from '#/components/app/exercise-name-field'
 import { ExerciseThumb } from '#/components/app/exercise-thumb'
 import { LibraryPicker } from '#/components/app/library-list'
 import { NumberField } from '#/components/app/number-field'
@@ -273,7 +274,7 @@ function PlanPage() {
 
       <section className="mt-10">
         <h2 className="font-condensed text-2xl font-semibold leading-none">Rules</h2>
-        <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+        <ul className="mt-3 space-y-2 text-muted-foreground">
           {rules.map((r) => (
             <li key={r} className="flex gap-2">
               <span aria-hidden className="mt-2 size-1 shrink-0 rounded-full bg-muted-foreground" />
@@ -346,7 +347,7 @@ function DaySection({
         <DayIcon type={day.type} className="size-10" />
         <span className="flex-1">
           <span className="block font-condensed text-2xl font-semibold leading-none">{day.name}</span>
-          <span className="mt-1 block text-sm text-muted-foreground">
+          <span className="mt-1 block text-muted-foreground">
             {day.exercises.length} exercises, {sets} sets
             {onWeekdays ? `, ${weekdayOf(day)}s` : ''}
           </span>
@@ -584,10 +585,14 @@ function EditorForm({ day, exercise, onClose, onSaved }: FormProps) {
               }}
             />
           </div>
-          <Input
+          <ExerciseNameField
             id="ex-name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={setName}
+            onPick={(lib) => {
+              setMuscle(lib.muscle)
+              setLoadType(lib.loadType)
+            }}
             placeholder="Barbell Bench Press"
             required
             maxLength={80}

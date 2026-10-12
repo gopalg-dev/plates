@@ -111,7 +111,7 @@ export function ZenMode({
         <DialogDescription className="sr-only">One exercise at a time.</DialogDescription>
 
         <div className="flex shrink-0 items-center justify-between gap-3 px-4 pt-safe">
-          <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+          <p className="mt-3 flex items-center gap-2 text-muted-foreground">
             <DayIcon type={workout.dayType} className="size-6 rounded-md" />
             {workout.dayName}
           </p>
@@ -134,7 +134,7 @@ export function ZenMode({
             {entry.hint && <p className="mt-1 text-base text-muted-foreground">{entry.hint}</p>}
 
             {/* Every set with its numbers: logged ones as they were, the rest as their targets. A tap brings a set to the pad. */}
-            <div className={cn('mt-6 grid gap-2 px-3 text-xs text-muted-foreground', cols)}>
+            <div className={cn('mt-6 grid gap-2 px-3 text-sm text-muted-foreground', cols)}>
               <span>Set</span>
               {weighted && <span className="text-center">Weight, {units}</span>}
               <span className="text-center">{timed ? 'Seconds' : 'Reps'}</span>
@@ -157,7 +157,7 @@ export function ZenMode({
                   >
                     {/* The grid sits on a span: a button does not lay its children out as a grid. */}
                     <span className={cn('grid h-full items-center gap-2', cols)}>
-                      <span className={cn('text-sm', i === index ? 'font-semibold' : 'text-muted-foreground')}>
+                      <span className={cn('text-base', i === index ? 'font-semibold' : 'text-muted-foreground')}>
                         {i + 1}
                       </span>
                       {weighted && <span className="text-center">{cell(i, 'weight')}</span>}
@@ -211,7 +211,7 @@ export function ZenMode({
 
             {askLeft && (
               <div className="mt-5">
-                <p className="text-center text-sm text-muted-foreground">Reps left on set {entry.sets.length}</p>
+                <p className="text-center text-muted-foreground">Reps left on set {entry.sets.length}</p>
                 <ToggleGroup
                   type="single"
                   variant="outline"
@@ -296,7 +296,7 @@ export function ZenMode({
               <ChevronLeft aria-hidden />
               Previous
             </Button>
-            <p className="flex-1 text-center text-sm tabular-nums text-muted-foreground">
+            <p className="flex-1 text-center tabular-nums text-muted-foreground">
               {doneSets} of {totalSets} sets done
             </p>
             {last ? (

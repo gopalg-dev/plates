@@ -27,7 +27,7 @@ export function AuthFrame({ title, intro, children, footer }: Props) {
 
       <div className="mt-10">{children}</div>
 
-      <p className="mt-10 text-sm text-muted-foreground">{footer}</p>
+      <p className="mt-10 text-muted-foreground">{footer}</p>
     </main>
   )
 }

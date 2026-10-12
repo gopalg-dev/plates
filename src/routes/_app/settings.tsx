@@ -156,7 +156,7 @@ function SettingsPage() {
             </ToggleGroupItem>
           </ToggleGroup>
           {/* A barbell takes a plate each side, so the smallest plate sets how far a barbell lift steps. */}
-          <p className="mt-4 text-sm text-muted-foreground">Smallest plate</p>
+          <p className="mt-4 text-muted-foreground">Smallest plate</p>
           <ToggleGroup
             type="single"
             variant="outline"
@@ -189,12 +189,12 @@ function SettingsPage() {
             {ageOptions.map((o) => (
               <Label
                 key={o.value}
-                className="flex cursor-pointer items-start gap-3 rounded-lg border p-4 font-normal has-data-[state=checked]:border-foreground"
+                className="flex cursor-pointer items-start gap-3 rounded-lg border p-4 text-base font-normal has-data-[state=checked]:border-foreground"
               >
                 <RadioGroupItem value={o.value} className="mt-0.5" />
                 <span>
                   <span className="block font-medium">{o.title}</span>
-                  <span className="mt-0.5 block text-sm text-muted-foreground">{o.detail}</span>
+                  <span className="mt-0.5 block text-muted-foreground">{o.detail}</span>
                 </span>
               </Label>
             ))}
@@ -283,7 +283,7 @@ function SettingsPage() {
               By weekday
             </ToggleGroupItem>
           </ToggleGroup>
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-muted-foreground">
             {schedule === 'weekday'
               ? 'Each day sits on a fixed weekday. The other days are rest days.'
               : 'The next day comes after the last one you finished, whatever the date.'}
@@ -305,7 +305,7 @@ function SettingsPage() {
               <ChevronsUpDown aria-hidden />
             </Button>
           </div>
-          <div className="mt-2 rounded-lg border px-4 py-3 text-sm">
+          <div className="mt-2 rounded-lg border px-4 py-3">
             {!split.custom && (
               <div className="flex justify-between gap-3">
                 <span className="text-muted-foreground">Days</span>
@@ -380,7 +380,7 @@ function SettingsPage() {
           <SectionHeading id="fresh-h" icon={Trash2}>
             Start fresh
           </SectionHeading>
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-3 text-muted-foreground">
             Wipes your plan, your settings and every logged session, weigh-in and tape entry. Your account stays and
             setup runs again. There is no undo, so export your logs first if you want to keep them.
           </p>
@@ -391,7 +391,7 @@ function SettingsPage() {
           <SectionHeading id="delete-h" icon={UserX}>
             Delete account
           </SectionHeading>
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-3 text-muted-foreground">
             Removes your account and every trace of your data from the database: sessions, weigh-ins, measurements,
             plans and settings. There is no recovery. Download your logs first if you want to keep them.{' '}
             <Link to="/privacy" className="text-foreground underline-offset-4 hover:underline">
