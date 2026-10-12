@@ -218,7 +218,7 @@ function describe(ex: LibraryExercise): string {
 /** Picture and cues for one exercise, in a bottom drawer on phones and a dialog from tablets up. */
 export function LibraryDetail({ exercise, onClose, action, among, onStep }: DetailProps) {
   const at = exercise && among ? among.findIndex((e) => e.id === exercise.id) : -1
-  const prev = at > 0 ? among![at - 1] : undefined
+  const prev = among && at > 0 ? among[at - 1] : undefined
   const next = among && at >= 0 && at < among.length - 1 ? among[at + 1] : undefined
   return (
     <EditorPanel

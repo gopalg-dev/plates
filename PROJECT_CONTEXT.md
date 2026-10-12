@@ -322,13 +322,17 @@ no Inter/Geist. Checked.
       which drops the Start `Register` block. Reader-tested twice with fresh agents; e2e "the guide lists every
       section" passes on mobile and desktop. The full e2e run is still to do.
 - [x] 49. Biome (user request, 2026-10-12): `biome.json` (2.5.15, single quotes, no semicolons, 120 cols, trailing
-      commas, import sorting, `preset: recommended`; skips the route tree, `src/components/ui`, `.claude`, `.mcp.json`,
+      commas, import sorting, `preset: recommended`; skips the route tree, `src/components/ui`, `.claude`, `.mcp.json`, `vercel.json` (Vercel rewrites it onto one line during its build, which failed the first deploy),
       `.cta.json`). `bun run check` = `tsc --noEmit && biome ci .` (fails on errors, not warnings); `bun run check:fix`
       formats and applies safe fixes. `vercel.json` runs `bun run check && bun run build`, so a type or Biome error
       stops the deploy. The first pass formatted 57 files and fixed 19 errors: `useAlternate` and `useDbForTests`
       renamed (`swapToAlternate`, `setDbForTests`) because Biome reads `use…` as a hook; stable keys or a
       `biome-ignore` with its reason where the index is the identity; sr-only text instead of aria-label on spans; the
-      body map's muscle groups split into a button and an img branch. 66 warnings remain (mostly `!` assertions).
+      body map's muscle groups split into a button and an img branch. The second pass took the 66 warnings to zero:
+      `finished()` in stats.ts returns `FinishedWorkout` (the finish time in the type), `must(value, what)` in
+      `src/lib/must.ts` replaces `!` where a value is known to exist (it throws naming what was missing),
+      `weekdayOf()` in schedule.ts names a day's weekday, and the reduced-motion `!important` lines carry a
+      `biome-ignore` with the reason. Keep it at 0 errors, 0 warnings, 0 infos: write no new `!` assertions.
 - [x] 47. Google is the only door in production: the password door opens only where AUTH_PASSWORD=true.
       HANDOVER.md item 68.
 - [x] 46. Google sign-in, and the emailed link and sign-up code removed: two doors, Google or username /

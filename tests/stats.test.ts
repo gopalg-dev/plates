@@ -15,6 +15,7 @@ import {
   weeklyStrength,
   weekTotals,
 } from '#/lib/logic/stats'
+import { must } from '#/lib/must'
 import { seedPlan } from '#/lib/seed-plan'
 import type { BodyweightLog, DayType, LoggedSet, Workout, WorkoutEntry } from '#/lib/types'
 
@@ -88,7 +89,7 @@ describe('consistency', () => {
     expect(weeks.map((w) => w.start)).toEqual(['2026-09-28', '2026-10-05', '2026-10-12', '2026-10-19', '2026-10-26'])
     expect(weeks[0].days.slice(0, 3)).toEqual([null, null, null])
     expect(weeks[0].days[3]).toMatchObject({ date: '2026-10-01', dayOfMonth: 1, future: false })
-    expect(new Date(weeks[0].days[3]!.iso).getDate()).toBe(1)
+    expect(new Date(must(weeks[0].days[3], 'the first of the month').iso).getDate()).toBe(1)
     expect(weeks[1].days[2]).toMatchObject({ date: '2026-10-07', type: 'pull' })
     expect(weeks[1].days[5]).toMatchObject({ date: '2026-10-10', type: 'legs', future: false })
     expect(weeks[1].days[6]).toMatchObject({ date: '2026-10-11', type: null, future: true })
@@ -104,7 +105,7 @@ describe('consistency', () => {
     expect(joined[0].days[3]).toMatchObject({ date: '2026-10-01', before: true })
     expect(joined[0].days[4]).toMatchObject({ date: '2026-10-02', before: true })
     expect(joined[0].days[5]).toMatchObject({ date: '2026-10-03', before: false })
-    expect(weeks[0].days[3]!.before).toBe(false)
+    expect(must(weeks[0].days[3], 'the first of the month').before).toBe(false)
   })
 
   it('counts weeks in a row with a session in each, the current week included once it has one', () => {
@@ -193,7 +194,7 @@ describe('strength', () => {
         { weight: 65, reps: 5, done: false },
       ]),
     ])
-    done.startedAt = new Date(new Date(done.finishedAt!).getTime() - 50 * 60_000).toISOString()
+    done.startedAt = new Date(new Date(must(done.finishedAt, 'the finish time')).getTime() - 50 * 60_000).toISOString()
     const lastWeek = workout(daysAgo(8), 'push', [benchEntry([{ weight: 100, reps: 10, done: true }])])
     const totals = weekTotals([done, lastWeek], now)
     expect(totals).toEqual({ sets: 2, lifted: 60 * 8 + 62.5 * 7, minutes: 50 })

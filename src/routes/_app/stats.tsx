@@ -53,16 +53,7 @@ import {
 import { liftTrend, TREND_LABEL, TRENDS, type Trend } from '#/lib/logic/trend'
 import { fmtWeight } from '#/lib/logic/units'
 import { rowTap } from '#/lib/row-tap'
-import {
-  type BodyweightLog,
-  type DayType,
-  type Exercise,
-  type LoadType,
-  type MeasurementLog,
-  type Muscle,
-  type Units,
-  type Workout,
-} from '#/lib/types'
+import type { BodyweightLog, DayType, Exercise, LoadType, MeasurementLog, Muscle, Units, Workout } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { getStatsFn, resetRampFn } from '#/server/fns'
 
@@ -70,6 +61,11 @@ type StatsTab = 'lifts' | 'sessions' | 'body'
 const TABS: StatsTab[] = ['lifts', 'sessions', 'body']
 
 import { pageTitle } from '#/lib/page-title'
+
+/** A lift's trend as shown beside the lift picker; nothing while it is unknown. */
+function trendLabelOf(trend: Trend | undefined): string {
+  return trend ? TREND_LABEL[trend] : ''
+}
 
 export const Route = createFileRoute('/_app/stats')({
   head: () => ({ meta: [{ title: pageTitle('Stats') }] }),
@@ -558,7 +554,7 @@ function StrengthPanel({ lifts, units, now }: { lifts: LiftData[]; units: Units;
             ))}
           </SelectContent>
         </Select>
-        <span className="shrink-0 text-sm text-muted-foreground">{TREND_LABEL[trends.get(selected.ex.id)!]}</span>
+        <span className="shrink-0 text-sm text-muted-foreground">{trendLabelOf(trends.get(selected.ex.id))}</span>
       </div>
       <LiftProgress lift={selected.ex} weeks={selected.weeks} units={units} now={now} />
     </div>
@@ -1038,8 +1034,11 @@ function MeasurementsChart({
   const data = useMemo<TapeRow[]>(() => {
     const since = range === 'all' ? null : addDays(now, -Number(range)).getTime()
     return logs
-      .filter((l) => (since === null || new Date(l.date).getTime() >= since) && l[site] !== undefined)
-      .map((l) => ({ date: l.date, value: l[site]!, log: l }))
+      .filter((l) => since === null || new Date(l.date).getTime() >= since)
+      .flatMap((l) => {
+        const value = l[site]
+        return value === undefined ? [] : [{ date: l.date, value, log: l }]
+      })
   }, [logs, range, site, now])
   const first = data[0]
   const last = data[data.length - 1]

@@ -1,5 +1,5 @@
 import type { Exercise, Muscle, TrainingAge, Workout, WorkoutEntry } from '../types'
-import { dayKey, finished, startOfWeek, weeklyStrength } from './stats'
+import { dayKey, type FinishedWorkout, finished, startOfWeek, weeklyStrength } from './stats'
 import { liftTrend } from './trend'
 
 /**
@@ -52,9 +52,9 @@ export function rampOffer(
   if (ex.ramp?.at === dayKey(startOfWeek(now))) return false
   const since = now.getTime() - RAMP_WINDOW_DAYS * 86_400_000
   const recent = finished(workouts)
-    .filter((w) => new Date(w.finishedAt!).getTime() >= since)
+    .filter((w) => new Date(w.finishedAt).getTime() >= since)
     .map((w) => ({ w, entry: w.entries.find((e) => e.exerciseId === ex.id && e.sets.some((s) => s.done)) }))
-    .filter((x): x is { w: Workout; entry: WorkoutEntry } => x.entry !== undefined)
+    .filter((x): x is { w: FinishedWorkout; entry: WorkoutEntry } => x.entry !== undefined)
   if (recent.length < RAMP_MIN_SESSIONS) return false
   if (!recent.every(({ w, entry }) => w.effort !== undefined && w.effort <= RAMP_EFFORT_MAX && completedInRange(entry)))
     return false

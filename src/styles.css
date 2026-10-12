@@ -366,8 +366,11 @@
     *,
     *::before,
     *::after {
+      /* biome-ignore lint/complexity/noImportantStyles: reduced motion has to beat every animation, inline ones too */
       animation-duration: 0.01ms !important;
+      /* biome-ignore lint/complexity/noImportantStyles: reduced motion has to beat every animation, inline ones too */
       animation-iteration-count: 1 !important;
+      /* biome-ignore lint/complexity/noImportantStyles: reduced motion has to beat every transition, inline ones too */
       transition-duration: 0.01ms !important;
     }
   }

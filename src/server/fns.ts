@@ -111,8 +111,10 @@ export const dismissFeedbackFn = createServerFn({ method: 'POST' })
   .middleware([authed])
   .handler(({ context }) => repo.dismissFeedback(context.userId))
 
+const HTML_ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
+
 function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
+  return s.replace(/[&<>"']/g, (c) => HTML_ESCAPES[c] ?? c)
 }
 
 /** Removes the account and every trace of its data. The client asks for a typed confirmation first. */

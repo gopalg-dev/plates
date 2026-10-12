@@ -435,7 +435,7 @@ function summary(r: RunResult): string {
       .join(', ')}`,
   )
   lines.push(
-    `anomalies ${r.anomalies.length}${r.anomalies.length ? ':\n- ' + r.anomalies.slice(0, 12).join('\n- ') : ''}`,
+    `anomalies ${r.anomalies.length}${r.anomalies.length ? `:\n- ${r.anomalies.slice(0, 12).join('\n- ')}` : ''}`,
   )
   return lines.join('\n')
 }

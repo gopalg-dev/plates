@@ -51,10 +51,14 @@ export function startOfWeek(d: Date): Date {
 
 // ---- helpers ----
 
-export function finished(ws: Workout[]): Workout[] {
+/** A workout that was finished: done, and stamped with the time it ended. */
+export type FinishedWorkout = Workout & { finishedAt: string }
+
+/** The finished workouts, oldest first. The type carries the finish time, so callers need no assertion. */
+export function finished(ws: Workout[]): FinishedWorkout[] {
   return ws
-    .filter((w) => w.status === 'done' && w.finishedAt)
-    .sort((a, b) => new Date(a.finishedAt!).getTime() - new Date(b.finishedAt!).getTime())
+    .filter((w): w is FinishedWorkout => w.status === 'done' && Boolean(w.finishedAt))
+    .sort((a, b) => new Date(a.finishedAt).getTime() - new Date(b.finishedAt).getTime())
 }
 
 function inRange(iso: string, start: Date, end: Date): boolean {
@@ -121,7 +125,7 @@ export function bestSet(entry: WorkoutEntry): LoggedSet | undefined {
 export function sessionsInWeek(ws: Workout[], now: Date): number {
   const start = startOfWeek(now)
   const end = addDays(start, 7)
-  return finished(ws).filter((w) => inRange(w.finishedAt!, start, end)).length
+  return finished(ws).filter((w) => inRange(w.finishedAt, start, end)).length
 }
 
 export interface CalendarDay {
@@ -150,7 +154,7 @@ export interface CalendarWeek {
  */
 export function monthCalendar(ws: Workout[], now: Date, month: Date, joinedAt?: string): CalendarWeek[] {
   const byDay = new Map<string, DayType>()
-  for (const w of finished(ws)) byDay.set(dayKey(w.finishedAt!), w.dayType)
+  for (const w of finished(ws)) byDay.set(dayKey(w.finishedAt), w.dayType)
   const todayKey = dayKey(now)
   const joinedKey = joinedAt ? dayKey(new Date(joinedAt)) : undefined
   const y = month.getFullYear()
@@ -186,7 +190,7 @@ export function monthCalendar(ws: Workout[], now: Date, month: Date, joinedAt?: 
 /** Weeks in a row with a session in each. A current week still in progress does not break the streak. */
 export function weeklyStreak(ws: Workout[], now: Date, min = 1): number {
   return weeklyStreakOf(
-    finished(ws).map((w) => w.finishedAt!),
+    finished(ws).map((w) => w.finishedAt),
     now,
     min,
   )
@@ -216,7 +220,7 @@ export function volumeByMuscleInWeek(ws: Workout[], now: Date): Record<Muscle, n
   const end = addDays(start, 7)
   const out = emptyByMuscle()
   for (const w of finished(ws)) {
-    if (!inRange(w.finishedAt!, start, end)) continue
+    if (!inRange(w.finishedAt, start, end)) continue
     for (const e of w.entries) out[e.muscle] += effectiveSets(e).length
   }
   return out
@@ -250,7 +254,7 @@ export function strengthSeries(ws: Workout[], exerciseId: string): StrengthPoint
     const best = bestSet(entry)
     if (!best) continue
     out.push({
-      date: w.finishedAt!,
+      date: w.finishedAt,
       weight: best.weight ?? 0,
       reps: best.reps ?? 0,
       seconds: best.seconds ?? 0,
@@ -315,8 +319,8 @@ export function weekTotals(ws: Workout[], at: Date): WeekTotals {
   const end = addDays(start, 7)
   const out: WeekTotals = { sets: 0, lifted: 0, minutes: 0 }
   for (const w of finished(ws)) {
-    if (!inRange(w.finishedAt!, start, end)) continue
-    const ms = new Date(w.finishedAt!).getTime() - new Date(w.startedAt).getTime()
+    if (!inRange(w.finishedAt, start, end)) continue
+    const ms = new Date(w.finishedAt).getTime() - new Date(w.startedAt).getTime()
     out.minutes += Math.max(0, Math.round(ms / 60_000))
     for (const e of w.entries) {
       for (const s of effectiveSets(e)) {
@@ -353,12 +357,12 @@ export function recentPRs(ws: Workout[], now: Date, days = 14): PR[] {
       const prev = best.get(e.exerciseId) ?? 0
       if (score > prev) {
         best.set(e.exerciseId, score)
-        if (prev > 0 && new Date(w.finishedAt!).getTime() >= since) {
+        if (prev > 0 && new Date(w.finishedAt).getTime() >= since) {
           prs.push({
             exerciseId: e.exerciseId,
             name: e.name,
             loadType: e.loadType,
-            date: w.finishedAt!,
+            date: w.finishedAt,
             weight: b.weight ?? 0,
             reps: b.reps ?? 0,
             seconds: b.seconds ?? 0,

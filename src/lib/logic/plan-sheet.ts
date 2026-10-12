@@ -1,4 +1,5 @@
 import type { SplitInfo } from '../content'
+import { must } from '../must'
 import { slug } from '../seed-plan'
 import {
   DAY_TYPES,
@@ -341,10 +342,10 @@ export function parseRows(rows: SheetRow[]): ParsedPlan {
     } else {
       const parsed = parseReps(r.reps)
       range = parsed.range
-      if (parsed.fromDate) {
+      if (parsed.fromDate && range) {
         warnings.push({
           row: rowNo,
-          message: `Reps for ${exerciseName} looked like a date. Read it as ${range!.min}-${range!.max}. Check it.`,
+          message: `Reps for ${exerciseName} looked like a date. Read it as ${range.min}-${range.max}. Check it.`,
         })
       }
     }
@@ -365,7 +366,7 @@ export function parseRows(rows: SheetRow[]): ParsedPlan {
       .slice(0, 10)
 
     const ex: Exercise = {
-      id: uniqueId(slug(exerciseName), exerciseIds.get(current.id)!),
+      id: uniqueId(slug(exerciseName), must(exerciseIds.get(current.id), `exercise ids of ${current.name}`)),
       name: exerciseName.slice(0, 80),
       sets,
       repMin: range.min,

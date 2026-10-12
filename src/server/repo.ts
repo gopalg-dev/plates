@@ -19,6 +19,7 @@ import {
   startOfWeek,
 } from '#/lib/logic/stats'
 import { plannedPerWeek, type SessionSummary, summarize } from '#/lib/logic/summary'
+import { must } from '#/lib/must'
 import { slug } from '#/lib/seed-plan'
 import {
   type BodyweightLog,
@@ -326,7 +327,7 @@ export async function addExercise(userId: string, dayId: string, input: Omit<Exe
 export async function removeExercise(userId: string, dayId: string, exerciseId: string): Promise<Plan> {
   const plan = await getPlan(userId)
   const day = plan.days.find((d) => d.id === dayId)
-  if (!day || !day.exercises.some((e) => e.id === exerciseId)) throw new Error('Exercise not found')
+  if (!day?.exercises.some((e) => e.id === exerciseId)) throw new Error('Exercise not found')
   if (day.exercises.length <= 1) throw new Error('A day needs at least one exercise')
   day.exercises = day.exercises.filter((e) => e.id !== exerciseId)
   return savePlan(userId, plan)
@@ -506,7 +507,10 @@ export async function acceptRamp(userId: string, workoutId: string, exerciseId: 
   if (entry.suggested?.[last]) entry.suggested = [...entry.suggested, { ...entry.suggested[last] }]
   delete entry.rampOffer
   await workouts.updateOne({ _id: doc._id }, { $set: { entries: doc.entries } })
-  return toWorkout(doc).entries.find((e) => e.exerciseId === exerciseId)!
+  return must(
+    toWorkout(doc).entries.find((e) => e.exerciseId === exerciseId),
+    'the entry that took the extra set',
+  )
 }
 
 /** The deload: every ramped lift goes back to the plan's own number of sets. Returns how many did. */
@@ -600,7 +604,10 @@ export async function updateWorkoutSets(
   const doc = await workouts.findOne({ _id, userId })
   if (!doc) throw new Error('Workout not found')
   const byId = new Map(changes.map((c) => [c.exerciseId, c.sets]))
-  const entries = doc.entries.map((e) => (byId.has(e.exerciseId) ? { ...e, sets: byId.get(e.exerciseId)! } : e))
+  const entries = doc.entries.map((e) => {
+    const sets = byId.get(e.exerciseId)
+    return sets ? { ...e, sets } : e
+  })
   await workouts.updateOne({ _id, userId }, { $set: { entries } })
   return toWorkout({ ...doc, entries })
 }
@@ -907,8 +914,8 @@ export async function getTodayData(userId: string): Promise<TodayData> {
     plan,
     active,
     nextDayId: nextDayId(plan.days, last?.dayId),
-    lastFinished: last ? { dayName: last.dayName, finishedAt: last.finishedAt! } : null,
-    recent: recent.map((w) => ({ dayId: w.dayId, finishedAt: w.finishedAt! })),
+    lastFinished: last?.finishedAt ? { dayName: last.dayName, finishedAt: last.finishedAt } : null,
+    recent: recent.flatMap((w) => (w.finishedAt ? [{ dayId: w.dayId, finishedAt: w.finishedAt }] : [])),
     lastBodyweightAt: bodyweights.at(-1)?.date ?? null,
     lastMeasurementAt: lastMeasure?.date ?? null,
     alerts,

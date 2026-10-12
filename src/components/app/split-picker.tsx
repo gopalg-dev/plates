@@ -5,6 +5,7 @@ import { RadioGroup, RadioGroupItem } from '#/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import { type SplitInfo, type SplitTemplate, splitInfos } from '#/lib/content'
 import { buildCustomDays, DAY_LABEL } from '#/lib/day-blocks'
+import { must } from '#/lib/must'
 import { DAY_TYPES, type DayType, type SplitId } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { DayIcon } from './day-mark'
@@ -127,7 +128,13 @@ export function SplitPicker({
       {splitInfos(splits).map((s) => (
         <Label key={s.id} className={splitOptionRow}>
           <RadioGroupItem value={s.id} className="mt-0.5" />
-          <SplitOptionBody split={s} template={splits.find((t) => t.id === s.id)!} />
+          <SplitOptionBody
+            split={s}
+            template={must(
+              splits.find((t) => t.id === s.id),
+              `the ${s.id} template`,
+            )}
+          />
         </Label>
       ))}
       <Label className={cn(splitOptionRow, 'flex-col items-stretch gap-0')}>

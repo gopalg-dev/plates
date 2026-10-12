@@ -50,7 +50,7 @@ export function setsToRows(workouts: Workout[]): SetRow[] {
       entry.sets.forEach((s, i) => {
         if (!s.done) return
         rows.push({
-          Date: dayKey(w.finishedAt!),
+          Date: dayKey(w.finishedAt),
           Time: localTime(w.startedAt),
           Day: w.dayName,
           Type: w.dayType,

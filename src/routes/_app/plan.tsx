@@ -43,7 +43,7 @@ import { planSourceInfo } from '#/lib/content'
 import { DAY_LABEL } from '#/lib/day-blocks'
 import { errorMessage } from '#/lib/format'
 import { MUSCLE_BY_DAY } from '#/lib/logic/plan-sheet'
-import { WEEK_ORDER, WEEKDAY_LONG } from '#/lib/logic/schedule'
+import { WEEK_ORDER, WEEKDAY_LONG, weekdayOf } from '#/lib/logic/schedule'
 import { MUSCLE_LABEL, MUSCLES, plannedSetsFor } from '#/lib/logic/stats'
 import { pageTitle } from '#/lib/page-title'
 import { rowTap } from '#/lib/row-tap'
@@ -325,7 +325,7 @@ function DaySection({
           <span className="block font-condensed text-2xl font-semibold leading-none">{day.name}</span>
           <span className="mt-1 block text-sm text-muted-foreground">
             {day.exercises.length} exercises, {sets} sets
-            {onWeekdays ? `, ${WEEKDAY_LONG[day.weekday!]}s` : ''}
+            {onWeekdays ? `, ${weekdayOf(day)}s` : ''}
           </span>
         </span>
       </AccordionTrigger>

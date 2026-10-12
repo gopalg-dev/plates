@@ -72,7 +72,7 @@ function Figure({ side, figure, done, target, picked, onPick, className }: Figur
     let lastY = -Infinity
     const onSide = muscles
       .filter((m) => LABEL_SIDE[side][m] === s)
-      .map((m) => ({ m, a: anchorOf(figure.regions[m]!, s) }))
+      .map((m) => ({ m, a: anchorOf(figure.regions[m] ?? [], s) }))
       .sort((p, q) => p.a.y - q.a.y)
     for (const { m, a } of onSide) {
       const ly = Math.max(a.y, lastY + 230)
@@ -99,7 +99,7 @@ function Figure({ side, figure, done, target, picked, onPick, className }: Figur
           const at = placed.get(m)
           const art = (
             <>
-              {figure.regions[m]!.map((points) => (
+              {(figure.regions[m] ?? []).map((points) => (
                 <polygon
                   key={points}
                   points={points}

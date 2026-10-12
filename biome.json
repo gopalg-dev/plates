@@ -9,6 +9,7 @@
       "!.claude",
       "!.mcp.json",
       "!.cta.json",
+      "!vercel.json",
       "!e2e/screenshots"
     ]
   },

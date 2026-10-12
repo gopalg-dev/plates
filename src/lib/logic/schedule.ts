@@ -4,6 +4,11 @@ import { startOfWeek } from './stats'
 export const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export const WEEKDAY_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
+/** A day's weekday by name, or an empty string for a day not tied to one (the rolling schedule). */
+export function weekdayOf(day: Pick<PlanDay, 'weekday'>): string {
+  return day.weekday === undefined ? '' : WEEKDAY_LONG[day.weekday]
+}
+
 /** Monday first, for pickers and for ordering a week. */
 export const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0]
 

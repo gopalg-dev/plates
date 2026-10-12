@@ -1,5 +1,6 @@
 import { MongoClient } from 'mongodb'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { must } from '#/lib/must'
 import { setDbForTests } from '#/server/db'
 import * as repo from '#/server/repo'
 
@@ -91,20 +92,43 @@ suite('plan', () => {
 
   it('a swapped-in alternate brings its own load type and muscle', async () => {
     const plan = await repo.getPlan(U)
-    const day = plan.days.find((d) => d.exercises.some((e) => e.name === 'Pull-ups'))!
-    const pullUps = day.exercises.find((e) => e.name === 'Pull-ups')!
+    const day = must(
+      plan.days.find((d) => d.exercises.some((e) => e.name === 'Pull-ups')),
+      'a day with Pull-ups',
+    )
+    const pullUps = must(
+      day.exercises.find((e) => e.name === 'Pull-ups'),
+      'Pull-ups',
+    )
     expect(pullUps.loadType).toBe('bodyweight')
     const swapped = await repo.swapExercise(U, day.id, pullUps.id, 'Lat Pulldown')
-    const pulldown = swapped.days.find((d) => d.id === day.id)!.exercises.find((e) => e.name === 'Lat Pulldown')!
+    const pulldown = must(
+      must(
+        swapped.days.find((d) => d.id === day.id),
+        'the day',
+      ).exercises.find((e) => e.name === 'Lat Pulldown'),
+      'Lat Pulldown',
+    )
     expect(pulldown.loadType).toBe('weight')
     expect(pulldown.muscle).toBe('back')
     const back = await repo.swapExercise(U, day.id, pulldown.id, 'Pull-ups')
-    expect(back.days.find((d) => d.id === day.id)!.exercises.find((e) => e.name === 'Pull-ups')!.loadType).toBe(
-      'bodyweight',
-    )
+    expect(
+      must(
+        must(
+          back.days.find((d) => d.id === day.id),
+          'the day',
+        ).exercises.find((e) => e.name === 'Pull-ups'),
+        'Pull-ups',
+      ).loadType,
+    ).toBe('bodyweight')
     // A name the library does not know is guessed from the words in it.
     const guessed = await repo.swapExercise(U, day.id, 'pull-ups', 'Deficit Push-ups')
-    expect(guessed.days.find((d) => d.id === day.id)!.exercises[0].loadType).toBe('bodyweight')
+    expect(
+      must(
+        guessed.days.find((d) => d.id === day.id),
+        'the day',
+      ).exercises[0].loadType,
+    ).toBe('bodyweight')
   })
 
   it('rejects unknown exercises', async () => {
@@ -236,7 +260,7 @@ suite('plan', () => {
   })
 
   it('moves a plan stored the old way into the slot for the current split, once', async () => {
-    const db = client!.db(dbName)
+    const db = must(client, 'the test database').db(dbName)
     await repo.saveSettings(U, { split: 'ul4' })
     const days = [{ id: 'd', name: 'D', type: 'full', exercises: [] }]
     await db.collection('plan').insertOne({ _id: U as never, days, updatedAt: 'x' })
@@ -313,13 +337,19 @@ suite('workouts', () => {
       ])
     })
     const next = await repo.startWorkout(U, 'pull-a')
-    const row = next.entries.find((e) => e.exerciseId === 'barbell-row')!
+    const row = must(
+      next.entries.find((e) => e.exerciseId === 'barbell-row'),
+      'the Barbell Row entry',
+    )
     // Targets sit beside blank sets: nothing is logged until a set is marked done.
     expect(row.sets).toEqual([{ done: false }, { done: false }, { done: false }, { done: false }])
     // A barbell row steps by two plates: 5 kg with the common 2.5 kg plate.
     expect(row.suggested?.map((s) => s.weight)).toEqual([65, 65, 65, 65])
     expect(row.hint).toContain('Try 65 kg')
-    const pullups = next.entries.find((e) => e.exerciseId === 'pull-ups')!
+    const pullups = must(
+      next.entries.find((e) => e.exerciseId === 'pull-ups'),
+      'the Pull-ups entry',
+    )
     expect(pullups.suggested?.map((s) => s.reps)).toEqual([8, 7, 6, 6])
     expect(pullups.hint).toContain('Add a rep')
   })
@@ -327,7 +357,10 @@ suite('workouts', () => {
   it('learns from the same plan day first, and from any day when that day has no history', async () => {
     // Pull A and Push A both hold a barbell exercise under the same id only in a custom plan; make one.
     const plan = await repo.getPlan(U)
-    const row = plan.days[0].exercises.find((e) => e.id === 'barbell-row')!
+    const row = must(
+      plan.days[0].exercises.find((e) => e.id === 'barbell-row'),
+      'Barbell Row',
+    )
     const days = [
       { ...plan.days[0], id: 'heavy', name: 'Heavy', exercises: [{ ...row, repMin: 4, repMax: 6 }] },
       { ...plan.days[0], id: 'light', name: 'Light', exercises: [{ ...row, repMin: 10, repMax: 15 }] },
@@ -509,7 +542,7 @@ suite('users', () => {
   })
 
   it('hands the pre-account data to the first user only', async () => {
-    const db = client!.db(dbName)
+    const db = must(client, 'the test database').db(dbName)
     await db
       .collection('settings')
       .insertOne({ _id: 'settings' as never, units: 'lb', trainingAge: 'over1', setupDone: true })

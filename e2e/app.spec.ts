@@ -482,7 +482,9 @@ test('a day on the stats calendar opens its session to fix a set or remove it', 
   await page.getByRole('button', { name: 'Download CSV' }).click()
   const csvFile = await csv
   expect(csvFile.suggestedFilename()).toMatch(/^plates-logs-\d{4}-\d{2}-\d{2}\.csv$/)
-  const text = readFileSync((await csvFile.path())!, 'utf8')
+  const csvPath = await csvFile.path()
+  if (!csvPath) throw new Error('The CSV download has no file')
+  const text = readFileSync(csvPath, 'utf8')
   expect(text.split('\n')[0]).toContain('Weight (kg)')
   expect(text).toContain('Barbell Row')
   expect(text).toContain('Grip gave out on rows')

@@ -43,7 +43,8 @@ async function withDb<T>(fn: (db: import('mongodb').Db) => Promise<T>): Promise<
 async function userId(): Promise<string> {
   return withDb(async (db) => {
     const u = await db.collection('user').findOne({ email: EMAIL })
-    return u!._id.toHexString()
+    if (!u) throw new Error(`No user ${EMAIL}`)
+    return u._id.toHexString()
   })
 }
 /** Moves every finished session of the user back by `days`. */
@@ -554,7 +555,9 @@ test('an empty search says so, and the export holds every logged set', async () 
   const csv = page.waitForEvent('download')
   await page.getByRole('button', { name: 'Download CSV' }).click()
   const file = await csv
-  const text = fs.readFileSync((await file.path())!, 'utf8')
+  const csvPath = await file.path()
+  if (!csvPath) throw new Error('The CSV download has no file')
+  const text = fs.readFileSync(csvPath, 'utf8')
   const rows = text.trim().split('\n').length - 1
   const id = await userId()
   const expected = await withDb(async (db) => {

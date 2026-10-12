@@ -48,7 +48,7 @@ export function summarize(
 ): SessionSummary {
   const past = finished(earlier)
     .filter((w) => w.id !== workout.id)
-    .sort((a, b) => new Date(b.finishedAt!).getTime() - new Date(a.finishedAt!).getTime())
+    .sort((a, b) => new Date(b.finishedAt).getTime() - new Date(a.finishedAt).getTime())
   const lines: SummaryLine[] = []
   for (const entry of workout.entries) {
     const best = bestSet(entry)

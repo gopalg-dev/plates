@@ -58,13 +58,12 @@ import { EFFORT_LABEL, EFFORTS, type Effort } from '#/lib/logic/effort'
 import type { Mood } from '#/lib/logic/feedback'
 import { nudgeFor } from '#/lib/logic/nudges'
 import { plateOf } from '#/lib/logic/progression'
-import { WEEKDAY_LONG, WEEKDAY_SHORT, weekdayView } from '#/lib/logic/schedule'
+import { WEEKDAY_SHORT, weekdayOf, weekdayView } from '#/lib/logic/schedule'
 import { plannedSetsFor, weeklyStreakOf } from '#/lib/logic/stats'
 import type { SessionSummary } from '#/lib/logic/summary'
 import { pageTitle } from '#/lib/page-title'
 import { rowTap } from '#/lib/row-tap'
-import type { NudgeKind } from '#/lib/types'
-import { type LoggedSet, type Plan, type PlanDay, type Settings, type Workout, type WorkoutEntry } from '#/lib/types'
+import type { LoggedSet, NudgeKind, Plan, PlanDay, Settings, Workout, WorkoutEntry } from '#/lib/types'
 import { useWakeLock } from '#/lib/use-wake-lock'
 import { cn } from '#/lib/utils'
 import {
@@ -270,7 +269,7 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
     now,
   )
   const nextLine = view?.next
-    ? `Next: ${view.next.day.name}, ${view.next.inDays === 1 ? 'tomorrow' : WEEKDAY_LONG[view.next.day.weekday!]}.`
+    ? `Next: ${view.next.day.name}, ${view.next.inDays === 1 ? 'tomorrow' : weekdayOf(view.next.day)}.`
     : ''
 
   return (
@@ -293,7 +292,7 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
         </p>
       ) : (
         <p className="mt-3 text-muted-foreground">
-          {view?.doneToday ? `${view.today!.name} is in the log. ` : 'Nothing planned for today. '}
+          {view?.doneToday && view.today ? `${view.today.name} is in the log. ` : 'Nothing planned for today. '}
           {nextLine}
         </p>
       )}
@@ -352,7 +351,7 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
                 <DayIcon type={d.type} className="size-8 rounded-md" />
                 <span className="min-w-0 flex-1">
                   <span className="block font-medium">{d.name}</span>
-                  <span className="block text-sm text-muted-foreground">{WEEKDAY_LONG[d.weekday!]}</span>
+                  <span className="block text-sm text-muted-foreground">{weekdayOf(d)}</span>
                 </span>
                 <Button variant="outline" size="sm" onClick={() => start(d.id)} disabled={starting !== null}>
                   Do it now
@@ -513,7 +512,7 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
     updateSets(exerciseId, (sets) => sets.map((s, i) => (i === index ? { ...s, ...patch } : s)))
     // The reps-left answer on the last set is the last thing to do on a weight exercise.
     const entry = entries.find((e) => e.exerciseId === exerciseId)
-    if (patch.left !== undefined && entry && entry.sets.every((s) => s.done)) advanceFrom(exerciseId)
+    if (patch.left !== undefined && entry?.sets.every((s) => s.done)) advanceFrom(exerciseId)
   }
 
   function toggleDone(exerciseId: string, index: number) {

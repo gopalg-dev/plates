@@ -25,7 +25,7 @@ function stalledLifts(workouts: Workout[], now: Date): { id: string; name: strin
   const recentBest = new Map<string, { name: string; sessions: number; score: number }>()
   const olderBest = new Map<string, number>()
   for (const w of finished(workouts)) {
-    const recent = inRange(w.finishedAt!, since, end)
+    const recent = inRange(w.finishedAt, since, end)
     for (const e of w.entries) {
       const b = bestSet(e)
       if (!b) continue
@@ -103,8 +103,9 @@ function flatScale(logs: BodyweightLog[], goal: Goal | undefined, units: Units, 
         .map((l) => l.weight),
     ),
   )
-  if (weeks.some((w) => w === undefined)) return null
-  const perWeek = (weeks[0]! - weeks[2]!) / 2
+  const [latest, middle, oldest] = weeks
+  if (latest === undefined || middle === undefined || oldest === undefined) return null
+  const perWeek = (latest - oldest) / 2
   const flat = units === 'kg' ? 0.1 : 0.2
   if (goal === 'gain' && perWeek < flat) {
     return {

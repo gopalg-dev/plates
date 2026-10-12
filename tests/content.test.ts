@@ -1,6 +1,7 @@
 import { MongoClient } from 'mongodb'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { LIBRARY } from '#/lib/library'
+import { must } from '#/lib/must'
 import { BUNDLED_SPLITS } from '#/lib/splits'
 import { forgetContent, readContent, seedContent, splitTemplate } from '#/server/content'
 import { setDbForTests } from '#/server/db'
@@ -32,7 +33,7 @@ beforeEach(async () => {
 
 suite('content', () => {
   it('seeds an empty database from the bundle and reads it back', async () => {
-    const report = await seedContent(client!.db(dbName))
+    const report = await seedContent(must(client, 'the test database').db(dbName))
     expect(report).toEqual({ library: LIBRARY.length, splits: BUNDLED_SPLITS.length })
     const content = await readContent()
     expect(content.library).toHaveLength(LIBRARY.length)
@@ -48,7 +49,7 @@ suite('content', () => {
   })
 
   it('keeps edits made in the database and only adds what is missing', async () => {
-    const db = client!.db(dbName)
+    const db = must(client, 'the test database').db(dbName)
     await seedContent(db)
     await db.collection('library').updateOne({ _id: 'pull-ups' as never }, { $set: { name: 'Chin-ups, wide' } })
     await db.collection('library').deleteOne({ _id: 'plank' as never })
@@ -61,7 +62,7 @@ suite('content', () => {
   })
 
   it('resets to the bundle on request', async () => {
-    const db = client!.db(dbName)
+    const db = must(client, 'the test database').db(dbName)
     await seedContent(db)
     await db.collection('library').updateOne({ _id: 'pull-ups' as never }, { $set: { name: 'Edited' } })
     const report = await seedContent(db, { reset: true })

@@ -20,7 +20,7 @@ function inRange(iso: string, start: Date, end: Date): boolean {
 
 /** Average rating of finished sessions in [start, end). Undefined when none was rated. */
 export function averageEffort(ws: Workout[], start: Date, end: Date): number | undefined {
-  const rated = finished(ws).filter((w) => inRange(w.finishedAt!, start, end) && typeof w.effort === 'number')
+  const rated = finished(ws).filter((w) => inRange(w.finishedAt, start, end) && typeof w.effort === 'number')
   if (rated.length === 0) return undefined
   return rated.reduce((sum, w) => sum + (w.effort as number), 0) / rated.length
 }
@@ -38,7 +38,7 @@ export function effortLabel(avg: number): string {
 function bestScores(ws: Workout[], start: Date, end: Date): Map<string, number> {
   const out = new Map<string, number>()
   for (const w of finished(ws)) {
-    if (!inRange(w.finishedAt!, start, end)) continue
+    if (!inRange(w.finishedAt, start, end)) continue
     for (const e of w.entries) {
       const b = bestSet(e)
       if (!b) continue
