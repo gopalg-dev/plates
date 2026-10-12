@@ -11,7 +11,7 @@ import {
   TrendingUp,
   Trophy,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { paceNote } from '#/lib/logic/goal'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis, useActiveTooltipLabel } from 'recharts'
 import { LogBodyweightDialog, LogMeasurementsDialog, TapeDialog, WeighInDialog } from '#/components/app/body-dialogs'
@@ -1016,11 +1016,14 @@ function MeasurementsChart({
   lengthUnit,
   now,
   onPick,
+  action,
 }: {
   logs: MeasurementLog[]
   lengthUnit: string
   now: Date
   onPick: (log: MeasurementLog) => void
+  /** The "Log measurements" button, on the same row as the site switch. */
+  action: ReactNode
 }) {
   const [site, setSite] = useState<Site>('arm')
   const [range, setRange] = useState<TapeRange>('365')
@@ -1040,23 +1043,26 @@ function MeasurementsChart({
     first && last ? `${SITE_LABEL[site]} ${first.value} to ${last.value} ${lengthUnit} over ${data.length} tapes.` : ''
 
   return (
-    <div className="mt-5">
-      <ToggleGroup
-        type="single"
-        size="sm"
-        variant="outline"
-        value={site}
-        onValueChange={(v) => v && setSite(v as Site)}
-        aria-label="Tape site"
-        className="w-full max-w-xs"
-      >
-        {SITES.map((s) => (
-          <ToggleGroupItem key={s} value={s} className="flex-1 gap-2">
-            <span aria-hidden className="size-2 rounded-full" style={{ background: tapeConfig[s].color }} />
-            {SITE_LABEL[s]}
-          </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
+    <div className="mt-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <ToggleGroup
+          type="single"
+          size="sm"
+          variant="outline"
+          value={site}
+          onValueChange={(v) => v && setSite(v as Site)}
+          aria-label="Tape site"
+          className="w-full max-w-xs"
+        >
+          {SITES.map((s) => (
+            <ToggleGroupItem key={s} value={s} className="flex-1 gap-2">
+              <span aria-hidden className="size-2 rounded-full" style={{ background: tapeConfig[s].color }} />
+              {SITE_LABEL[s]}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+        {action}
+      </div>
       <div className="mt-3 flex items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground">
           {data.length === 0 ? 'No tapes in this range.' : `${data.length} ${data.length === 1 ? 'tape' : 'tapes'}`}
@@ -1202,10 +1208,13 @@ function Measurements({
         Last measured {longDate(last.date)}, {ago <= 0 ? 'today' : ago === 1 ? 'yesterday' : `${ago} days ago`}.{' '}
         {overdue ? 'Tape day is due now.' : `Next tape day ${longDate(due.toISOString())}.`}
       </p>
-      <div className="mt-4">
-        <LogMeasurementsDialog lengthUnit={lengthUnit} onLogged={onLogged} />
-      </div>
-      <MeasurementsChart logs={logs} lengthUnit={lengthUnit} now={now} onPick={onPick} />
+      <MeasurementsChart
+        logs={logs}
+        lengthUnit={lengthUnit}
+        now={now}
+        onPick={onPick}
+        action={<LogMeasurementsDialog lengthUnit={lengthUnit} onLogged={onLogged} />}
+      />
     </div>
   )
 }
