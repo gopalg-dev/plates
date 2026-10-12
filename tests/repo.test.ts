@@ -156,6 +156,18 @@ suite('plan', () => {
     expect(pull.exercises.map((e) => e.id)).toContain('barbell-shrug')
     expect(pull.exercises.at(-1)?.name).toBe('Barbell Shrug')
     expect(pull.exercises).toHaveLength(6)
+    let full = added
+    for (const n of [1, 2, 3, 4]) {
+      full = await repo.addExercise(U, 'pull-a', {
+        name: `Extra Lift ${n}`,
+        sets: 3,
+        repMin: 8,
+        repMax: 12,
+        muscle: 'back',
+        loadType: 'weight',
+      })
+    }
+    expect(full.days[0].exercises).toHaveLength(10)
     await expect(
       repo.addExercise(U, 'pull-a', {
         name: 'One Too Many',
@@ -165,10 +177,10 @@ suite('plan', () => {
         muscle: 'back',
         loadType: 'weight',
       }),
-    ).rejects.toThrow(/up to 6/)
+    ).rejects.toThrow(/up to 10/)
     await expect(repo.removeExercise(U, 'pull-a', 'nope')).rejects.toThrow()
-    for (const id of ['pull-ups', 'barbell-row', 'seated-cable-row', 'face-pull', 'barbell-curl']) {
-      await repo.removeExercise(U, 'pull-a', id)
+    for (const { id } of full.days[0].exercises) {
+      if (id !== 'barbell-shrug') await repo.removeExercise(U, 'pull-a', id)
     }
     await expect(repo.removeExercise(U, 'pull-a', 'barbell-shrug')).rejects.toThrow(/at least one/)
   })

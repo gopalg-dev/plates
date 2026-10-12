@@ -55,8 +55,8 @@ export interface Exercise {
   ramp?: { base: number; at: string }
 }
 
-/** A day holds this many exercises at most: enough for a session, short enough for a phone screen. */
-export const MAX_EXERCISES_PER_DAY = 6
+/** A day holds this many exercises at most: room for a long session, still a list a phone can scroll. */
+export const MAX_EXERCISES_PER_DAY = 10
 /** A plan holds this many days at most: two weeks of rolling sessions. */
 export const MAX_DAYS = 14
 

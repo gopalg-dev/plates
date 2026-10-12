@@ -273,7 +273,7 @@ no Inter/Geist. Checked.
 - [x] 20. Polish round (user requests, 2026-10-11, 1 to 2:30 am), all e2e-covered: streak on
       Today; exercise stills next to every exercise (library match by name), week shapes on the
       split picker, section icons on Stats and Settings; add and remove exercises per day with a
-      cap of six (`MAX_EXERCISES_PER_DAY`, templates trimmed to fit, import capped); phone header
+      cap of six (`MAX_EXERCISES_PER_DAY`, templates trimmed to fit, import capped; raised to ten on 2026-10-12); phone header
       with a left-side menu button opening the sidebar sheet; sidebar footer as a profile row with
       a Settings / Sign out dropdown; the active workout's "Change session" and "Discard workout"
       under a three-dots menu; the Settings split as a Collapsible (current row, unfold to pick,

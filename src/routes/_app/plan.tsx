@@ -533,7 +533,7 @@ function EditorForm({ day, exercise, onClose, onSaved }: FormProps) {
   const unit = loadType === 'time' ? 'seconds' : 'reps'
 
   return (
-    <form id="exercise-form" onSubmit={save} className="flex flex-col">
+    <form id="exercise-form" onSubmit={save} className="flex flex-col pb-4 md:pb-0">
       <FieldGroup className="gap-6 px-4">
         <Field>
           <div className="flex items-center justify-between gap-3">

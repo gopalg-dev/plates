@@ -17,7 +17,7 @@ Four screens, one job each:
   every lift's best set, new bests, the week's count. Lifts that stopped moving, a week running out and a
   scale that is not moving show up here as one-line alerts. The header's menu switches the day or discards the session.
 - **Plan**: the days of your split, each exercise with its picture. Edit an exercise, swap in an
-  alternate, add or remove exercises (six per day at most), add a day of any kind (it starts with
+  alternate, add or remove exercises (ten per day at most), add a day of any kind (it starts with
   five lifts), rename, reorder or remove days, or bring your own plan from an Excel template.
 - **Stats**, in three tabs. Lifts: chips sort the lifts by trend (climbing, stuck, slipping, idle, new);
   pick a lift and see it week by week, the latest best set, a

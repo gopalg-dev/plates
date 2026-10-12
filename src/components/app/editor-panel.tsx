@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '#/components/ui/dialog'
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '#/components/ui/drawer'
 import { useMediaQuery } from '#/lib/use-media-query'
+import { useVisibleViewport } from '#/lib/use-visible-viewport'
 
 interface Props {
   open: boolean
@@ -24,6 +25,7 @@ const FooterSlot = createContext<HTMLDivElement | null>(null)
 export function EditorPanel({ open, onClose, title, description, children, width = 'md' }: Props) {
   const wide = useMediaQuery('(min-width: 768px)')
   const [slot, setSlot] = useState<HTMLDivElement | null>(null)
+  const visible = useVisibleViewport(open && !wide)
   if (wide) {
     return (
       <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
@@ -46,9 +48,17 @@ export function EditorPanel({ open, onClose, title, description, children, width
       </Dialog>
     )
   }
+  // With the keyboard up, the drawer sits on top of it and fits the space left, so the whole form and
+  // the footer still scroll into view. A swipe then only scrolls: it never drags the drawer shut mid-typing.
+  // vaul's own keyboard handling (repositionInputs) moves the drawer in ways that fight this, so it is off.
+  const keyboard = visible !== null && (visible.keyboard || visible.bottom > 80)
   return (
-    <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
-      <DrawerContent className="max-h-[92dvh]">
+    <Drawer open={open} onOpenChange={(o) => !o && onClose()} repositionInputs={false} dismissible={!keyboard}>
+      <DrawerContent
+        className="max-h-[92dvh]"
+        data-keyboard={keyboard || undefined}
+        style={keyboard ? { bottom: visible.bottom, maxHeight: Math.round(visible.height * 0.92) } : undefined}
+      >
         <DrawerHeader>
           <DrawerTitle className="flex items-center gap-2">{title}</DrawerTitle>
           <DrawerDescription>{description}</DrawerDescription>
@@ -58,7 +68,7 @@ export function EditorPanel({ open, onClose, title, description, children, width
         </div>
         <div
           ref={setSlot}
-          className="flex shrink-0 flex-wrap items-center gap-2 border-t px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] empty:hidden"
+          className="flex shrink-0 flex-wrap items-center gap-2 border-t px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] empty:hidden group-data-[keyboard]/drawer-content:pb-3"
         />
       </DrawerContent>
     </Drawer>

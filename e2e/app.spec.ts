@@ -188,21 +188,21 @@ test('plan shows the days and swaps an exercise for an alternate', async () => {
   await expect(page.getByText('Switched to Weighted Dips')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Edit Weighted Dips' })).toBeVisible()
 
-  // A day holds six: remove one, then add one in its place.
-  await expect(page.getByRole('button', { name: 'Add exercise to Push A' })).toBeDisabled()
+  // A day holds ten: remove one, then add one in its place. The cap itself is unit-tested in repo.test.ts.
+  await expect(page.getByText('6 of 10 exercises')).toBeVisible()
   await page.getByRole('button', { name: 'Edit Cable Crunch' }).click()
   await page.getByRole('button', { name: 'Remove from day' }).click()
   await page.getByRole('button', { name: 'Remove', exact: true }).click()
   await expect(page.getByText('Removed from the day')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Edit Cable Crunch' })).not.toBeVisible()
-  await expect(page.getByText('5 of 6 exercises')).toBeVisible()
+  await expect(page.getByText('5 of 10 exercises')).toBeVisible()
   await page.getByRole('button', { name: 'Add exercise to Push A' }).click()
   await expect(page.getByRole('heading', { name: 'New exercise' })).toBeVisible()
   await page.getByLabel('Name', { exact: true }).fill('Chest Dips')
   await page.getByRole('button', { name: 'Add to day' }).click()
   await expect(page.getByText('Added to the day')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Edit Chest Dips' })).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Add exercise to Push A' })).toBeDisabled()
+  await expect(page.getByText('6 of 10 exercises')).toBeVisible()
 
   // Days themselves: add one of a kind, rename it, move it, remove it.
   await page.getByRole('button', { name: 'Add a day' }).click()

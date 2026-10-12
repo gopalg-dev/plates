@@ -304,11 +304,12 @@ export function LibraryPicker({ onPick, trigger }: PickerProps) {
       </DialogTrigger>
       {/* The title and the close button stay put; the search, tags and list scroll beneath them. */}
       <DialogContent className="flex max-h-[90dvh] flex-col gap-0 p-0 sm:max-w-lg">
-        <DialogHeader className="p-6 pb-4">
+        <DialogHeader className="p-6 pb-3">
           <DialogTitle>Pick from library</DialogTitle>
           <DialogDescription className="sr-only">Search, then use an exercise.</DialogDescription>
         </DialogHeader>
-        <div className="min-h-0 flex-1 overflow-y-auto scrollbar-none px-6 pb-6">
+        {/* pt-1: room for the search box's focus ring, which the scrolling area would clip. */}
+        <div className="min-h-0 flex-1 overflow-y-auto scrollbar-none px-6 pt-1 pb-6">
           <LibraryList
             autoFocus
             action="Use"
