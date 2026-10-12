@@ -200,6 +200,12 @@ async function run(
     if (wd === 1) {
       bw = 60 + 8 * (day / totalDays)
       await repo.logBodyweight(UID, Math.round(bw * 10) / 10)
+      // Tape day every four weeks: arm, chest and waist, all growing with the gain.
+      if (day % 28 === 0) {
+        const t = day / totalDays
+        const cm = (from: number, to: number) => Math.round((from + (to - from) * t + (rnd() - 0.5) * 0.6) * 10) / 10
+        await repo.logMeasurement(UID, { arm: cm(30, 36), chest: cm(88, 100), waist: cm(76, 82) })
+      }
       const all = attachBodyweight(await repo.listWorkouts(UID, { sinceDays: 365 }), await repo.listBodyweights(UID))
       const hint = deloadHint(all, today())
       if (hint && !deloadWeek) {
