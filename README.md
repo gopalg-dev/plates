@@ -27,7 +27,8 @@ Four screens, one job each:
   a body map (front and back, each muscle grey, red or green by the week's hard sets against the
   plan, tap one for the number) over the hard sets per muscle, and the Excel / CSV export. Pull-ups and other bodyweight
   work count at your logged bodyweight in the weight lifted and in new bests. Body: bodyweight chart (tap
-  a point to edit or remove a weigh-in) and measurements.
+  a point to edit or remove a weigh-in) and measurements, arm, chest and waist on one chart as the change
+  since the first tape.
 - **Library**: 137 exercises with a picture, muscles, equipment and cues, searchable and
   filterable. "Pick from library" fills an exercise in from the plan editor or the import preview.
   The picture on any exercise row (Plan, Today, a session) opens the same view in place, through

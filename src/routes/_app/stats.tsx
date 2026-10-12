@@ -14,13 +14,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { paceNote } from '#/lib/logic/goal'
 import { CartesianGrid, Line, LineChart, XAxis, YAxis, useActiveTooltipLabel } from 'recharts'
-import {
-  DeleteMeasurementButton,
-  EditMeasurementButton,
-  LogBodyweightDialog,
-  LogMeasurementsDialog,
-  WeighInDialog,
-} from '#/components/app/body-dialogs'
+import { LogBodyweightDialog, LogMeasurementsDialog, TapeDialog, WeighInDialog } from '#/components/app/body-dialogs'
 import { BodyMap, BodyMapLegend } from '#/components/app/body-map'
 import { DayIcon, dayColourClass, dayColourVar, dayInkClass } from '#/components/app/day-mark'
 import { ExportButtons } from '#/components/app/export-buttons'
@@ -160,6 +154,7 @@ function StatsPage() {
   const units = settings.units
   const lengthUnit = units === 'kg' ? 'cm' : 'in'
   const [picked, setPicked] = useState<BodyweightLog | null>(null)
+  const [pickedTape, setPickedTape] = useState<MeasurementLog | null>(null)
   /** Monday key of the week the numbers describe. Null means the current week. */
   const [week, setWeek] = useState<string | null>(null)
   /** The session open for editing, and the day whose sessions are listed when there is more than one. */
@@ -414,7 +409,13 @@ function StatsPage() {
             <SectionHeading id="tape-h" icon={Ruler}>
               Measurements
             </SectionHeading>
-            <Measurements logs={measurements} lengthUnit={lengthUnit} now={now} onLogged={refresh} />
+            <Measurements
+              logs={measurements}
+              lengthUnit={lengthUnit}
+              now={now}
+              onLogged={refresh}
+              onPick={setPickedTape}
+            />
           </section>
         </TabsContent>
       </Tabs>
@@ -476,6 +477,15 @@ function StatsPage() {
         </DialogContent>
       </Dialog>
 
+      <TapeDialog
+        log={pickedTape}
+        lengthUnit={lengthUnit}
+        onClose={() => setPickedTape(null)}
+        onChanged={() => {
+          setPickedTape(null)
+          refresh()
+        }}
+      />
       <WeighInDialog
         log={picked}
         units={units}
@@ -971,7 +981,7 @@ function BodyweightChart({ logs, units, now, onPick }: ChartProps) {
 }
 
 /** Remembers the point under the cursor or the keyboard focus so Enter can open it. Renders nothing. */
-function ActivePoint({ rows, onChange }: { rows: ChartRow[]; onChange: (log: BodyweightLog | null) => void }) {
+function ActivePoint<L>({ rows, onChange }: { rows: { date: string; log: L }[]; onChange: (log: L | null) => void }) {
   const label = useActiveTooltipLabel()
   useEffect(() => {
     onChange(rows.find((r) => r.date === label)?.log ?? null)
@@ -984,16 +994,168 @@ function ActivePoint({ rows, onChange }: { rows: ChartRow[]; onChange: (log: Bod
 const TAPE_DAYS = 28
 const SITES = ['arm', 'chest', 'waist'] as const
 
+type Site = (typeof SITES)[number]
+const SITE_LABEL: Record<Site, string> = { arm: 'Arm', chest: 'Chest', waist: 'Waist' }
+
+/** One colour per site, on the line and on its switch: arm green, chest blue, waist yellow. */
+const tapeConfig = {
+  arm: { label: 'Arm', color: 'var(--chart-2)' },
+  chest: { label: 'Chest', color: 'var(--chart-1)' },
+  waist: { label: 'Waist', color: 'var(--chart-3)' },
+} satisfies ChartConfig
+
+type TapeRow = { date: string; value: number; log: MeasurementLog }
+type TapeRange = '182' | '365' | 'all'
+
+/**
+ * One site at a time, in its own centimetres, laid out like the bodyweight chart: a switch picks
+ * arm, chest or waist, a range narrows the tapes, and a tap on a point opens that tape.
+ */
+function MeasurementsChart({
+  logs,
+  lengthUnit,
+  now,
+  onPick,
+}: {
+  logs: MeasurementLog[]
+  lengthUnit: string
+  now: Date
+  onPick: (log: MeasurementLog) => void
+}) {
+  const [site, setSite] = useState<Site>('arm')
+  const [range, setRange] = useState<TapeRange>('365')
+  const active = useRef<MeasurementLog | null>(null)
+  const setActive = useCallback((log: MeasurementLog | null) => {
+    active.current = log
+  }, [])
+  const data = useMemo<TapeRow[]>(() => {
+    const since = range === 'all' ? null : addDays(now, -Number(range)).getTime()
+    return logs
+      .filter((l) => (since === null || new Date(l.date).getTime() >= since) && l[site] !== undefined)
+      .map((l) => ({ date: l.date, value: l[site]!, log: l }))
+  }, [logs, range, site, now])
+  const first = data[0]
+  const last = data[data.length - 1]
+  const summary =
+    first && last ? `${SITE_LABEL[site]} ${first.value} to ${last.value} ${lengthUnit} over ${data.length} tapes.` : ''
+
+  return (
+    <div className="mt-5">
+      <ToggleGroup
+        type="single"
+        size="sm"
+        variant="outline"
+        value={site}
+        onValueChange={(v) => v && setSite(v as Site)}
+        aria-label="Tape site"
+        className="w-full max-w-xs"
+      >
+        {SITES.map((s) => (
+          <ToggleGroupItem key={s} value={s} className="flex-1 gap-2">
+            <span aria-hidden className="size-2 rounded-full" style={{ background: tapeConfig[s].color }} />
+            {SITE_LABEL[s]}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          {data.length === 0 ? 'No tapes in this range.' : `${data.length} ${data.length === 1 ? 'tape' : 'tapes'}`}
+        </p>
+        <ToggleGroup
+          type="single"
+          size="sm"
+          variant="outline"
+          value={range}
+          onValueChange={(v) => v && setRange(v as TapeRange)}
+          aria-label="Tape chart range"
+        >
+          <ToggleGroupItem value="182">6 months</ToggleGroupItem>
+          <ToggleGroupItem value="365">1 year</ToggleGroupItem>
+          <ToggleGroupItem value="all">All</ToggleGroupItem>
+        </ToggleGroup>
+      </div>
+      {data.length > 0 && (
+        <ChartContainer
+          config={tapeConfig}
+          className="mt-3 aspect-[2/1] w-full md:aspect-[3/1]"
+          role="img"
+          aria-label={summary}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && active.current) {
+              e.preventDefault()
+              onPick(active.current)
+            }
+          }}
+        >
+          <LineChart
+            data={data}
+            margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+            style={{ cursor: 'pointer' }}
+            onClick={(state) => {
+              const row = data[Number(state.activeTooltipIndex)]
+              if (row) onPick(row.log)
+            }}
+          >
+            <ActivePoint rows={data} onChange={setActive} />
+            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+            <XAxis
+              dataKey="date"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={8}
+              minTickGap={40}
+              tickFormatter={(v: string) => shortDate(v)}
+            />
+            <YAxis
+              domain={['dataMin - 1', 'dataMax + 1']}
+              width={40}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(v: number) => String(Math.round(v * 10) / 10)}
+            />
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent
+                  labelFormatter={(label) => longDate(String(label))}
+                  formatter={(value) => (
+                    <span className="font-medium tabular-nums">
+                      {Number(value)} {lengthUnit}
+                    </span>
+                  )}
+                />
+              }
+            />
+            <Line
+              dataKey="value"
+              name={SITE_LABEL[site]}
+              type="monotone"
+              stroke={`var(--color-${site})`}
+              strokeWidth={2}
+              dot={{ r: 2.5, strokeWidth: 0, fill: `var(--color-${site})` }}
+              activeDot={{ r: 4 }}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ChartContainer>
+      )}
+    </div>
+  )
+}
+
 function Measurements({
   logs,
   lengthUnit,
   now,
   onLogged,
+  onPick,
 }: {
   logs: MeasurementLog[]
   lengthUnit: string
   now: Date
   onLogged: () => void
+  /** Called with the tape under a tap on the chart, or under the keyboard cursor when Enter is pressed. */
+  onPick: (log: MeasurementLog) => void
 }) {
   const last = logs.at(-1)
   const prev = logs.at(-2)
@@ -1014,11 +1176,7 @@ function Measurements({
   const ago = daysBetween(last.date, now)
   return (
     <div className="mt-3">
-      <p className="text-sm text-muted-foreground">
-        Last measured {longDate(last.date)}, {ago <= 0 ? 'today' : ago === 1 ? 'yesterday' : `${ago} days ago`}.{' '}
-        {overdue ? 'Tape day is due now.' : `Next tape day ${longDate(due.toISOString())}.`}
-      </p>
-      <dl className="mt-3 grid grid-cols-3 gap-3">
+      <dl className="grid grid-cols-3 gap-3">
         {SITES.map((site) => {
           const value = last[site]
           const before = prev?.[site]
@@ -1040,57 +1198,14 @@ function Measurements({
           )
         })}
       </dl>
-      <div className="mt-4 flex items-center gap-1">
+      <p className="mt-3 text-sm text-muted-foreground">
+        Last measured {longDate(last.date)}, {ago <= 0 ? 'today' : ago === 1 ? 'yesterday' : `${ago} days ago`}.{' '}
+        {overdue ? 'Tape day is due now.' : `Next tape day ${longDate(due.toISOString())}.`}
+      </p>
+      <div className="mt-4">
         <LogMeasurementsDialog lengthUnit={lengthUnit} onLogged={onLogged} />
-        {logs.length === 1 && (
-          <>
-            <EditMeasurementButton
-              key={`${last.id}-${last.arm}-${last.chest}-${last.waist}`}
-              log={last}
-              lengthUnit={lengthUnit}
-              onLogged={onLogged}
-            />
-            <DeleteMeasurementButton log={last} onDeleted={onLogged} />
-          </>
-        )}
       </div>
-      {logs.length > 1 && (
-        <Table className="mt-4 tabular-nums">
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="px-0 font-normal text-muted-foreground">Date</TableHead>
-              <TableHead className="px-0 text-right font-normal text-muted-foreground">Arm</TableHead>
-              <TableHead className="px-0 text-right font-normal text-muted-foreground">Chest</TableHead>
-              <TableHead className="px-0 text-right font-normal text-muted-foreground">Waist</TableHead>
-              <TableHead className="px-0">
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {[...logs]
-              .reverse()
-              .slice(0, 6)
-              .map((m) => (
-                <TableRow key={m.id} className="hover:bg-transparent">
-                  <TableCell className="px-0">{shortDate(m.date)}</TableCell>
-                  <TableCell className="px-0 text-right">{m.arm ?? '–'}</TableCell>
-                  <TableCell className="px-0 text-right">{m.chest ?? '–'}</TableCell>
-                  <TableCell className="px-0 text-right">{m.waist ?? '–'}</TableCell>
-                  <TableCell className="py-0.5 pr-0 pl-2 text-right">
-                    <EditMeasurementButton
-                      key={`${m.id}-${m.arm}-${m.chest}-${m.waist}`}
-                      log={m}
-                      lengthUnit={lengthUnit}
-                      onLogged={onLogged}
-                    />
-                    <DeleteMeasurementButton log={m} onDeleted={onLogged} />
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-      )}
+      <MeasurementsChart logs={logs} lengthUnit={lengthUnit} now={now} onPick={onPick} />
     </div>
   )
 }

@@ -632,6 +632,8 @@ test('settings change units, and start fresh wipes the data', async () => {
   await expect(page.getByRole('radio', { name: '2.5 lb', exact: true })).toBeVisible()
   await page.getByRole('radio', { name: '5 lb', exact: true }).click()
   await expect(page.getByText('Barbell steps of 10 lb')).toBeVisible()
+  // The toggle reads the saved setting: wait for it to come back as 5 before pressing the next one.
+  await expect(page.getByRole('radio', { name: '5 lb', exact: true })).toBeChecked()
   await page.getByRole('radio', { name: '2.5 lb', exact: true }).click()
   await expect(page.getByText('Barbell steps of 5 lb')).toBeVisible()
   await page.getByRole('radio', { name: 'Let it sleep' }).click()

@@ -239,6 +239,24 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+66. The tape on a chart (user: "why we are not showing the weight like chart for the measurements
+    as well. How about 3 measurements in different color in same chart"). `MeasurementsChart` on
+    the Body tab, between the tape buttons and the table, once there are two tapes: arm, chest and
+    waist as three lines in the chart palette (green, blue, yellow), each drawn as its change
+    since the first tape so the three share one scale (a 30 cm arm would sit flat under a 100 cm
+    chest otherwise); the tooltip shows the measurement itself with the change beside it, and the
+    legend names the lines. Gaps in a site (a tape without an arm) are bridged. Laid out like the
+    bodyweight section (user: "make the layout look similar"): the three numbers, the line about
+    the last tape, the buttons, then a count and a range (6 months, 1 year, All) above the chart,
+    with the change measured from the first tape in the range. The table of recent tapes went with
+    it (user: "what about this table"): a tap on a point, or Enter on the keyboard cursor, opens
+    that tape in `TapeDialog` (the three numbers, Save, Remove), the way a weigh-in opens from its
+    chart, so the one-tape Edit and Delete buttons went too. Then (user: "instead of combining all,
+    shall we add a tab switch for each part a separate chart") the combined change-since-first chart
+    gave way to one site at a time in its own centimetres: an Arm / Chest / Waist switch above the
+    count and range, one line, the same shape as the bodyweight chart. Each site keeps its own
+    colour (user: "use different colors"): arm green, chest blue, waist yellow, on the line and as a
+    dot on its switch.
 65. The three the simulation left (user: "what about remaining 3 items", then "go"). (6) The deload
     hint wanted no lift at all to move in two hard weeks; `stuckShare` now counts the lifts that
     did not beat their best from the two weeks before, and the hint fires at three in four

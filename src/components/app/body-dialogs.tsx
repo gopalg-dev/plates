@@ -364,3 +364,112 @@ export function EditMeasurementButton(props: Omit<MeasurementProps, 'trigger' | 
     />
   )
 }
+
+interface TapeProps {
+  log: MeasurementLog | null
+  lengthUnit: string
+  onClose: () => void
+  onChanged: () => void
+}
+
+/** One tape, opened from its point on the chart: fix the numbers or remove the entry. */
+export function TapeDialog({ log, lengthUnit, onClose, onChanged }: TapeProps) {
+  return (
+    <Dialog open={log !== null} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent>
+        {log && <TapeForm key={log.id} log={log} lengthUnit={lengthUnit} onChanged={onChanged} />}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function TapeForm({ log, lengthUnit, onChanged }: { log: MeasurementLog; lengthUnit: string; onChanged: () => void }) {
+  const [arm, setArm] = useState<number | undefined>(log.arm)
+  const [chest, setChest] = useState<number | undefined>(log.chest)
+  const [waist, setWaist] = useState<number | undefined>(log.waist)
+  const [busy, setBusy] = useState(false)
+  const step = lengthUnit === 'cm' ? 0.5 : 0.25
+  const empty = !arm && !chest && !waist
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault()
+    if (empty) return
+    setBusy(true)
+    try {
+      await updateMeasurementFn({ data: { id: log.id, arm, chest, waist } })
+      toast.success('Measurements updated')
+      onChanged()
+    } catch (err) {
+      fail(err)
+      setBusy(false)
+    }
+  }
+
+  async function remove() {
+    setBusy(true)
+    try {
+      await deleteMeasurementFn({ data: { id: log.id } })
+      toast.success('Tape entry removed')
+      onChanged()
+    } catch (err) {
+      fail(err)
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={save}>
+      <DialogHeader>
+        <DialogTitle>Tape, {longDate(log.date)}</DialogTitle>
+        <DialogDescription>Fix the numbers or remove the entry. The date stays.</DialogDescription>
+      </DialogHeader>
+      <FieldGroup className="gap-5 py-5">
+        <Field>
+          <FieldLabel>Arm, {lengthUnit}</FieldLabel>
+          <NumberField
+            label={`Arm in ${lengthUnit}`}
+            value={arm}
+            onChange={setArm}
+            step={step}
+            inputMode="decimal"
+            autoFocus
+          />
+        </Field>
+        <Field>
+          <FieldLabel>Chest, {lengthUnit}</FieldLabel>
+          <NumberField
+            label={`Chest in ${lengthUnit}`}
+            value={chest}
+            onChange={setChest}
+            step={step}
+            inputMode="decimal"
+          />
+        </Field>
+        <Field>
+          <FieldLabel>Waist, {lengthUnit}</FieldLabel>
+          <NumberField
+            label={`Waist in ${lengthUnit}`}
+            value={waist}
+            onChange={setWaist}
+            step={step}
+            inputMode="decimal"
+          />
+        </Field>
+      </FieldGroup>
+      <DialogFooter className="sm:justify-between">
+        <Button
+          type="button"
+          variant="ghost"
+          className="text-destructive hover:text-destructive"
+          onClick={remove}
+          disabled={busy}
+        >
+          Remove
+        </Button>
+        <Button type="submit" disabled={busy || empty}>
+          Save
+        </Button>
+      </DialogFooter>
+    </form>
+  )
+}
