@@ -57,6 +57,7 @@ import type { NudgeKind } from '#/lib/types'
 import { EFFORTS, EFFORT_LABEL, type Effort } from '#/lib/logic/effort'
 import { nudgeFor } from '#/lib/logic/nudges'
 import { WEEKDAY_LONG, WEEKDAY_SHORT, weekdayView } from '#/lib/logic/schedule'
+import { plateOf } from '#/lib/logic/progression'
 import { plannedSetsFor, weeklyStreakOf } from '#/lib/logic/stats'
 import { useWakeLock } from '#/lib/use-wake-lock'
 import { rowTap } from '#/lib/row-tap'
@@ -707,6 +708,7 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
             key={entry.exerciseId}
             entry={entry}
             units={settings.units}
+            plate={plateOf(settings)}
             onChangeSet={(i, patch) => changeSet(entry.exerciseId, i, patch)}
             onToggleDone={(i) => toggleDone(entry.exerciseId, i)}
             onAddSet={() => addSet(entry.exerciseId)}
@@ -735,6 +737,7 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
           entries={entries}
           current={openId}
           units={settings.units}
+          plate={plateOf(settings)}
           doneSets={doneSets}
           totalSets={totalSets}
           busy={busy}

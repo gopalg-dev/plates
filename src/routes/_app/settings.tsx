@@ -37,7 +37,8 @@ import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { buildSplitFrom, planSourceInfo, splitInfoOf } from '#/lib/content'
 import { useContent } from '#/lib/use-content'
 import { cn } from '#/lib/utils'
-import { PROGRESSION_LABEL, progressionOf } from '#/lib/logic/progression'
+import { PLATES, PROGRESSION_LABEL, plateOf, progressionOf } from '#/lib/logic/progression'
+import { fmtWeight } from '#/lib/logic/units'
 import { GOAL_DONE, GOAL_OPTIONS } from '#/lib/logic/goal'
 import type { DayType, Goal, Schedule, SplitId, TrainingAge, Units } from '#/lib/types'
 import { authClient } from '#/lib/auth-client'
@@ -153,6 +154,26 @@ function SettingsPage() {
             <ToggleGroupItem value="lb" className="h-12 flex-1 text-base">
               Pounds
             </ToggleGroupItem>
+          </ToggleGroup>
+          {/* A barbell takes a plate each side, so the smallest plate sets how far a barbell lift steps. */}
+          <p className="mt-4 text-sm text-muted-foreground">Smallest plate</p>
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            value={String(plateOf(settings))}
+            onValueChange={(v) =>
+              v &&
+              Number(v) !== plateOf(settings) &&
+              save({ plate: Number(v) }, `Barbell steps of ${fmtWeight(2 * Number(v), settings.units)}`)
+            }
+            className="mt-2 w-full max-w-xs"
+            aria-label="Smallest plate"
+          >
+            {PLATES[settings.units].map((p) => (
+              <ToggleGroupItem key={p} value={String(p)} className="h-12 flex-1 text-base">
+                {p} {settings.units}
+              </ToggleGroupItem>
+            ))}
           </ToggleGroup>
         </section>
 

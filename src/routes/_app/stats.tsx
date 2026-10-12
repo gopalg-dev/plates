@@ -39,6 +39,7 @@ import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { longDate, monthYear, relativeDay, shortDate, signed, errorMessage } from '#/lib/format'
 import { deloadHint, effortLabel, effortThisWeek } from '#/lib/logic/effort'
 import { daysBetween } from '#/lib/logic/nudges'
+import { plateOf } from '#/lib/logic/progression'
 import { TRENDS, TREND_LABEL, liftTrend, type Trend } from '#/lib/logic/trend'
 import {
   addDays,
@@ -421,6 +422,7 @@ function StatsPage() {
       <SessionEditor
         workout={editing}
         units={units}
+        plate={plateOf(settings)}
         onClose={() => setEditing(null)}
         onSaved={async () => {
           setEditing(null)

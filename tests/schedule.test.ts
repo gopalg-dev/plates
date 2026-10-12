@@ -37,6 +37,22 @@ describe('weekday view', () => {
     expect(view.skipped.map((d) => d.id)).toEqual(['push-a'])
   })
 
+  it('prefers the day still to do when two days share a weekday', () => {
+    // Pull B moved onto Wednesday beside Legs A, and Legs A is done: Pull B is today's day, not "done for today".
+    const shared = days.map((d) => (d.id === 'pull-b' ? { ...d, weekday: 3 } : d))
+    const view = weekdayView(shared, wednesday, [
+      { dayId: 'legs-a', finishedAt: new Date(2026, 9, 7, 9).toISOString() },
+    ])
+    expect(view.today?.id).toBe('pull-b')
+    expect(view.doneToday).toBe(false)
+    // Both done: the first one, and done for today.
+    const both = weekdayView(shared, wednesday, [
+      { dayId: 'legs-a', finishedAt: new Date(2026, 9, 7, 9).toISOString() },
+      { dayId: 'pull-b', finishedAt: new Date(2026, 9, 7, 11).toISOString() },
+    ])
+    expect(both.doneToday).toBe(true)
+  })
+
   it('knows when today is already done', () => {
     const view = weekdayView(days, wednesday, [{ dayId: 'legs-a', finishedAt: new Date(2026, 9, 7, 9).toISOString() }])
     expect(view.doneToday).toBe(true)
@@ -53,7 +69,9 @@ describe('weekday view', () => {
   })
 
   it('ignores sessions from last week', () => {
-    const view = weekdayView(days, wednesday, [{ dayId: 'push-a', finishedAt: new Date(2026, 8, 29, 19).toISOString() }])
+    const view = weekdayView(days, wednesday, [
+      { dayId: 'push-a', finishedAt: new Date(2026, 8, 29, 19).toISOString() },
+    ])
     expect(view.skipped.map((d) => d.id)).toEqual(['pull-a', 'push-a'])
   })
 })

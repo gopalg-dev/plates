@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   defaultProgression,
   incrementFor,
+  plateOf,
   progressionOf,
   restSecondsFor,
   suggestNext,
@@ -266,5 +267,35 @@ describe('suggestNext for bodyweight and timed work', () => {
     const s = suggestNext(hold, 3, [past], 'kg')
     expect(s.suggested?.map((x) => x.seconds)).toEqual([50, 50, 50])
     expect(s.hint).toBe('Last time 45, 45, 45 s. Try 50 s.')
+  })
+})
+
+describe('incrementFor by equipment', () => {
+  it('steps a barbell by two of the smallest plate', () => {
+    expect(incrementFor('chest', 'kg', 'barbell')).toBe(5)
+    expect(incrementFor('chest', 'kg', 'barbell', 1.25)).toBe(2.5)
+    expect(incrementFor('quads', 'kg', 'barbell', 5)).toBe(10)
+    expect(incrementFor('chest', 'lb', 'barbell')).toBe(5)
+    expect(incrementFor('chest', 'lb', 'barbell', 5)).toBe(10)
+  })
+
+  it('steps a dumbbell by one rack step, whatever the plate', () => {
+    expect(incrementFor('shoulders', 'kg', 'dumbbell', 1.25)).toBe(2.5)
+    expect(incrementFor('shoulders', 'lb', 'dumbbell', 10)).toBe(5)
+  })
+
+  it('keeps the stack rule for machines, cables and unknown lifts', () => {
+    expect(incrementFor('back', 'kg', 'cable', 1.25)).toBe(2.5)
+    expect(incrementFor('quads', 'kg', 'machine', 1.25)).toBe(5)
+    expect(incrementFor('back', 'kg', undefined, 1.25)).toBe(2.5)
+  })
+})
+
+describe('plateOf', () => {
+  it('reads an unset or foreign plate as the common one', () => {
+    expect(plateOf({ units: 'kg' })).toBe(2.5)
+    expect(plateOf({ units: 'kg', plate: 1.25 })).toBe(1.25)
+    expect(plateOf({ units: 'lb', plate: 1.25 })).toBe(2.5)
+    expect(plateOf({ units: 'lb', plate: 10 })).toBe(10)
   })
 })

@@ -308,6 +308,8 @@ no Inter/Geist. Checked.
 - [x] 29. Content in the database: the split templates and the exercise library in `splits` and
       `library`, seeded from the bundled copies when empty or by `bun run db:seed`, read once per
       visit through the shell route. Editable without a deploy. HANDOVER.md item 35.
+- [x] 43. The smallest plate in Settings: a barbell steps by two of it, dumbbells by a rack step, machines
+      by the stack. HANDOVER.md item 62.
 - [x] 42. The set ramp: a frequent, completed, fine, moving lift earns one set a week (caps 6 a lift,
       20 a muscle a week), offered on the row; the deload card drops the extra sets. HANDOVER.md item 61.
 - [x] 41. Trend chips on the Lifts tab: climbing, stuck, slipping, idle, new, with counts, narrowing

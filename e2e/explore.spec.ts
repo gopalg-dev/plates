@@ -171,10 +171,10 @@ test('first session: no weight, no done; targets adopted; reps left; the summary
   await expect(bench.getByLabel('Set 2 weight', { exact: true })).toHaveValue('60')
   await expect(bench.getByLabel('Set 2 reps', { exact: true })).toHaveValue('8')
   await bench.getByRole('button', { name: 'Increase Set 3 weight' }).click()
-  await expect(bench.getByLabel('Set 3 weight', { exact: true })).toHaveValue('62.5')
+  await expect(bench.getByLabel('Set 3 weight', { exact: true })).toHaveValue('65')
   await bench.getByRole('button', { name: 'Mark set 3 done' }).click()
   await bench.getByRole('button', { name: 'Mark set 4 done' }).click()
-  await expect(bench.getByLabel('Set 4 weight', { exact: true })).toHaveValue('62.5')
+  await expect(bench.getByLabel('Set 4 weight', { exact: true })).toHaveValue('65')
   // The last set done: the exercise stays open for the reps-left answer, then moves on.
   await expect(bench.getByRole('radiogroup', { name: 'Reps left on set 4' })).toBeVisible()
   await bench.getByRole('radio', { name: '3+' }).click()
@@ -194,7 +194,7 @@ test('first session: no weight, no done; targets adopted; reps left; the summary
   await page.getByRole('button', { name: 'Save and finish' }).click()
   await expect(page.getByRole('heading', { name: 'Workout saved' })).toBeVisible()
   await expect(page.getByText('1 of 3 sessions this week.')).toBeVisible()
-  await expect(page.getByText('62.5 kg × 8')).toBeVisible()
+  await expect(page.getByText('65 kg × 8')).toBeVisible()
   await expect(page.getByText('20 kg × 12')).toBeVisible()
   // First session: no bests, no feedback prompt yet.
   await expect(page.getByText('best', { exact: true })).toHaveCount(0)
@@ -211,8 +211,8 @@ test('stats agree with what was logged', async () => {
   await open('/stats?tab=sessions')
   await expect(page.getByText('of 3 sessions')).toBeVisible()
   await expect(page.getByText('7 hard sets')).toBeVisible()
-  // 60×8 + 60×8 + 62.5×8 + 62.5×8 + 20×12×3
-  await expect(page.getByText(/^2,680\s*kg$/)).toBeVisible()
+  // 60×8 + 60×8 + 65×8 + 65×8 + 20×12×3
+  await expect(page.getByText(/^2,720\s*kg$/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Chest: 7 of 7 sets' })).toBeVisible()
   await expect(page.getByRole('button', { name: /^Shoulders: 0 of \d+ sets$/ }).first()).toBeVisible()
   await expect(page.getByRole('button', { name: /^Back: 0 of \d+ sets$/ })).toBeVisible()
@@ -222,7 +222,7 @@ test('stats agree with what was logged', async () => {
   await page.getByRole('combobox', { name: 'Lift' }).click()
   await page.getByRole('option', { name: 'Barbell Bench Press' }).click()
   await expect(page.getByText('kg × 8').first()).toBeVisible()
-  await expect(page.getByRole('cell', { name: '62.5 kg × 8' })).toBeVisible()
+  await expect(page.getByRole('cell', { name: '65 kg × 8' })).toBeVisible()
   await expect(page.getByText('None yet.')).toBeVisible()
   await snap('06-stats-lifts')
 
@@ -242,12 +242,12 @@ test('a week later the targets follow the last session and the method', async ()
   await page.getByRole('button', { name: 'Start Push' }).click()
   const bench = page.getByRole('region', { name: /Barbell Bench Press/ })
   // Three reps to spare last time: every set a step up, at the bottom of the range.
-  await expect(page.getByText('Reps to spare; try 65 kg.')).toBeVisible()
-  await expect(bench.getByLabel('Set 1 weight', { exact: true })).toHaveAttribute('placeholder', '65')
+  await expect(page.getByText('Reps to spare; try 70 kg.')).toBeVisible()
+  await expect(bench.getByLabel('Set 1 weight', { exact: true })).toHaveAttribute('placeholder', '70')
   await expect(bench.getByLabel('Set 1 reps', { exact: true })).toHaveAttribute('placeholder', '5')
   await expect(bench.getByRole('button', { name: 'Mark set 1 done' })).toBeEnabled()
   await bench.getByRole('button', { name: 'Mark set 1 done' }).click()
-  await expect(bench.getByLabel('Set 1 weight', { exact: true })).toHaveValue('65')
+  await expect(bench.getByLabel('Set 1 weight', { exact: true })).toHaveValue('70')
   await expect(bench.getByLabel('Set 1 reps', { exact: true })).toHaveValue('5')
   // Incline hit 12 on every set: up a step, back to 8.
   await page.getByRole('button', { name: /^Incline DB Press/ }).click()
@@ -268,8 +268,8 @@ test('a week later the targets follow the last session and the method', async ()
   await open('/')
   await page.getByRole('button', { name: /Pick another day/ }).click()
   await page.getByRole('button', { name: 'Start Push' }).click()
-  // Last set 62.5 × 8 at the top of the range: one step, plus one for the reps to spare.
-  await expect(page.getByText('Last set 62.5 kg × 8. Try 67.5 kg; last set as many as you can.')).toBeVisible()
+  // Last set 65 × 8 at the top of the range: one 5 kg barbell step, plus one for the reps to spare.
+  await expect(page.getByText('Last set 65 kg × 8. Try 75 kg; last set as many as you can.')).toBeVisible()
   await expect(bench.getByLabel('Set 4 reps', { exact: true })).toHaveAttribute('placeholder', '8')
   await page.getByRole('button', { name: 'Session options' }).click()
   await page.getByRole('menuitem', { name: 'Discard workout' }).click()
@@ -352,7 +352,7 @@ test('fixing a set from the calendar moves the lift, removing a session removes 
   await page.getByRole('tab', { name: 'Lifts' }).click()
   await page.getByRole('combobox', { name: 'Lift' }).click()
   await page.getByRole('option', { name: 'Barbell Bench Press' }).click()
-  await expect(page.getByRole('cell', { name: '62.5 kg × 10' })).toBeVisible()
+  await expect(page.getByRole('cell', { name: '65 kg × 10' })).toBeVisible()
   await snap('11-lift-after-edit')
 })
 
@@ -410,9 +410,9 @@ test('weight every session: a completed session earns a step on every set', asyn
   await page.getByRole('button', { name: /Pick another day/ }).click()
   await page.getByRole('button', { name: 'Start Push' }).click()
   const bench = page.getByRole('region', { name: /Barbell Bench Press/ })
-  // Last time 60, 60, 62.5, 62.5 with every set at or above 5 reps: the top weight plus a step.
-  await expect(bench.getByLabel('Set 1 weight', { exact: true })).toHaveAttribute('placeholder', '65')
-  await expect(bench.getByLabel('Set 4 weight', { exact: true })).toHaveAttribute('placeholder', '65')
+  // Last time 60, 60, 65, 65 with every set at or above 5 reps: the top weight plus a 5 kg barbell step.
+  await expect(bench.getByLabel('Set 1 weight', { exact: true })).toHaveAttribute('placeholder', '70')
+  await expect(bench.getByLabel('Set 4 weight', { exact: true })).toHaveAttribute('placeholder', '70')
   await snap('15-linear-targets')
 
   // Zen mode: one exercise at a time, kept in the URL across a reload.
@@ -423,7 +423,7 @@ test('weight every session: a completed session earns a step on every set', asyn
   await zen.getByRole('button', { name: 'Mark set 1 done' }).click()
   // The pad moves on to set 2, which starts from the same target; set 1's dot is ticked.
   await expect(zen.getByRole('button', { name: 'Set 1, done' })).toBeVisible()
-  await expect(zen.getByLabel('Set 2 weight', { exact: true })).toHaveAttribute('placeholder', '65')
+  await expect(zen.getByLabel('Set 2 weight', { exact: true })).toHaveAttribute('placeholder', '70')
   await zen.getByRole('button', { name: 'Next exercise' }).click()
   await expect(zen.getByText('2 of 5', { exact: true })).toBeVisible()
   await page.reload()
@@ -577,12 +577,41 @@ test('an empty search says so, and the export holds every logged set', async () 
 
 test('picking a past week points every number at that week', async () => {
   await open('/stats?tab=sessions')
-  // Oct 2 has no session; its week (Sep 28 to Oct 4) holds the first session, moved back a week.
-  await page.getByRole('button', { name: 'Oct 2, no session' }).click()
-  await expect(page.getByRole('heading', { name: 'Week of Sep 28', exact: true })).toBeVisible()
-  // That week holds the first session and one of the planted copies: twice the seven chest sets.
-  await expect(page.getByText('14 hard sets')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Chest: 14 of 8 sets' })).toBeVisible()
+  // The first session was moved back a week; a planted copy sits 13 days back. Whether the two share a
+  // Monday-to-Sunday week depends on today's weekday, so the expected count is worked out, not fixed.
+  const shortDay = (d: Date) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  const ago = (n: number) => {
+    const d = new Date()
+    d.setHours(12, 0, 0, 0)
+    d.setDate(d.getDate() - n)
+    return d
+  }
+  const monday = (d: Date) => {
+    const x = new Date(d)
+    x.setDate(x.getDate() - ((x.getDay() + 6) % 7))
+    return x
+  }
+  const week = monday(ago(7))
+  const together = monday(ago(13)).getTime() === week.getTime()
+  const sessions = new Set([shortDay(ago(7)), shortDay(ago(13))])
+  let pick = week
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(week)
+    d.setDate(week.getDate() + i)
+    if (!sessions.has(shortDay(d))) {
+      pick = d
+      break
+    }
+  }
+  if (pick.getMonth() !== new Date().getMonth()) {
+    await page.getByRole('button', { name: 'Previous month', exact: true }).click()
+  }
+  await page.getByRole('button', { name: `${shortDay(pick)}, no session` }).click()
+  await expect(page.getByRole('heading', { name: `Week of ${shortDay(week)}`, exact: true })).toBeVisible()
+  // Seven chest sets per session in that week: the first session, plus the planted copy when it shares the week.
+  const sets = together ? 14 : 7
+  await expect(page.getByText(`${sets} hard sets`)).toBeVisible()
+  await expect(page.getByRole('button', { name: `Chest: ${sets} of 8 sets` })).toBeVisible()
   await expect(page.getByRole('button', { name: /^Back: 0 of \d+ sets$/ })).toBeVisible()
   await snap('20-past-week')
   await page.getByRole('button', { name: 'Back to this week' }).click()
@@ -608,10 +637,8 @@ test('a template resets to its original, and the plan of your own is untouched b
   await page.getByRole('button', { name: 'Reset to the original plan' }).click()
   await page.getByRole('dialog').getByRole('button', { name: /Reset/ }).click()
   await expect(page.getByText('Plan reset')).toBeVisible()
-  await page
-    .getByRole('button', { name: /^Pull A/ })
-    .first()
-    .click()
+  const pullA = page.getByRole('button', { name: /^Pull A/ }).first()
+  if ((await pullA.getAttribute('aria-expanded')) !== 'true') await pullA.click()
   await expect(page.getByText('4 × 6-12')).toBeVisible()
   await snap('21-reset')
   // Back to the plan of your own: the swapped alternate and the five-set bench are still there.

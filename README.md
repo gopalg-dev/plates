@@ -32,7 +32,7 @@ Four screens, one job each:
   filterable. "Pick from library" fills an exercise in from the plan editor or the import preview.
   The picture on any exercise row (Plan, Today, a session) opens the same view in place, through
   `?exercise=<id>` in the URL, so a reload or a shared link opens it too.
-- **Settings**: units, training age, bodyweight goal, progression, whether the screen stays on during
+- **Settings**: units, the gym's smallest plate (a barbell steps by two of it), training age, bodyweight goal, progression, whether the screen stays on during
   a session, rolling or weekday schedule, the split (switch in place;
   each split keeps its own plan, so coming back finds your edits), and "Start fresh" behind a typed
   confirmation. On a phone the menu button opens the sidebar; the profile row at its foot holds

@@ -21,6 +21,7 @@ export interface ZenProps {
   entries: WorkoutEntry[]
   current: string | null
   units: Units
+  plate?: number
   doneSets: number
   totalSets: number
   busy: boolean
@@ -40,6 +41,7 @@ export function ZenMode({
   entries,
   current,
   units,
+  plate,
   doneSets,
   totalSets,
   busy,
@@ -176,7 +178,7 @@ export function ZenMode({
                   value={set.weight}
                   base={prevWeight}
                   onChange={(v) => onChangeSet(entry.exerciseId, index, { weight: v })}
-                  step={incrementFor(entry.muscle, units)}
+                  step={incrementFor(entry.muscle, units, entry.equipment, plate)}
                   inputMode="decimal"
                   placeholder={prevWeight !== undefined ? String(prevWeight) : '0'}
                 />

@@ -24,6 +24,8 @@ export function targetOf(e: Pick<Exercise, 'repMin' | 'repMax' | 'loadType'>): s
 export interface ExerciseRowProps {
   entry: WorkoutEntry
   units: Units
+  /** The gym's smallest plate; see `plateOf`. Unset reads as the common 2.5. */
+  plate?: number
   onChangeSet: (index: number, patch: Partial<LoggedSet>) => void
   onToggleDone: (index: number) => void
   onAddSet: () => void
@@ -49,6 +51,7 @@ function lastFilled(sets: LoggedSet[], index: number, key: 'weight' | 'reps' | '
 export function ExerciseRow({
   entry,
   units,
+  plate,
   onChangeSet,
   onToggleDone,
   onAddSet,
@@ -108,7 +111,7 @@ export function ExerciseRow({
                     value={s.weight}
                     base={prevWeight}
                     onChange={(v) => onChangeSet(i, { weight: v })}
-                    step={incrementFor(entry.muscle, units)}
+                    step={incrementFor(entry.muscle, units, entry.equipment, plate)}
                     inputMode="decimal"
                     placeholder={prevWeight !== undefined ? String(prevWeight) : '0'}
                   />

@@ -59,7 +59,9 @@ export function weekdayView(days: PlanDay[], now: Date, finished: Finished[]): W
   const todayDone = new Set(finished.filter((f) => sameDay(new Date(f.finishedAt), now)).map((f) => f.dayId))
   const wd = now.getDay()
 
-  const today = days.find((d) => d.weekday === wd) ?? null
+  // Two days can share a weekday (a day moved onto another's). The one still to do comes first.
+  const onToday = days.filter((d) => d.weekday === wd)
+  const today = onToday.find((d) => !todayDone.has(d.id)) ?? onToday[0] ?? null
   const doneToday = today !== null && todayDone.has(today.id)
 
   let next: WeekdayView['next'] = null

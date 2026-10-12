@@ -316,8 +316,9 @@ suite('workouts', () => {
     const row = next.entries.find((e) => e.exerciseId === 'barbell-row')!
     // Targets sit beside blank sets: nothing is logged until a set is marked done.
     expect(row.sets).toEqual([{ done: false }, { done: false }, { done: false }, { done: false }])
-    expect(row.suggested?.map((s) => s.weight)).toEqual([62.5, 62.5, 62.5, 62.5])
-    expect(row.hint).toContain('Try 62.5 kg')
+    // A barbell row steps by two plates: 5 kg with the common 2.5 kg plate.
+    expect(row.suggested?.map((s) => s.weight)).toEqual([65, 65, 65, 65])
+    expect(row.hint).toContain('Try 65 kg')
     const pullups = next.entries.find((e) => e.exerciseId === 'pull-ups')!
     expect(pullups.suggested?.map((s) => s.reps)).toEqual([8, 7, 6, 6])
     expect(pullups.hint).toContain('Add a rep')
@@ -342,7 +343,7 @@ suite('workouts', () => {
     await repo.finishWorkout(U, light.id)
     // Now each day follows its own line: Heavy stays at 80, Light moves up from 50.
     expect((await repo.startWorkout(U, 'heavy')).entries[0].suggested?.[0].weight).toBe(80)
-    expect((await repo.startWorkout(U, 'light')).entries[0].suggested?.[0].weight).toBe(52.5)
+    expect((await repo.startWorkout(U, 'light')).entries[0].suggested?.[0].weight).toBe(55)
   })
 
   it('discards an in-progress workout', async () => {

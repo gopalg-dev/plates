@@ -39,12 +39,13 @@ export function sessionSummary(w: Workout): string {
 interface EditorProps {
   workout: Workout | null
   units: Units
+  plate?: number
   onClose: () => void
   onSaved: () => void | Promise<void>
 }
 
 /** A finished session: fix a set, add or drop one, or remove the session. Opened from the Stats calendar. */
-export function SessionEditor({ workout, units, onClose, onSaved }: EditorProps) {
+export function SessionEditor({ workout, units, plate, onClose, onSaved }: EditorProps) {
   // Keep the last session while the panel animates closed, so the title does not blink away.
   const shown = useRef(workout)
   if (workout) shown.current = workout
@@ -85,6 +86,7 @@ export function SessionEditor({ workout, units, onClose, onSaved }: EditorProps)
           openId={openId}
           setOpenId={setOpenId}
           units={units}
+          plate={plate}
           onClose={onClose}
           onSaved={onSaved}
         />
@@ -100,6 +102,7 @@ function EditorBody({
   openId,
   setOpenId,
   units,
+  plate,
   onClose,
   onSaved,
 }: EditorProps & {
@@ -159,6 +162,7 @@ function EditorBody({
             key={entry.exerciseId}
             entry={entry}
             units={units}
+            plate={plate}
             onChangeSet={(i, patch) =>
               updateSets(entry.exerciseId, (sets) => sets.map((s, j) => (j === i ? { ...s, ...patch } : s)))
             }

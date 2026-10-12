@@ -239,6 +239,24 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+63. Two days on one weekday (found by the walkthrough on a Tuesday). `weekdayView` took the first day
+    on today's weekday; when that one was done and another day had been moved onto the same
+    weekday, Today said "Done for today" with the other still waiting. It now prefers the day on
+    today's weekday that is not done yet. The calendar e2e's expected best set follows the 5 kg
+    barbell step (65 × 7 outscores the edited 60 × 9).
+62. The smallest plate (user: "as the weight increases we cannot add more weights like how we
+    used to", then "I didn't see any 1.25 kg plates, the minimum is 2.5", then "collect the
+    minimum plate ... use that for their plans", "per person", "not in the setup, just set it to
+    2.5 in the settings"). A barbell takes a plate each side, so with 2.5 kg as the smallest plate
+    the smallest barbell step is 5 kg; the app stepped every upper-body lift by 2.5 kg, a step
+    that does not exist on most barbells. `Settings.plate` (unset reads as 2.5, `plateOf`),
+    `PLATES` per unit (kg 1.25 / 2.5 / 5, lb 2.5 / 5 / 10), set in Settings under Units only,
+    never asked at setup. `incrementFor(muscle, units, equipment?, plate?)`: barbell = two plates,
+    dumbbell = one rack step (2.5 kg / 5 lb), machine, cable and unknown lifts keep the stack rule
+    (2.5 upper / 5 lower kg; 5 / 10 lb). `startWorkout` looks the lift up in the library and
+    stores its `equipment` on the entry, and hands equipment and plate to `suggestNext`; the rows
+    on Today, Zen and the session editor take `plate` and read the entry's equipment. Not done:
+    smaller steps than the plate allows (microloading); per-gym settings.
 61. The set ramp (user: "do some research on progressive overload ... we'll be implementing this on
     the frequent workouts sets count", then a four-week example, then "go"). Research: weekly sets
     per muscle have a dose-response with diminishing returns (Schoenfeld 2017; Pelland et al.,

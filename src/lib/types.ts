@@ -1,3 +1,5 @@
+import type { Equipment } from './library'
+
 export type Units = 'kg' | 'lb'
 
 /** What a session is about. Colour comes from the family: push red, pull blue, legs yellow, the rest neutral. */
@@ -77,6 +79,8 @@ export interface Plan {
 
 export interface Settings {
   units: Units
+  /** The smallest plate in the gym, in the units above. Unset reads as 2.5. A barbell step is two of them. */
+  plate?: number
   bodyweight?: number
   trainingAge: TrainingAge
   setupDone: boolean
@@ -133,6 +137,8 @@ export interface WorkoutEntry {
   suggested?: SetTarget[]
   /** This lift has earned one more set this week (see `lib/logic/ramp.ts`); a tap adds it, here and on the plan. */
   rampOffer?: boolean
+  /** From the library, when the name is in it: sets the plate step for the sets below. */
+  equipment?: Equipment
   sets: LoggedSet[]
 }
 

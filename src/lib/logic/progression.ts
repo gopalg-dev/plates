@@ -1,10 +1,29 @@
+import type { Equipment } from '../library'
 import type { Exercise, LoggedSet, Muscle, Progression, SetTarget, Settings, Units, WorkoutEntry } from '../types'
 import { fmtWeight } from './units'
 
 const LOWER: Muscle[] = ['quads', 'hamstrings', 'calves']
 
-/** Double progression step: 2.5 kg upper, 5 kg lower (5 / 10 in lb). */
-export function incrementFor(muscle: Muscle, units: Units): number {
+/** The plates a gym might have as its smallest, per unit. */
+export const PLATES: Record<Units, number[]> = { kg: [1.25, 2.5, 5], lb: [2.5, 5, 10] }
+/** The common case, and what an unset setting reads as. */
+export const DEFAULT_PLATE: Record<Units, number> = { kg: 2.5, lb: 2.5 }
+
+/** The smallest plate in force: the setting when it is one of this unit's plates, else the common one. */
+export function plateOf(settings: Pick<Settings, 'units' | 'plate'>): number {
+  return settings.plate !== undefined && PLATES[settings.units].includes(settings.plate)
+    ? settings.plate
+    : DEFAULT_PLATE[settings.units]
+}
+
+/**
+ * The step a lift goes up by. A barbell takes a plate each side, so two of the gym's smallest;
+ * dumbbells go up one rack step (2.5 kg, 5 lb); machines and cables by the stack pin, 2.5 kg upper
+ * and 5 kg lower (5 / 10 in lb), which is also the rule for a lift the library does not know.
+ */
+export function incrementFor(muscle: Muscle, units: Units, equipment?: Equipment, plate?: number): number {
+  if (equipment === 'barbell') return 2 * (plate ?? DEFAULT_PLATE[units])
+  if (equipment === 'dumbbell') return units === 'kg' ? 2.5 : 5
   const lower = LOWER.includes(muscle)
   if (units === 'kg') return lower ? 5 : 2.5
   return lower ? 10 : 5
@@ -107,6 +126,8 @@ export function suggestNext(
   history: PastEntry[],
   units: Units,
   method: Progression = 'double',
+  /** What the lift is done on and the gym's smallest plate: they set the step (see `incrementFor`). */
+  step: { equipment?: Equipment; plate?: number } = {},
 ): Suggestion {
   const sets = blank(targetSets)
   const past = history.filter((h) => doneOf(h.entry).length > 0)
@@ -115,7 +136,7 @@ export function suggestNext(
   const done = doneOf(last.entry)
 
   if (exercise.loadType === 'weight') {
-    const inc = incrementFor(exercise.muscle, units)
+    const inc = incrementFor(exercise.muscle, units, step.equipment, step.plate)
     const top = Math.max(...done.map((s) => s.weight ?? 0))
     const reps = done.map((s) => s.reps ?? 0)
     // One weight across the sets reads "60 kg × 8, 8, 7"; a pyramid reads "10 × 12, 12.5 × 10, 15 kg × 8".

@@ -445,16 +445,23 @@ export async function startWorkout(userId: string, dayId: string): Promise<Worko
   const now = new Date()
   const scored = attachBodyweight(past, bodyweights)
   const weekly = plannedVolumeByMuscle(plan, settings.trainingAge)
+  const { library } = await readContent()
   const entries: WorkoutEntry[] = []
   for (const ex of day.exercises) {
     const targetSets = plannedSetsFor(ex.sets, settings.trainingAge)
     const history = await recentEntries(userId, ex.id, dayId)
-    const s = suggestNext(ex, targetSets, history, settings.units, progressionOf(settings))
+    // The library knows what the lift is done on; with the gym's smallest plate that sets the step.
+    const known = findLibraryByName(library, ex.name)
+    const s = suggestNext(ex, targetSets, history, settings.units, progressionOf(settings), {
+      equipment: known?.equipment,
+      plate: settings.plate,
+    })
     entries.push({
       exerciseId: ex.id,
       name: ex.name,
       muscle: ex.muscle,
       loadType: ex.loadType,
+      ...(known ? { equipment: known.equipment } : {}),
       repMin: ex.repMin,
       repMax: ex.repMax,
       ...(s.hint ? { hint: s.hint } : {}),

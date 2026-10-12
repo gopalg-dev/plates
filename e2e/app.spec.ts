@@ -155,7 +155,7 @@ test('logs a workout with the set logger', async () => {
   await row.getByRole('button', { name: 'Increase Set 2 weight' }).click()
   await row.getByLabel('Set 2 reps', { exact: true }).fill('7')
   await row.getByRole('button', { name: 'Mark set 2 done' }).click()
-  await expect(row.getByLabel('Set 2 weight', { exact: true })).toHaveValue('62.5')
+  await expect(row.getByLabel('Set 2 weight', { exact: true })).toHaveValue('65')
   await expect(page.getByText('3 of 20 sets done')).toBeVisible()
 
   await page.getByRole('button', { name: 'Finish workout' }).click()
@@ -167,7 +167,7 @@ test('logs a workout with the set logger', async () => {
   // The finish summary: every lift's best set and the week's count. First session, so nothing is a new best yet.
   await expect(page.getByRole('heading', { name: 'Workout saved' })).toBeVisible()
   await expect(page.getByText('1 of 6 sessions this week.')).toBeVisible()
-  await expect(page.getByText('62.5 kg × 7')).toBeVisible()
+  await expect(page.getByText('65 kg × 7')).toBeVisible()
   await snap(page, '05c-finish-summary')
   await page.getByRole('button', { name: 'Done' }).click()
   await expect(page.getByRole('heading', { name: 'Push A' })).toBeVisible()
@@ -309,11 +309,11 @@ test('stats reflect the logged workout and bodyweight', async () => {
   await page.getByRole('combobox', { name: 'Lift' }).click()
   await page.getByRole('option', { name: 'Barbell Row' }).click()
   await expect(page.getByRole('combobox', { name: 'Lift' })).toHaveText('Barbell Row')
-  await expect(page.getByRole('cell', { name: '62.5 kg × 7' })).toBeVisible()
-  // The week's totals sit under the session count: 60 × 8 + 62.5 × 7 on the rows, plus 8 pull-ups at the 72 kg
+  await expect(page.getByRole('cell', { name: '65 kg × 7' })).toBeVisible()
+  // The week's totals sit under the session count: 60 × 8 + 65 × 7 on the rows, plus 8 pull-ups at the 72 kg
   // weighed in at setup.
   await page.getByRole('tab', { name: 'Sessions' }).click()
-  await expect(page.getByText(/^1,494\s*kg$/)).toBeVisible()
+  await expect(page.getByText(/^1,511\s*kg$/)).toBeVisible()
   // The body map: back was trained, chest was planned and not yet; a tap names the number.
   await expect(page.getByRole('group', { name: 'Front' })).toBeVisible()
   await expect(page.getByRole('group', { name: 'Back' })).toBeVisible()
@@ -508,7 +508,8 @@ test('a day on the stats calendar opens its session to fix a set or remove it', 
   await page.getByRole('tab', { name: 'Lifts' }).click()
   await page.getByRole('combobox', { name: 'Lift' }).click()
   await page.getByRole('option', { name: 'Barbell Row' }).click()
-  await expect(page.getByRole('cell', { name: '60 kg × 9' })).toBeVisible()
+  // The week's best row set is 65 × 7 (set 2); the edited set 1 is 60 × 9 and scores a hair under it.
+  await expect(page.getByRole('cell', { name: '65 kg × 7' })).toBeVisible()
   await page.getByRole('tab', { name: 'Sessions' }).click()
   await page.getByRole('button', { name: `${today}, Pull A` }).click()
   await page.getByRole('button', { name: 'Delete session' }).click()
@@ -627,6 +628,12 @@ test('settings change units, and start fresh wipes the data', async () => {
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
   await page.getByRole('radio', { name: 'Pounds' }).click()
   await expect(page.getByText('Lifting in lb')).toBeVisible()
+  // The smallest plate follows the unit (2.5 / 5 / 10 lb); a barbell takes one each side.
+  await expect(page.getByRole('radio', { name: '2.5 lb', exact: true })).toBeVisible()
+  await page.getByRole('radio', { name: '5 lb', exact: true }).click()
+  await expect(page.getByText('Barbell steps of 10 lb')).toBeVisible()
+  await page.getByRole('radio', { name: '2.5 lb', exact: true }).click()
+  await expect(page.getByText('Barbell steps of 5 lb')).toBeVisible()
   await page.getByRole('radio', { name: 'Let it sleep' }).click()
   await expect(page.getByText('The screen can sleep as usual')).toBeVisible()
   await page.getByRole('radio', { name: 'Keep it on' }).click()
