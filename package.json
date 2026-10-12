@@ -17,6 +17,7 @@
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:seed": "bun scripts/seed.ts",
+    "db:repair": "bun scripts/repair-load-types.ts",
     "test:explore": "playwright test --config playwright.explore.config.ts"
   },
   "dependencies": {

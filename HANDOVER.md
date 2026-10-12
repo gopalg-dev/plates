@@ -239,6 +239,15 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     the password form gets Better Auth's "email not verified" message with no way to ask for a
     new code from the sign-in page; and no DNS or disposable-domain check (the user picked the
     code route; those can still be added in front of sign-up).
+59. Repair for data the swap bug left behind (user: "I have some real workout data that has been
+    added when we had that bug ... I need to add the weights"). Sessions logged while Lat Pulldown
+    carried "bodyweight" have no weight field in the session editor, so the weights could not be
+    added by hand. `scripts/repair-load-types.ts` (`bun run db:repair`, `--yes` to apply) walks
+    plans, the legacy plan and workouts, and where a name is in the library and the type disagrees it
+    flips only the bug's two shapes: bodyweight → weight when the library says weight; weight →
+    bodyweight when the library says bodyweight and no set has a weight above zero. It lists every
+    change with the user, the plan or the session date, and writes nothing without `--yes`. After
+    it, the weights go in through Stats → the day on the calendar → the session → Save.
 58. A flaky "Open menu" on the phone viewport, found by the suite twice in one evening in two
     different tests, each right after `open(page, '/')`. The trace showed the click landing and
     nothing opening. Cause: `__root` sets `data-hydrated` when the root hydrates, but the `_app`
