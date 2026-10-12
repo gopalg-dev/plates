@@ -2,6 +2,10 @@
 
 Keep this file short: under 100 lines. Project history and decisions live in `PROJECT_CONTEXT.md`.
 
+A rule that needs more than a few lines of detail keeps that detail in its own file under
+`docs/agents/`, and the rule names the file as a plain path, so it is read only when the rule applies.
+Never `@`-import those files here: an import loads them into every session.
+
 ## Components
 
 - Need a new piece of UI? First look for a shadcn component that does the job: the ones in
@@ -23,10 +27,13 @@ Before calling any feature or code change done, and before any push, run the che
 bun run check   # tsc --noEmit && biome ci .
 ```
 
-It must pass with zero errors, warnings and infos: Vercel runs the same command before every deploy.
-`bun run check:fix` applies Biome's safe fixes and formatting.
+It must end with zero errors, zero warnings and zero infos (`biome ci . --diagnostic-level=info`
+shows all three): Vercel runs the same check before every deploy. `bun run check:fix` applies Biome's
+safe fixes and formatting.
 
-Any UI change gets tried at every viewport before it is called done: 360 and 393 (phones, touch,
-including with the on-screen keyboard up where there are inputs), 768 (tablet, touch), 1024 and 1440
-(desktop, mouse). Check that it looks right and works: layout, overflow, tap and click targets, focus,
-drawers and dialogs. Then run the e2e suite (`bun run test:e2e`), which covers phone, tablet and desktop.
+Fix what a diagnostic points at, not the diagnostic. No `biome-ignore`, `@ts-expect-error`, `!` or
+`as any` just to quiet one. A suppression is for a rule that is genuinely wrong for that line, with
+the reason written beside it.
+
+Any UI change gets tried at every viewport, then the e2e suite, before it is called done:
+see `docs/agents/viewport-testing.md`.

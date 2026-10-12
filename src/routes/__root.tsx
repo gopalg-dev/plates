@@ -3,6 +3,7 @@ import { createRootRoute, HeadContent, Link, Outlet, Scripts, useRouter } from '
 import { useEffect } from 'react'
 import { Button } from '#/components/ui/button'
 import { Toaster } from '#/components/ui/sonner'
+import { registerServiceWorker } from '#/lib/install-app'
 import { THEME_SCRIPT } from '#/lib/theme'
 import appCss from '../styles.css?url'
 
@@ -19,6 +20,7 @@ export const Route = createRootRoute({
       { rel: 'stylesheet', href: appCss },
       { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
       { rel: 'apple-touch-icon', href: '/icon-192.png' },
+      { rel: 'manifest', href: '/manifest.webmanifest' },
     ],
     scripts: [{ children: THEME_SCRIPT }],
   }),
@@ -36,6 +38,7 @@ export const Route = createRootRoute({
 function RootComponent() {
   useEffect(() => {
     document.documentElement.dataset.hydrated = 'true'
+    registerServiceWorker()
   }, [])
   return <Outlet />
 }

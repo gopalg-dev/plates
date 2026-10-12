@@ -4,6 +4,7 @@ import {
   ChartColumn,
   ChevronsUpDown,
   CircleHelp,
+  Download,
   Dumbbell,
   ListChecks,
   LogOut,
@@ -15,6 +16,7 @@ import { useEffect, useState } from 'react'
 import { AppMark } from '#/components/app/app-mark'
 import { ExerciseDialog, ExerciseListProvider } from '#/components/app/exercise-dialog'
 import { FeedbackDialog } from '#/components/app/feedback-form'
+import { InstallDialog } from '#/components/app/install-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '#/components/ui/avatar'
 import {
   DropdownMenu,
@@ -44,6 +46,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '#/components/ui/sidebar'
+import { useInstallApp } from '#/lib/install-app'
 import { readTheme, saveTheme, THEME_OPTIONS, type Theme } from '#/lib/theme'
 import { usePageHydrated } from '#/lib/use-page-hydrated'
 import { useSignOut } from '#/lib/use-sign-out'
@@ -186,6 +189,9 @@ function AppLayout() {
 /** The profile row at the bottom of the sidebar. Opens a menu with Settings and Sign out. */
 function AccountMenu({ who, email, image }: { who: string; email: string; image: string | null }) {
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [installOpen, setInstallOpen] = useState(false)
+  /** Shown only where Plates can be installed and is not yet. */
+  const { way: installWay } = useInstallApp()
   const { isMobile } = useSidebar()
   const { signOut, busy } = useSignOut()
   /** The look is kept on the device, so it is read after mount: the server does not know it. */
@@ -259,6 +265,12 @@ function AccountMenu({ who, email, image }: { who: string; email: string; image:
               <MessageSquare aria-hidden className="text-muted-foreground" />
               Send feedback
             </DropdownMenuItem>
+            {installWay && (
+              <DropdownMenuItem onSelect={() => setInstallOpen(true)} className="text-base">
+                <Download aria-hidden className="text-muted-foreground" />
+                Install app
+              </DropdownMenuItem>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={() => void signOut()} disabled={busy} className="text-base">
               <LogOut aria-hidden />
@@ -267,6 +279,7 @@ function AccountMenu({ who, email, image }: { who: string; email: string; image:
           </DropdownMenuContent>
         </DropdownMenu>
         <FeedbackDialog open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
+        <InstallDialog open={installOpen} way={installWay} onClose={() => setInstallOpen(false)} />
       </SidebarMenuItem>
     </SidebarMenu>
   )
