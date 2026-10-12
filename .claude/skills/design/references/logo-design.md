@@ -15,29 +15,29 @@ AI-powered logo design with 55+ styles, 30 color palettes, 25 industry guides. U
 ### Design Brief (Start Here)
 
 ```bash
-python3 ~/.claude/skills/design/scripts/logo/search.py "tech startup modern" --design-brief -p "BrandName"
+python3 .claude/skills/design/scripts/logo/search.py "tech startup modern" --design-brief -p "BrandName"
 ```
 
 ### Search Domains
 
 ```bash
 # Styles
-python3 ~/.claude/skills/design/scripts/logo/search.py "minimalist clean" --domain style
+python3 .claude/skills/design/scripts/logo/search.py "minimalist clean" --domain style
 
 # Color palettes
-python3 ~/.claude/skills/design/scripts/logo/search.py "tech professional" --domain color
+python3 .claude/skills/design/scripts/logo/search.py "tech professional" --domain color
 
 # Industry guidelines
-python3 ~/.claude/skills/design/scripts/logo/search.py "healthcare medical" --domain industry
+python3 .claude/skills/design/scripts/logo/search.py "healthcare medical" --domain industry
 ```
 
 ### Generate Logo
 
-**ALWAYS** use white background for output logos.
+Generate logo images on a white background.
 
 ```bash
-python3 ~/.claude/skills/design/scripts/logo/generate.py --brand "TechFlow" --style minimalist --industry tech
-python3 ~/.claude/skills/design/scripts/logo/generate.py --prompt "coffee shop vintage badge" --style vintage
+python3 .claude/skills/design/scripts/logo/generate.py --brand "TechFlow" --style minimalist --industry tech
+python3 .claude/skills/design/scripts/logo/generate.py --prompt "coffee shop vintage badge" --style vintage
 ```
 
 Options: `--style`, `--industry`, `--prompt`
@@ -75,8 +75,7 @@ Options: `--style`, `--industry`, `--prompt`
 
 1. Generate design brief → `scripts/logo/search.py --design-brief`
 2. Generate logo variations → `scripts/logo/generate.py --brand --style --industry`
-3. Ask user about HTML preview → `AskUserQuestion` tool
-4. If yes, invoke `/ui-ux-pro-max` for HTML gallery
+3. Offer the user an HTML gallery page that previews the variants side by side
 
 ## Detailed References
 

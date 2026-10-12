@@ -30,29 +30,6 @@ Use when:
 - Rapid prototyping with immediate visual feedback
 - Adding complex UI patterns (data tables, charts, command palettes)
 
-## Core Stack
-
-### Component Layer: shadcn/ui
-- Pre-built accessible components via Radix UI primitives
-- Copy-paste distribution model (components live in your codebase)
-- TypeScript-first with full type safety
-- Composable primitives for complex UIs
-- CLI-based installation and management
-
-### Styling Layer: Tailwind CSS
-- Utility-first CSS framework
-- Build-time processing with zero runtime overhead
-- Mobile-first responsive design
-- Consistent design tokens (colors, spacing, typography)
-- Automatic dead code elimination
-
-### Visual Design Layer: Canvas
-- Museum-quality visual compositions
-- Philosophy-driven design approach
-- Sophisticated visual communication
-- Minimal text, maximum visual impact
-- Systematic patterns and refined aesthetics
-
 ## Quick Start
 
 ### Component + Styling Setup
@@ -219,7 +196,7 @@ python scripts/shadcn_add.py button card dialog
 ```
 
 ### tailwind_config_gen.py
-Generate tailwind.config.js with custom theme:
+Generate a Tailwind v3 `tailwind.config.js` with a custom theme. This project runs Tailwind v4 with no config file, so put theme tokens in CSS with `@theme` instead (see `references/tailwind-customization.md`):
 ```bash
 python scripts/tailwind_config_gen.py --colors brand:blue --fonts display:Inter
 ```
@@ -235,7 +212,6 @@ python scripts/tailwind_config_gen.py --colors brand:blue --fonts display:Inter
 7. **Performance**: Leverage automatic CSS purging, avoid dynamic class names
 8. **TypeScript**: Use full type safety for better DX
 9. **Visual Hierarchy**: Let composition guide attention, use spacing and color intentionally
-10. **Expert Craftsmanship**: Every detail matters - treat UI as a craft
 
 ## Reference Navigation
 

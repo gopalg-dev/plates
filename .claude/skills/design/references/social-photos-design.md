@@ -1,6 +1,6 @@
 # Social Photos Design Guide
 
-Design social media images via HTML/CSS rendering + screenshot export. Orchestrates `ui-ux-pro-max`, `brand`, `design-system`, and `chrome-devtools` skills.
+Design social media images via HTML/CSS rendering + screenshot export. Orchestrates `ui-ux-pro-max`, `brand`, and `design-system` skills.
 
 ## Platform Sizes
 
@@ -22,16 +22,9 @@ Design social media images via HTML/CSS rendering + screenshot export. Orchestra
 
 ## Workflow
 
-### Step 1: Activate Project Management
+### Step 1: Plan the Work
 
-Invoke `project-management` skill to create persistent TODO tasks via Claude's native task orchestration. Break down into:
-- Requirement analysis task
-- Idea generation task(s)
-- HTML design task(s) — can parallelize per size/variant
-- Screenshot export task(s) — can parallelize per file
-- Report generation task
-
-Spawn parallel subagents for independent tasks (e.g., multiple HTML files for different sizes).
+HTML design and screenshot export can run in parallel per size or variant.
 
 ### Step 2: Analyze Requirements
 
@@ -57,9 +50,9 @@ Present ideas to user via `AskUserQuestion` for approval before designing.
 
 Activate these skills in sequence:
 
-1. **`/ckm:brand`** — Extract brand colors, fonts, voice from user's project
-2. **`/ckm:design-system`** — Get design tokens (spacing, typography scale, color palette)
-3. **Randomly invoke ONE of:** `/ck:ui-ux-pro-max` OR `/ck:frontend-design` — for layout, hierarchy, visual balance. Pick one at random each run for design variety.
+1. **`brand`** — Extract brand colors, fonts, voice from user's project
+2. **`design-system`** — Get design tokens (spacing, typography scale, color palette)
+3. **`ui-ux-pro-max` or `frontend-design`** — for layout, hierarchy, visual balance. Alternate between them across runs for design variety.
 
 For each approved idea + each target size, create an HTML file:
 
@@ -119,7 +112,7 @@ output/social-photos/
 
 ### Step 5: Screenshot Export
 
-Use Chrome headless, `chrome-devtools` skill, or Playwright/Puppeteer to capture exact-size screenshots.
+Use Chrome headless or Playwright/Puppeteer to capture exact-size screenshots.
 
 **IMPORTANT:** Always add a delay (3-5s) after page load for fonts/images to fully render before capture.
 
@@ -145,16 +138,7 @@ Key flags:
 - `--hide-scrollbars` — prevents scrollbar artifacts in screenshots
 - `--window-size=WxH` — sets exact pixel dimensions
 
-#### Option B: chrome-devtools skill
-
-Invoke `/chrome-devtools` with instructions to:
-1. Open each HTML file in browser
-2. Set viewport to exact target dimensions
-3. Wait 3-5s for fonts/images to fully load
-4. Screenshot full page to PNG
-5. Save to `output/social-photos/exports/`
-
-#### Option C: Playwright script
+#### Option B: Playwright script
 
 ```javascript
 const { chromium } = require('playwright');
@@ -180,7 +164,7 @@ async function captureScreenshots(htmlFiles) {
 }
 ```
 
-#### Option D: Puppeteer script
+#### Option C: Puppeteer script
 
 ```javascript
 const puppeteer = require('puppeteer');
@@ -210,7 +194,7 @@ async function captureScreenshots(htmlFiles) {
 
 ### Step 6: Verify & Fix Designs
 
-Use Chrome MCP or `chrome-devtools` skill to visually inspect each exported PNG:
+Open each exported PNG and inspect it:
 
 1. Open exported screenshots and check for layout/styling issues
 2. Verify: fonts rendered correctly, colors match brand, text readable at thumbnail size
@@ -269,7 +253,7 @@ Report structure:
 
 ### Step 8: Organize Output
 
-Invoke `assets-organizing` skill to organize all output files and reports:
+Organize all output files and reports:
 - Move/copy exported PNGs to proper asset directories
 - Ensure reports are in `plans/reports/` with correct naming
 - Clean up intermediate HTML files if requested
@@ -326,4 +310,4 @@ This sub-skill handles social media image design only. Does NOT handle:
 - Animation/motion graphics
 - Print production files (CMYK, bleed)
 - Direct social media posting/scheduling
-- AI image generation (use `ai-artist` skill for that)
+- AI image generation

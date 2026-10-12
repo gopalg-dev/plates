@@ -103,7 +103,6 @@ node scripts/validate-tokens.cjs --dir src/
 **With ui-styling:** Component tokens → Tailwind config
 
 **Skill Dependencies:** brand, ui-styling
-**Primary Agents:** ui-ux-designer, frontend-developer
 
 ## Slide System
 
@@ -176,7 +175,7 @@ System calculates pattern breaks at 1/3 and 2/3 positions.
 
 ### Slide Requirements
 
-**ALL slides MUST:**
+**Every slide:**
 1. Import `assets/design-tokens.css` - single source of truth
 2. Use CSS variables: `var(--color-primary)`, `var(--slide-bg)`, etc.
 3. Use Chart.js for charts (NOT CSS-only bars)
@@ -221,17 +220,10 @@ color: #FF6B6B;
 font-family: 'Space Grotesk';
 ```
 
-### Reference Implementation
-
-Working example with all features:
-```
-assets/designs/slides/claudekit-pitch-251223.html
-```
-
 ### Command
 
 ```bash
-/slides:create "10-slide investor pitch for ClaudeKit Marketing"
+/slides create "10-slide investor pitch"
 ```
 
 ## Best Practices
