@@ -218,3 +218,7 @@ device is), Chalk (warm white and graphite, flat), Pocket (the device's own type
 white cards, blue buttons), and two popular themes on their own published palettes, Catppuccin Latte
 and Dracula. Each is a block of token values in `src/styles.css`; the components never change, and
 red, blue and yellow still mean push, pull and legs in every one of them.
+
+## Licence
+
+MIT. See `LICENSE`.
