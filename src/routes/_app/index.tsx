@@ -610,27 +610,30 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
             {workout.dayName}
           </h1>
         </div>
-        <DropdownMenu modal={false}>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon-sm" className="shrink-0" aria-label="Session options">
-              <MoreHorizontal aria-hidden />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-48">
-            <DropdownMenuItem onSelect={() => setZen(true)}>
-              <Focus aria-hidden />
-              Zen mode
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => setChangeOpen(true)}>
-              <ArrowLeftRight aria-hidden />
-              Change session
-            </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive" onSelect={() => setDiscardOpen(true)}>
-              <Trash2 aria-hidden />
-              Discard workout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex shrink-0 items-center gap-2">
+          <Button variant="outline" size="icon-sm" aria-label="Zen mode" onClick={() => setZen(true)}>
+            <Focus aria-hidden />
+          </Button>
+          <DropdownMenu modal={false}>
+            <DropdownMenuTrigger asChild>
+              {/* The trigger swaps the button's data-slot, so the touch-size rule in styles.css misses it:
+                  size it here to match the Zen button beside it. */}
+              <Button variant="outline" size="icon-sm" className="pointer-coarse:size-11" aria-label="Session options">
+                <MoreHorizontal aria-hidden />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-48">
+              <DropdownMenuItem onSelect={() => setChangeOpen(true)}>
+                <ArrowLeftRight aria-hidden />
+                Change session
+              </DropdownMenuItem>
+              <DropdownMenuItem variant="destructive" onSelect={() => setDiscardOpen(true)}>
+                <Trash2 aria-hidden />
+                Discard workout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
 
       <Drawer open={changeOpen} onOpenChange={setChangeOpen}>

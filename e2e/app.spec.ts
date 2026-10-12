@@ -204,6 +204,30 @@ test('plan shows the days and swaps an exercise for an alternate', async () => {
   await expect(page.getByRole('button', { name: 'Edit Chest Dips' })).toBeVisible()
   await expect(page.getByText('6 of 10 exercises')).toBeVisible()
 
+  // Reorder from the keyboard: lift Chest Dips by its grip, move it up one, drop. The order saves.
+  const grips = page.getByRole('button', { name: /^Move / })
+  const order = () => grips.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label')?.slice(5)))
+  const before = await order()
+  expect(before.at(-1)).toBe('Chest Dips')
+  // Each key waits for the screen-reader announcement of the one before, as a person hearing it would.
+  await page.getByRole('button', { name: 'Move Chest Dips' }).focus()
+  await page.keyboard.press('Space')
+  await expect(page.getByText(`Picked up Chest Dips, position ${before.length} of ${before.length}.`)).toBeAttached()
+  await page.keyboard.press('ArrowUp')
+  await expect(page.getByText(`Chest Dips is over position ${before.length - 1} of ${before.length}.`)).toBeAttached()
+  await page.keyboard.press('Space')
+  await expect.poll(order).toEqual([...before.slice(0, -2), 'Chest Dips', before.at(-2)])
+  await open(page, '/plan')
+  await page.getByRole('button', { name: /Push A/ }).click()
+  await expect.poll(order).toEqual([...before.slice(0, -2), 'Chest Dips', before.at(-2)])
+  // The day's menu puts the template order back: the swapped lift in its slot, the added one last.
+  await page.getByRole('button', { name: 'Push A options' }).click()
+  await page.getByRole('menuitem', { name: 'Restore default order' }).click()
+  await expect.poll(order).toEqual(before)
+  await page.getByRole('button', { name: 'Push A options' }).click()
+  await expect(page.getByRole('menuitem', { name: 'Restore default order' })).toBeDisabled()
+  await page.keyboard.press('Escape')
+
   // Days themselves: add one of a kind, rename it, move it, remove it.
   await page.getByRole('button', { name: 'Add a day' }).click()
   await page.getByRole('dialog').getByRole('button', { name: 'Arms', exact: true }).click()
@@ -361,8 +385,7 @@ test('stats reflect the logged workout and bodyweight', async () => {
   await expect(page.getByText(/Started/)).toBeVisible()
   await snap(page, '11-today-dark')
   // Zen mode: one exercise over the whole app, Next and Previous between them.
-  await page.getByRole('button', { name: 'Session options' }).click()
-  await page.getByRole('menuitem', { name: 'Zen mode' }).click()
+  await page.getByRole('button', { name: 'Zen mode' }).click()
   const zen = page.getByRole('dialog', { name: 'Zen mode' })
   await expect(zen.getByText('1 of 6', { exact: true })).toBeVisible()
   await zen.getByRole('button', { name: 'Next exercise' }).click()

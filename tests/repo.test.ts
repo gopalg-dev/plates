@@ -185,6 +185,20 @@ suite('plan', () => {
     await expect(repo.removeExercise(U, 'pull-a', 'barbell-shrug')).rejects.toThrow(/at least one/)
   })
 
+  it('reorders a day and refuses an order that drops or repeats an exercise', async () => {
+    const plan = await repo.getPlan(U)
+    const ids = plan.days[0].exercises.map((e) => e.id)
+    const reversed = [...ids].reverse()
+    const next = await repo.reorderExercises(U, plan.days[0].id, reversed)
+    expect(next.days[0].exercises.map((e) => e.id)).toEqual(reversed)
+    expect((await repo.getPlan(U)).days[0].exercises.map((e) => e.id)).toEqual(reversed)
+    await expect(repo.reorderExercises(U, plan.days[0].id, ids.slice(1))).rejects.toThrow(/every exercise/)
+    await expect(repo.reorderExercises(U, plan.days[0].id, [ids[0], ...ids.slice(0, -1)])).rejects.toThrow(
+      /every exercise/,
+    )
+    await expect(repo.reorderExercises(U, 'nope', ids)).rejects.toThrow(/Day not found/)
+  })
+
   it('switches to another split and resets to that one from then on', async () => {
     const plan = await repo.applySplit(U, 'ul4')
     expect(plan.days.map((d) => d.id)).toEqual(['upper-a', 'lower-a', 'upper-b', 'lower-b'])

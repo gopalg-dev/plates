@@ -238,6 +238,13 @@ export const removeExerciseFn = createServerFn({ method: 'POST' })
   .validator(z.object({ dayId: z.string().min(1), exerciseId: z.string().min(1) }))
   .handler(({ data, context }) => repo.removeExercise(context.userId, data.dayId, data.exerciseId))
 
+export const reorderExercisesFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(
+    z.object({ dayId: z.string().min(1), order: z.array(z.string().min(1)).min(1).max(MAX_EXERCISES_PER_DAY) }),
+  )
+  .handler(({ data, context }) => repo.reorderExercises(context.userId, data.dayId, data.order))
+
 const exerciseSchema = exerciseInput.extend({
   id: z.string().min(1).max(80),
 })

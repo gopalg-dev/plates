@@ -333,6 +333,19 @@ export async function removeExercise(userId: string, dayId: string, exerciseId: 
   return savePlan(userId, plan)
 }
 
+/** Puts a day's exercises in the given order. `order` names every exercise on the day, once. */
+export async function reorderExercises(userId: string, dayId: string, order: string[]): Promise<Plan> {
+  const plan = await getPlan(userId)
+  const day = plan.days.find((d) => d.id === dayId)
+  if (!day) throw new Error('Day not found')
+  const byId = new Map(day.exercises.map((e) => [e.id, e]))
+  if (order.length !== byId.size || new Set(order).size !== order.length || !order.every((id) => byId.has(id))) {
+    throw new Error('The order must name every exercise on the day once')
+  }
+  day.exercises = order.map((id) => must(byId.get(id), 'an exercise in the order'))
+  return savePlan(userId, plan)
+}
+
 // ---- days ----
 
 /** A new day of one type at the end of the plan, with the block's exercises. Up to 14 days. */

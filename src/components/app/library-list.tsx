@@ -65,11 +65,13 @@ interface ListProps {
   action?: 'Open' | 'Use'
   /** Focus the search box when the list appears. */
   autoFocus?: boolean
+  /** Keep the search box pinned to the top of the scrolling area while the tags and rows scroll under it. */
+  stickySearch?: boolean
   /** The rows in view after search and filters, so the detail view can step through them. */
   onResults?: (results: LibraryExercise[]) => void
 }
 
-export function LibraryList({ onSelect, action = 'Open', autoFocus, onResults }: ListProps) {
+export function LibraryList({ onSelect, action = 'Open', autoFocus, stickySearch, onResults }: ListProps) {
   const { library } = useContent()
   const [query, setQuery] = useState('')
   const [muscle, setMuscle] = useState<Muscle | 'any'>('any')
@@ -93,16 +95,19 @@ export function LibraryList({ onSelect, action = 'Open', autoFocus, onResults }:
   return (
     // min-w-0: inside a dialog this is a grid item, and the scrolling tag rows must not set its width.
     <div className="min-w-0">
-      <Input
-        type="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search by name, muscle or equipment"
-        aria-label="Search the library"
-        autoFocus={autoFocus}
-        className="h-11 text-base"
-      />
-      <TagRow label="Muscle" className="mt-3">
+      {/* Sticky: pt-1 and the side margin leave room for the focus ring, which the background would cover. */}
+      <div className={cn('pb-3', stickySearch && 'sticky top-0 z-10 -mx-1 bg-background px-1 pt-1')}>
+        <Input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by name, muscle or equipment"
+          aria-label="Search the library"
+          autoFocus={autoFocus}
+          className="h-11 text-base"
+        />
+      </div>
+      <TagRow label="Muscle">
         <ToggleGroup
           type="single"
           variant="outline"
@@ -308,10 +313,10 @@ export function LibraryPicker({ onPick, trigger }: PickerProps) {
           <DialogTitle>Pick from library</DialogTitle>
           <DialogDescription className="sr-only">Search, then use an exercise.</DialogDescription>
         </DialogHeader>
-        {/* pt-1: room for the search box's focus ring, which the scrolling area would clip. */}
-        <div className="min-h-0 flex-1 overflow-y-auto scrollbar-none px-6 pt-1 pb-6">
+        <div className="min-h-0 flex-1 overflow-y-auto scrollbar-none px-6 pb-6">
           <LibraryList
             autoFocus
+            stickySearch
             action="Use"
             onSelect={(ex) => {
               onPick(ex)

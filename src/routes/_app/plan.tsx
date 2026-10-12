@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
-import { ArrowDown, ArrowUp, MoreHorizontal, Pencil, Plus, Trash2, X } from 'lucide-react'
+import { ArrowDown, ArrowUp, ListRestart, MoreHorizontal, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { DayIcon } from '#/components/app/day-mark'
@@ -7,6 +7,7 @@ import { EditorPanel, PanelFooter } from '#/components/app/editor-panel'
 import { ExerciseThumb } from '#/components/app/exercise-thumb'
 import { LibraryPicker } from '#/components/app/library-list'
 import { NumberField } from '#/components/app/number-field'
+import { SortableList } from '#/components/app/sortable-list'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '#/components/ui/accordion'
 import { Button } from '#/components/ui/button'
 import {
@@ -39,9 +40,10 @@ import {
 } from '#/components/ui/item'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import { Textarea } from '#/components/ui/textarea'
-import { planSourceInfo } from '#/lib/content'
+import { DEFAULT_SPLIT, planSourceInfo } from '#/lib/content'
 import { DAY_LABEL } from '#/lib/day-blocks'
 import { errorMessage } from '#/lib/format'
+import { inDefaultOrder, templateExercises } from '#/lib/logic/default-order'
 import { MUSCLE_BY_DAY } from '#/lib/logic/plan-sheet'
 import { WEEK_ORDER, WEEKDAY_LONG, weekdayOf } from '#/lib/logic/schedule'
 import { MUSCLE_LABEL, MUSCLES, plannedSetsFor } from '#/lib/logic/stats'
@@ -67,6 +69,7 @@ import {
   moveDayFn,
   removeDayFn,
   removeExerciseFn,
+  reorderExercisesFn,
   resetPlanFn,
   setDayWeekdayFn,
   swapExerciseFn,
@@ -111,6 +114,9 @@ function PlanPage() {
   const [busy, setBusy] = useState(false)
   const { splits } = useContent()
   const split = planSourceInfo(splits, settings.split, plan.days.length)
+  const source = settings.split ?? DEFAULT_SPLIT
+  /** The split's own days, for each day's default order. A plan of your own falls back to the day blocks. */
+  const templateDays = source === 'custom' ? null : (splits.find((s) => s.id === source)?.days ?? null)
   const schedule: Schedule = settings.schedule ?? 'rolling'
 
   async function addDay(type: DayType) {
@@ -133,6 +139,15 @@ function PlanPage() {
       await router.invalidate()
     } catch (err) {
       toast.error(errorMessage(err, 'Could not move the day.'))
+    }
+  }
+
+  async function reorderExercises(dayId: string, order: string[]) {
+    try {
+      await reorderExercisesFn({ data: { dayId, order } })
+      await router.invalidate()
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not save the new order.'))
     }
   }
 
@@ -187,6 +202,8 @@ function PlanPage() {
             onlyDay={plan.days.length === 1}
             onEdit={(exercise) => setEditing({ day, exercise })}
             onAdd={() => setEditing({ day, exercise: null })}
+            defaultOrder={inDefaultOrder(day.exercises, templateExercises(templateDays, day)).map((e) => e.id)}
+            onReorder={(order) => reorderExercises(day.id, order)}
             onWeekday={(weekday) => changeWeekday(day.id, weekday)}
             onRename={() => setRenaming(day)}
             onMove={(direction) => moveDay(day.id, direction)}
@@ -295,6 +312,9 @@ interface DayProps {
   onlyDay: boolean
   onEdit: (exercise: Exercise) => void
   onAdd: () => void
+  /** The day's exercise ids in the template's order, for Restore default order. */
+  defaultOrder: string[]
+  onReorder: (order: string[]) => Promise<void>
   onWeekday: (weekday: number) => void
   onRename: () => void
   onMove: (direction: 'up' | 'down') => void
@@ -309,6 +329,8 @@ function DaySection({
   onlyDay,
   onEdit,
   onAdd,
+  defaultOrder,
+  onReorder,
   onWeekday,
   onRename,
   onMove,
@@ -317,6 +339,7 @@ function DaySection({
   const full = day.exercises.length >= MAX_EXERCISES_PER_DAY
   const sets = day.exercises.reduce((n, e) => n + plannedSetsFor(e.sets, settings.trainingAge), 0)
   const onWeekdays = schedule === 'weekday' && day.weekday !== undefined
+  const inDefault = defaultOrder.every((id, i) => day.exercises[i]?.id === id)
   return (
     <AccordionItem value={day.id}>
       <AccordionTrigger className="items-center gap-3 py-4 text-base font-normal hover:no-underline [&>svg]:size-5 [&>svg]:translate-y-0">
@@ -351,6 +374,10 @@ function DaySection({
                 <ArrowDown aria-hidden />
                 Move down
               </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => onReorder(defaultOrder)} disabled={inDefault}>
+                <ListRestart aria-hidden />
+                Restore default order
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onSelect={onRemove} disabled={onlyDay}>
                 <Trash2 aria-hidden />
@@ -379,29 +406,40 @@ function DaySection({
           </div>
         )}
         <ItemGroup>
-          {day.exercises.map((ex, i) => (
-            <div key={ex.id}>
-              {i > 0 && <ItemSeparator />}
-              <Item size="sm" className="cursor-pointer px-2" onClick={rowTap(() => onEdit(ex)).onClick}>
-                <ItemMedia variant="image">
-                  <ExerciseThumb name={ex.name} />
-                </ItemMedia>
-                <ItemContent>
-                  <ItemTitle className="text-base font-normal">{ex.name}</ItemTitle>
-                  {ex.note && <ItemDescription>{ex.note}</ItemDescription>}
-                </ItemContent>
-                <span className="shrink-0 tabular-nums text-muted-foreground">
-                  {plannedSetsFor(ex.sets, settings.trainingAge)} × {targetOf(ex)}
-                </span>
-                <ItemActions>
-                  <Button variant="ghost" size="sm" aria-label={`Edit ${ex.name}`} onClick={() => onEdit(ex)}>
-                    <Pencil aria-hidden />
-                    Edit
-                  </Button>
-                </ItemActions>
-              </Item>
-            </div>
-          ))}
+          <SortableList id={`order-${day.id}`} items={day.exercises} nameOf={(ex) => ex.name} onReorder={onReorder}>
+            {(ex, handle, i) => (
+              <>
+                {i > 0 && <ItemSeparator />}
+                <Item size="sm" className="cursor-pointer pr-2 pl-0" onClick={rowTap(() => onEdit(ex)).onClick}>
+                  {/* In an ItemMedia, so the grip moves to the top with the photo when a note makes the row tall. */}
+                  <ItemMedia>{handle}</ItemMedia>
+                  <ItemMedia variant="image">
+                    <ExerciseThumb name={ex.name} />
+                  </ItemMedia>
+                  <ItemContent>
+                    <ItemTitle className="text-base font-normal">{ex.name}</ItemTitle>
+                    {ex.note && <ItemDescription>{ex.note}</ItemDescription>}
+                  </ItemContent>
+                  <span className="shrink-0 tabular-nums text-muted-foreground">
+                    {plannedSetsFor(ex.sets, settings.trainingAge)} × {targetOf(ex)}
+                  </span>
+                  <ItemActions>
+                    {/* Just the pencil on phones, where the row is short of room; the word comes back from 768px. */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="max-md:size-8 max-md:has-[>svg]:px-0"
+                      aria-label={`Edit ${ex.name}`}
+                      onClick={() => onEdit(ex)}
+                    >
+                      <Pencil aria-hidden />
+                      <span className="max-md:sr-only">Edit</span>
+                    </Button>
+                  </ItemActions>
+                </Item>
+              </>
+            )}
+          </SortableList>
         </ItemGroup>
         <div className="mt-2 flex items-center justify-between gap-3 px-2">
           <span className="text-sm text-muted-foreground">
