@@ -2,8 +2,8 @@ import { MongoClient } from 'mongodb'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { LIBRARY } from '#/lib/library'
 import { BUNDLED_SPLITS } from '#/lib/splits'
-import { useDbForTests } from '#/server/db'
 import { forgetContent, readContent, seedContent, splitTemplate } from '#/server/content'
+import { setDbForTests } from '#/server/db'
 
 const uri = process.env.MONGODB_URI ?? 'mongodb://localhost:27017'
 // Its own database: the repo tests seed content too, and the two files run at the same time.
@@ -19,10 +19,10 @@ try {
 const suite = describe.skipIf(!client)
 
 beforeAll(() => {
-  if (client) useDbForTests(client.db(dbName))
+  if (client) setDbForTests(client.db(dbName))
 })
 afterAll(async () => {
-  useDbForTests(undefined)
+  setDbForTests(undefined)
   await client?.close()
 })
 beforeEach(async () => {

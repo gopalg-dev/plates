@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { DayIcon } from '#/components/app/day-mark'
 import { EditorPanel, PanelFooter } from '#/components/app/editor-panel'
-import { ExerciseRow, completeSet } from '#/components/app/exercise-row'
+import { completeSet, ExerciseRow } from '#/components/app/exercise-row'
 import { Accordion } from '#/components/ui/accordion'
 import { Button } from '#/components/ui/button'
 import {

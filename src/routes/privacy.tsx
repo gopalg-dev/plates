@@ -1,4 +1,4 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { AuthFrame } from '#/components/app/auth-frame'
 import { pageTitle } from '#/lib/page-title'
 

@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { Line, LineChart } from 'recharts'
-import { ChartContainer, type ChartConfig } from '#/components/ui/chart'
+import { type ChartConfig, ChartContainer } from '#/components/ui/chart'
 import { cn } from '#/lib/utils'
 
 interface Props {
@@ -17,7 +17,12 @@ export function Sparkline({ values, className, style }: Props) {
   const data = values.map((v, i) => ({ i, v }))
   const last = data.length - 1
   return (
-    <ChartContainer aria-hidden config={config} className={cn('h-7 w-24 shrink-0 aspect-auto', className)} style={style}>
+    <ChartContainer
+      aria-hidden
+      config={config}
+      className={cn('h-7 w-24 shrink-0 aspect-auto', className)}
+      style={style}
+    >
       <LineChart data={data} margin={{ top: 3, right: 3, bottom: 3, left: 3 }}>
         <Line
           dataKey="v"

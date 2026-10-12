@@ -11,9 +11,9 @@
  */
 import { hashPassword } from 'better-auth/crypto'
 import { MongoClient, ObjectId } from 'mongodb'
-import { seedContent } from '../src/server/content'
 import type { SplitTemplate } from '../src/lib/content'
 import type { LoadType, Muscle, PlanDay } from '../src/lib/types'
+import { seedContent } from '../src/server/content'
 
 // ---- arguments ----
 

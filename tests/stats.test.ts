@@ -7,13 +7,13 @@ import {
   plannedVolumeByMuscle,
   recentPRs,
   sessionsInWeek,
+  setScore,
   startOfWeek,
   strengthSeries,
   volumeByMuscleInWeek,
-  weekTotals,
-  setScore,
   weeklyStreak,
   weeklyStrength,
+  weekTotals,
 } from '#/lib/logic/stats'
 import { seedPlan } from '#/lib/seed-plan'
 import type { BodyweightLog, DayType, LoggedSet, Workout, WorkoutEntry } from '#/lib/types'

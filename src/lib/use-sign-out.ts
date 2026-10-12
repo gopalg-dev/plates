@@ -1,8 +1,8 @@
 import { useNavigate, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { authClient } from './auth-client'
 import { errorMessage } from '#/lib/format'
+import { authClient } from './auth-client'
 
 /** Ends the session and returns to the sign-in page. */
 export function useSignOut() {

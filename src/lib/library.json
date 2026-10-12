@@ -3,11 +3,7 @@
     "id": "barbell-bench-press",
     "name": "Barbell Bench Press",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -22,11 +18,7 @@
     "id": "incline-barbell-bench-press",
     "name": "Incline Barbell Bench Press",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -41,11 +33,7 @@
     "id": "decline-barbell-bench-press",
     "name": "Decline Barbell Bench Press",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -60,11 +48,7 @@
     "id": "dumbbell-bench-press",
     "name": "Dumbbell Bench Press",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -79,11 +63,7 @@
     "id": "incline-db-press",
     "name": "Incline DB Press",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -98,11 +78,7 @@
     "id": "decline-db-press",
     "name": "Decline DB Press",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -117,9 +93,7 @@
     "id": "dumbbell-fly",
     "name": "Dumbbell Fly",
     "muscle": "chest",
-    "muscles": [
-      "chest"
-    ],
+    "muscles": ["chest"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -134,10 +108,7 @@
     "id": "incline-dumbbell-fly",
     "name": "Incline Dumbbell Fly",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "shoulders"
-    ],
+    "muscles": ["chest", "shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -152,10 +123,7 @@
     "id": "cable-crossover",
     "name": "Cable Crossover",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "shoulders"
-    ],
+    "muscles": ["chest", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -170,10 +138,7 @@
     "id": "low-to-high-cable-fly",
     "name": "Low-to-High Cable Fly",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "shoulders"
-    ],
+    "muscles": ["chest", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -188,9 +153,7 @@
     "id": "cable-fly",
     "name": "Cable Fly",
     "muscle": "chest",
-    "muscles": [
-      "chest"
-    ],
+    "muscles": ["chest"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "intermediate",
@@ -205,11 +168,7 @@
     "id": "machine-chest-press",
     "name": "Machine Chest Press",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -224,9 +183,7 @@
     "id": "pec-deck",
     "name": "Pec Deck",
     "muscle": "chest",
-    "muscles": [
-      "chest"
-    ],
+    "muscles": ["chest"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -241,11 +198,7 @@
     "id": "push-ups",
     "name": "Push-ups",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -260,11 +213,7 @@
     "id": "feet-elevated-push-ups",
     "name": "Feet-Elevated Push-ups",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -279,11 +228,7 @@
     "id": "incline-push-ups",
     "name": "Incline Push-ups",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -298,12 +243,7 @@
     "id": "dumbbell-pullover",
     "name": "Dumbbell Pullover",
     "muscle": "chest",
-    "muscles": [
-      "chest",
-      "lats",
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["chest", "lats", "shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -318,11 +258,7 @@
     "id": "pull-ups",
     "name": "Pull-ups",
     "muscle": "back",
-    "muscles": [
-      "lats",
-      "biceps",
-      "middle back"
-    ],
+    "muscles": ["lats", "biceps", "middle back"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -337,12 +273,7 @@
     "id": "chin-ups",
     "name": "Chin-ups",
     "muscle": "back",
-    "muscles": [
-      "lats",
-      "biceps",
-      "forearms",
-      "middle back"
-    ],
+    "muscles": ["lats", "biceps", "forearms", "middle back"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -357,12 +288,7 @@
     "id": "lat-pulldown",
     "name": "Lat Pulldown",
     "muscle": "back",
-    "muscles": [
-      "lats",
-      "biceps",
-      "middle back",
-      "shoulders"
-    ],
+    "muscles": ["lats", "biceps", "middle back", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -377,12 +303,7 @@
     "id": "close-grip-lat-pulldown",
     "name": "Close-Grip Lat Pulldown",
     "muscle": "back",
-    "muscles": [
-      "lats",
-      "biceps",
-      "middle back",
-      "shoulders"
-    ],
+    "muscles": ["lats", "biceps", "middle back", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -397,12 +318,7 @@
     "id": "neutral-grip-lat-pulldown",
     "name": "Neutral-Grip Lat Pulldown",
     "muscle": "back",
-    "muscles": [
-      "lats",
-      "biceps",
-      "middle back",
-      "shoulders"
-    ],
+    "muscles": ["lats", "biceps", "middle back", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "intermediate",
@@ -417,12 +333,7 @@
     "id": "underhand-pulldown",
     "name": "Underhand Pulldown",
     "muscle": "back",
-    "muscles": [
-      "lats",
-      "biceps",
-      "middle back",
-      "shoulders"
-    ],
+    "muscles": ["lats", "biceps", "middle back", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -437,11 +348,7 @@
     "id": "single-arm-lat-pulldown",
     "name": "Single-Arm Lat Pulldown",
     "muscle": "back",
-    "muscles": [
-      "lats",
-      "biceps",
-      "middle back"
-    ],
+    "muscles": ["lats", "biceps", "middle back"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -456,9 +363,7 @@
     "id": "straight-arm-pulldown",
     "name": "Straight-Arm Pulldown",
     "muscle": "back",
-    "muscles": [
-      "lats"
-    ],
+    "muscles": ["lats"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -473,9 +378,7 @@
     "id": "rope-straight-arm-pulldown",
     "name": "Rope Straight-Arm Pulldown",
     "muscle": "back",
-    "muscles": [
-      "lats"
-    ],
+    "muscles": ["lats"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -490,12 +393,7 @@
     "id": "barbell-row",
     "name": "Barbell Row",
     "muscle": "back",
-    "muscles": [
-      "middle back",
-      "biceps",
-      "lats",
-      "shoulders"
-    ],
+    "muscles": ["middle back", "biceps", "lats", "shoulders"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -510,12 +408,7 @@
     "id": "underhand-barbell-row",
     "name": "Underhand Barbell Row",
     "muscle": "back",
-    "muscles": [
-      "middle back",
-      "biceps",
-      "lats",
-      "shoulders"
-    ],
+    "muscles": ["middle back", "biceps", "lats", "shoulders"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -530,12 +423,7 @@
     "id": "single-arm-db-row",
     "name": "Single-Arm DB Row",
     "muscle": "back",
-    "muscles": [
-      "middle back",
-      "biceps",
-      "lats",
-      "shoulders"
-    ],
+    "muscles": ["middle back", "biceps", "lats", "shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -550,12 +438,7 @@
     "id": "bent-over-db-row",
     "name": "Bent-Over DB Row",
     "muscle": "back",
-    "muscles": [
-      "middle back",
-      "biceps",
-      "lats",
-      "shoulders"
-    ],
+    "muscles": ["middle back", "biceps", "lats", "shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -570,13 +453,7 @@
     "id": "incline-bench-db-row",
     "name": "Incline Bench DB Row",
     "muscle": "back",
-    "muscles": [
-      "middle back",
-      "biceps",
-      "forearms",
-      "lats",
-      "shoulders"
-    ],
+    "muscles": ["middle back", "biceps", "forearms", "lats", "shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -591,11 +468,7 @@
     "id": "chest-supported-barbell-row",
     "name": "Chest-Supported Barbell Row",
     "muscle": "back",
-    "muscles": [
-      "middle back",
-      "lats",
-      "shoulders"
-    ],
+    "muscles": ["middle back", "lats", "shoulders"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -610,12 +483,7 @@
     "id": "seated-cable-row",
     "name": "Seated Cable Row",
     "muscle": "back",
-    "muscles": [
-      "middle back",
-      "biceps",
-      "lats",
-      "shoulders"
-    ],
+    "muscles": ["middle back", "biceps", "lats", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -630,11 +498,7 @@
     "id": "t-bar-row",
     "name": "T-Bar Row",
     "muscle": "back",
-    "muscles": [
-      "middle back",
-      "biceps",
-      "lats"
-    ],
+    "muscles": ["middle back", "biceps", "lats"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -649,11 +513,7 @@
     "id": "chest-supported-t-bar-row",
     "name": "Chest-Supported T-Bar Row",
     "muscle": "back",
-    "muscles": [
-      "middle back",
-      "biceps",
-      "lats"
-    ],
+    "muscles": ["middle back", "biceps", "lats"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "intermediate",
@@ -668,11 +528,7 @@
     "id": "machine-row",
     "name": "Machine Row",
     "muscle": "back",
-    "muscles": [
-      "lats",
-      "biceps",
-      "middle back"
-    ],
+    "muscles": ["lats", "biceps", "middle back"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -687,10 +543,7 @@
     "id": "machine-high-row",
     "name": "Machine High Row",
     "muscle": "back",
-    "muscles": [
-      "middle back",
-      "lats"
-    ],
+    "muscles": ["middle back", "lats"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -730,9 +583,7 @@
     "id": "barbell-shrug",
     "name": "Barbell Shrug",
     "muscle": "back",
-    "muscles": [
-      "traps"
-    ],
+    "muscles": ["traps"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -747,9 +598,7 @@
     "id": "dumbbell-shrug",
     "name": "Dumbbell Shrug",
     "muscle": "back",
-    "muscles": [
-      "traps"
-    ],
+    "muscles": ["traps"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -764,10 +613,7 @@
     "id": "standing-overhead-press",
     "name": "Standing Overhead Press",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["shoulders", "triceps"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -782,10 +628,7 @@
     "id": "seated-barbell-press",
     "name": "Seated Barbell Press",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["shoulders", "triceps"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -800,10 +643,7 @@
     "id": "seated-db-shoulder-press",
     "name": "Seated DB Shoulder Press",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -818,10 +658,7 @@
     "id": "standing-db-press",
     "name": "Standing DB Press",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -836,10 +673,7 @@
     "id": "arnold-press",
     "name": "Arnold Press",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -854,10 +688,7 @@
     "id": "machine-shoulder-press",
     "name": "Machine Shoulder Press",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["shoulders", "triceps"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -872,9 +703,7 @@
     "id": "lateral-raise",
     "name": "Lateral Raise",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders"
-    ],
+    "muscles": ["shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -889,11 +718,7 @@
     "id": "cable-lateral-raise",
     "name": "Cable Lateral Raise",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders",
-      "middle back",
-      "traps"
-    ],
+    "muscles": ["shoulders", "middle back", "traps"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -908,9 +733,7 @@
     "id": "front-raise",
     "name": "Front Raise",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders"
-    ],
+    "muscles": ["shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -925,10 +748,7 @@
     "id": "face-pull",
     "name": "Face Pull",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders",
-      "middle back"
-    ],
+    "muscles": ["shoulders", "middle back"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "intermediate",
@@ -941,9 +761,7 @@
     "id": "cable-reverse-fly",
     "name": "Cable Reverse Fly",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders"
-    ],
+    "muscles": ["shoulders"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -958,9 +776,7 @@
     "id": "rear-delt-fly",
     "name": "Rear Delt Fly",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders"
-    ],
+    "muscles": ["shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -975,9 +791,7 @@
     "id": "incline-bench-db-rear-delt-fly",
     "name": "Incline Bench DB Rear Delt Fly",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders"
-    ],
+    "muscles": ["shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -992,9 +806,7 @@
     "id": "reverse-pec-deck",
     "name": "Reverse Pec Deck",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders"
-    ],
+    "muscles": ["shoulders"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -1009,10 +821,7 @@
     "id": "upright-row",
     "name": "Upright Row",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders",
-      "traps"
-    ],
+    "muscles": ["shoulders", "traps"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1027,10 +836,7 @@
     "id": "handstand-push-ups",
     "name": "Handstand Push-ups",
     "muscle": "shoulders",
-    "muscles": [
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["shoulders", "triceps"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "expert",
@@ -1045,10 +851,7 @@
     "id": "barbell-curl",
     "name": "Barbell Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps",
-      "forearms"
-    ],
+    "muscles": ["biceps", "forearms"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1063,9 +866,7 @@
     "id": "ez-bar-curl",
     "name": "EZ-Bar Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps"
-    ],
+    "muscles": ["biceps"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1080,10 +881,7 @@
     "id": "dumbbell-curl",
     "name": "Dumbbell Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps",
-      "forearms"
-    ],
+    "muscles": ["biceps", "forearms"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1098,10 +896,7 @@
     "id": "alternating-db-curl",
     "name": "Alternating DB Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps",
-      "forearms"
-    ],
+    "muscles": ["biceps", "forearms"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1116,9 +911,7 @@
     "id": "hammer-curl",
     "name": "Hammer Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps"
-    ],
+    "muscles": ["biceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1133,9 +926,7 @@
     "id": "incline-db-curl",
     "name": "Incline DB Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps"
-    ],
+    "muscles": ["biceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1150,9 +941,7 @@
     "id": "preacher-curl",
     "name": "Preacher Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps"
-    ],
+    "muscles": ["biceps"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1167,9 +956,7 @@
     "id": "machine-preacher-curl",
     "name": "Machine Preacher Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps"
-    ],
+    "muscles": ["biceps"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -1184,10 +971,7 @@
     "id": "concentration-curl",
     "name": "Concentration Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps",
-      "forearms"
-    ],
+    "muscles": ["biceps", "forearms"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1202,9 +986,7 @@
     "id": "rope-hammer-curl",
     "name": "Rope Hammer Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps"
-    ],
+    "muscles": ["biceps"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -1219,9 +1001,7 @@
     "id": "cable-curl",
     "name": "Cable Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps"
-    ],
+    "muscles": ["biceps"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -1236,9 +1016,7 @@
     "id": "spider-curl",
     "name": "Spider Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps"
-    ],
+    "muscles": ["biceps"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1253,10 +1031,7 @@
     "id": "zottman-curl",
     "name": "Zottman Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps",
-      "forearms"
-    ],
+    "muscles": ["biceps", "forearms"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -1271,10 +1046,7 @@
     "id": "reverse-curl",
     "name": "Reverse Curl",
     "muscle": "biceps",
-    "muscles": [
-      "biceps",
-      "forearms"
-    ],
+    "muscles": ["biceps", "forearms"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1289,9 +1061,7 @@
     "id": "wrist-curl",
     "name": "Wrist Curl",
     "muscle": "biceps",
-    "muscles": [
-      "forearms"
-    ],
+    "muscles": ["forearms"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1306,9 +1076,7 @@
     "id": "reverse-wrist-curl",
     "name": "Reverse Wrist Curl",
     "muscle": "biceps",
-    "muscles": [
-      "forearms"
-    ],
+    "muscles": ["forearms"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1323,11 +1091,7 @@
     "id": "close-grip-bench-press",
     "name": "Close-Grip Bench Press",
     "muscle": "triceps",
-    "muscles": [
-      "triceps",
-      "chest",
-      "shoulders"
-    ],
+    "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1342,10 +1106,7 @@
     "id": "skull-crusher",
     "name": "Skull Crusher",
     "muscle": "triceps",
-    "muscles": [
-      "triceps",
-      "forearms"
-    ],
+    "muscles": ["triceps", "forearms"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1360,9 +1121,7 @@
     "id": "triceps-pushdown",
     "name": "Triceps Pushdown",
     "muscle": "triceps",
-    "muscles": [
-      "triceps"
-    ],
+    "muscles": ["triceps"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -1377,9 +1136,7 @@
     "id": "rope-pushdown",
     "name": "Rope Pushdown",
     "muscle": "triceps",
-    "muscles": [
-      "triceps"
-    ],
+    "muscles": ["triceps"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -1394,9 +1151,7 @@
     "id": "v-bar-pushdown",
     "name": "V-Bar Pushdown",
     "muscle": "triceps",
-    "muscles": [
-      "triceps"
-    ],
+    "muscles": ["triceps"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -1411,9 +1166,7 @@
     "id": "overhead-triceps-extension",
     "name": "Overhead Triceps Extension",
     "muscle": "triceps",
-    "muscles": [
-      "triceps"
-    ],
+    "muscles": ["triceps"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -1428,9 +1181,7 @@
     "id": "overhead-db-triceps-extension",
     "name": "Overhead DB Triceps Extension",
     "muscle": "triceps",
-    "muscles": [
-      "triceps"
-    ],
+    "muscles": ["triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1445,11 +1196,7 @@
     "id": "lying-db-triceps-extension",
     "name": "Lying DB Triceps Extension",
     "muscle": "triceps",
-    "muscles": [
-      "triceps",
-      "chest",
-      "shoulders"
-    ],
+    "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -1464,11 +1211,7 @@
     "id": "dips",
     "name": "Dips",
     "muscle": "triceps",
-    "muscles": [
-      "triceps",
-      "chest",
-      "shoulders"
-    ],
+    "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -1483,11 +1226,7 @@
     "id": "bench-dips",
     "name": "Bench Dips",
     "muscle": "triceps",
-    "muscles": [
-      "triceps",
-      "chest",
-      "shoulders"
-    ],
+    "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -1502,11 +1241,7 @@
     "id": "machine-dip",
     "name": "Machine Dip",
     "muscle": "triceps",
-    "muscles": [
-      "triceps",
-      "chest",
-      "shoulders"
-    ],
+    "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -1521,9 +1256,7 @@
     "id": "triceps-kickback",
     "name": "Triceps Kickback",
     "muscle": "triceps",
-    "muscles": [
-      "triceps"
-    ],
+    "muscles": ["triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1538,11 +1271,7 @@
     "id": "jm-press",
     "name": "JM Press",
     "muscle": "triceps",
-    "muscles": [
-      "triceps",
-      "chest",
-      "shoulders"
-    ],
+    "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1557,9 +1286,7 @@
     "id": "machine-triceps-extension",
     "name": "Machine Triceps Extension",
     "muscle": "triceps",
-    "muscles": [
-      "triceps"
-    ],
+    "muscles": ["triceps"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -1574,11 +1301,7 @@
     "id": "close-grip-push-ups",
     "name": "Close-Grip Push-ups",
     "muscle": "triceps",
-    "muscles": [
-      "triceps",
-      "chest",
-      "shoulders"
-    ],
+    "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "intermediate",
@@ -1593,13 +1316,7 @@
     "id": "barbell-squat",
     "name": "Barbell Squat",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "glutes",
-      "hamstrings",
-      "lower back"
-    ],
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings", "lower back"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1614,12 +1331,7 @@
     "id": "front-squat",
     "name": "Front Squat",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "expert",
@@ -1634,12 +1346,7 @@
     "id": "barbell-hack-squat",
     "name": "Barbell Hack Squat",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "forearms",
-      "hamstrings"
-    ],
+    "muscles": ["quadriceps", "calves", "forearms", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -1654,12 +1361,7 @@
     "id": "hack-squat",
     "name": "Hack Squat",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -1674,12 +1376,7 @@
     "id": "leg-press",
     "name": "Leg Press",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -1694,9 +1391,7 @@
     "id": "leg-extension",
     "name": "Leg Extension",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps"
-    ],
+    "muscles": ["quadriceps"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -1711,12 +1406,7 @@
     "id": "barbell-lunge",
     "name": "Barbell Lunge",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -1731,12 +1421,7 @@
     "id": "dumbbell-lunges",
     "name": "Dumbbell Lunges",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1751,12 +1436,7 @@
     "id": "walking-lunges",
     "name": "Walking Lunges",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1771,11 +1451,7 @@
     "id": "db-split-squat",
     "name": "DB Split Squat",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["quadriceps", "glutes", "hamstrings"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1790,12 +1466,7 @@
     "id": "bulgarian-split-squat",
     "name": "Bulgarian Split Squat",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "expert",
@@ -1810,11 +1481,7 @@
     "id": "bodyweight-squat",
     "name": "Bodyweight Squat",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["quadriceps", "glutes", "hamstrings"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -1829,13 +1496,7 @@
     "id": "dumbbell-squat",
     "name": "Dumbbell Squat",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "glutes",
-      "hamstrings",
-      "lower back"
-    ],
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings", "lower back"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1850,13 +1511,7 @@
     "id": "step-ups",
     "name": "Step-ups",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "glutes",
-      "hamstrings",
-      "quadriceps"
-    ],
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings", "quadriceps"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -1871,12 +1526,7 @@
     "id": "db-step-ups",
     "name": "DB Step-ups",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -1891,13 +1541,7 @@
     "id": "smith-machine-squat",
     "name": "Smith Machine Squat",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "glutes",
-      "hamstrings",
-      "lower back"
-    ],
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings", "lower back"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -1912,12 +1556,7 @@
     "id": "sissy-squat",
     "name": "Sissy Squat",
     "muscle": "quads",
-    "muscles": [
-      "quadriceps",
-      "calves",
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "expert",
@@ -1932,12 +1571,7 @@
     "id": "romanian-deadlift",
     "name": "Romanian Deadlift",
     "muscle": "hamstrings",
-    "muscles": [
-      "hamstrings",
-      "calves",
-      "glutes",
-      "lower back"
-    ],
+    "muscles": ["hamstrings", "calves", "glutes", "lower back"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -1952,11 +1586,7 @@
     "id": "stiff-leg-deadlift",
     "name": "Stiff-Leg Deadlift",
     "muscle": "hamstrings",
-    "muscles": [
-      "hamstrings",
-      "glutes",
-      "lower back"
-    ],
+    "muscles": ["hamstrings", "glutes", "lower back"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -1971,11 +1601,7 @@
     "id": "db-romanian-deadlift",
     "name": "DB Romanian Deadlift",
     "muscle": "hamstrings",
-    "muscles": [
-      "hamstrings",
-      "glutes",
-      "lower back"
-    ],
+    "muscles": ["hamstrings", "glutes", "lower back"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "beginner",
@@ -1990,9 +1616,7 @@
     "id": "leg-curl",
     "name": "Leg Curl",
     "muscle": "hamstrings",
-    "muscles": [
-      "hamstrings"
-    ],
+    "muscles": ["hamstrings"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -2007,9 +1631,7 @@
     "id": "seated-leg-curl",
     "name": "Seated Leg Curl",
     "muscle": "hamstrings",
-    "muscles": [
-      "hamstrings"
-    ],
+    "muscles": ["hamstrings"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -2024,9 +1646,7 @@
     "id": "standing-leg-curl",
     "name": "Standing Leg Curl",
     "muscle": "hamstrings",
-    "muscles": [
-      "hamstrings"
-    ],
+    "muscles": ["hamstrings"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -2041,12 +1661,7 @@
     "id": "nordic-curl",
     "name": "Nordic Curl",
     "muscle": "hamstrings",
-    "muscles": [
-      "hamstrings",
-      "calves",
-      "glutes",
-      "lower back"
-    ],
+    "muscles": ["hamstrings", "calves", "glutes", "lower back"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "intermediate",
@@ -2061,11 +1676,7 @@
     "id": "good-morning",
     "name": "Good Morning",
     "muscle": "hamstrings",
-    "muscles": [
-      "lower back",
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["lower back", "glutes", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
     "level": "beginner",
@@ -2080,11 +1691,7 @@
     "id": "reverse-hyper",
     "name": "Reverse Hyper",
     "muscle": "hamstrings",
-    "muscles": [
-      "hamstrings",
-      "calves",
-      "glutes"
-    ],
+    "muscles": ["hamstrings", "calves", "glutes"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "intermediate",
@@ -2099,10 +1706,7 @@
     "id": "glute-bridge",
     "name": "Glute Bridge",
     "muscle": "hamstrings",
-    "muscles": [
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["glutes", "hamstrings"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -2117,10 +1721,7 @@
     "id": "single-leg-glute-bridge",
     "name": "Single-Leg Glute Bridge",
     "muscle": "hamstrings",
-    "muscles": [
-      "glutes",
-      "hamstrings"
-    ],
+    "muscles": ["glutes", "hamstrings"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -2135,11 +1736,7 @@
     "id": "cable-pull-through",
     "name": "Cable Pull-Through",
     "muscle": "hamstrings",
-    "muscles": [
-      "glutes",
-      "hamstrings",
-      "lower back"
-    ],
+    "muscles": ["glutes", "hamstrings", "lower back"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -2153,9 +1750,7 @@
     "id": "standing-calf-raise",
     "name": "Standing Calf Raise",
     "muscle": "calves",
-    "muscles": [
-      "calves"
-    ],
+    "muscles": ["calves"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -2170,9 +1765,7 @@
     "id": "seated-calf-raise",
     "name": "Seated Calf Raise",
     "muscle": "calves",
-    "muscles": [
-      "calves"
-    ],
+    "muscles": ["calves"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -2187,9 +1780,7 @@
     "id": "leg-press-calf-raise",
     "name": "Leg Press Calf Raise",
     "muscle": "calves",
-    "muscles": [
-      "calves"
-    ],
+    "muscles": ["calves"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -2204,9 +1795,7 @@
     "id": "db-calf-raise",
     "name": "DB Calf Raise",
     "muscle": "calves",
-    "muscles": [
-      "calves"
-    ],
+    "muscles": ["calves"],
     "equipment": "dumbbell",
     "loadType": "weight",
     "level": "intermediate",
@@ -2221,9 +1810,7 @@
     "id": "smith-machine-calf-raise",
     "name": "Smith Machine Calf Raise",
     "muscle": "calves",
-    "muscles": [
-      "calves"
-    ],
+    "muscles": ["calves"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "beginner",
@@ -2238,9 +1825,7 @@
     "id": "plank",
     "name": "Plank",
     "muscle": "abs",
-    "muscles": [
-      "abdominals"
-    ],
+    "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "time",
     "level": "beginner",
@@ -2254,10 +1839,7 @@
     "id": "side-plank",
     "name": "Side Plank",
     "muscle": "abs",
-    "muscles": [
-      "abdominals",
-      "shoulders"
-    ],
+    "muscles": ["abdominals", "shoulders"],
     "equipment": "bodyweight",
     "loadType": "time",
     "level": "beginner",
@@ -2272,9 +1854,7 @@
     "id": "hanging-leg-raise",
     "name": "Hanging Leg Raise",
     "muscle": "abs",
-    "muscles": [
-      "abdominals"
-    ],
+    "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "expert",
@@ -2289,9 +1869,7 @@
     "id": "lying-leg-raise",
     "name": "Lying Leg Raise",
     "muscle": "abs",
-    "muscles": [
-      "abdominals"
-    ],
+    "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -2306,9 +1884,7 @@
     "id": "cable-crunch",
     "name": "Cable Crunch",
     "muscle": "abs",
-    "muscles": [
-      "abdominals"
-    ],
+    "muscles": ["abdominals"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -2323,9 +1899,7 @@
     "id": "crunch",
     "name": "Crunch",
     "muscle": "abs",
-    "muscles": [
-      "abdominals"
-    ],
+    "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -2340,9 +1914,7 @@
     "id": "reverse-crunch",
     "name": "Reverse Crunch",
     "muscle": "abs",
-    "muscles": [
-      "abdominals"
-    ],
+    "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -2357,9 +1929,7 @@
     "id": "decline-crunch",
     "name": "Decline Crunch",
     "muscle": "abs",
-    "muscles": [
-      "abdominals"
-    ],
+    "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "intermediate",
@@ -2374,9 +1944,7 @@
     "id": "bicycle-crunch",
     "name": "Bicycle Crunch",
     "muscle": "abs",
-    "muscles": [
-      "abdominals"
-    ],
+    "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -2391,10 +1959,7 @@
     "id": "russian-twist",
     "name": "Russian Twist",
     "muscle": "abs",
-    "muscles": [
-      "abdominals",
-      "lower back"
-    ],
+    "muscles": ["abdominals", "lower back"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "intermediate",
@@ -2409,9 +1974,7 @@
     "id": "dead-bug",
     "name": "Dead Bug",
     "muscle": "abs",
-    "muscles": [
-      "abdominals"
-    ],
+    "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -2426,9 +1989,7 @@
     "id": "sit-up",
     "name": "Sit-up",
     "muscle": "abs",
-    "muscles": [
-      "abdominals"
-    ],
+    "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
     "level": "beginner",
@@ -2443,11 +2004,7 @@
     "id": "barbell-rollout",
     "name": "Barbell Rollout",
     "muscle": "abs",
-    "muscles": [
-      "abdominals",
-      "lower back",
-      "shoulders"
-    ],
+    "muscles": ["abdominals", "lower back", "shoulders"],
     "equipment": "barbell",
     "loadType": "bodyweight",
     "level": "intermediate",
@@ -2462,12 +2019,7 @@
     "id": "pallof-press",
     "name": "Pallof Press",
     "muscle": "abs",
-    "muscles": [
-      "abdominals",
-      "chest",
-      "shoulders",
-      "triceps"
-    ],
+    "muscles": ["abdominals", "chest", "shoulders", "triceps"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -2482,10 +2034,7 @@
     "id": "cable-woodchop",
     "name": "Cable Woodchop",
     "muscle": "abs",
-    "muscles": [
-      "abdominals",
-      "shoulders"
-    ],
+    "muscles": ["abdominals", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
     "level": "beginner",
@@ -2500,9 +2049,7 @@
     "id": "machine-crunch",
     "name": "Machine Crunch",
     "muscle": "abs",
-    "muscles": [
-      "abdominals"
-    ],
+    "muscles": ["abdominals"],
     "equipment": "machine",
     "loadType": "weight",
     "level": "intermediate",

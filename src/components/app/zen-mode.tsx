@@ -7,7 +7,7 @@ import { incrementFor } from '#/lib/logic/progression'
 import type { LoggedSet, Units, Workout, WorkoutEntry } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { DayIcon } from './day-mark'
-import { LEFT_OPTIONS, canComplete, targetFor, targetOf } from './exercise-row'
+import { canComplete, LEFT_OPTIONS, targetFor, targetOf } from './exercise-row'
 import { NumberField } from './number-field'
 
 /*
@@ -142,6 +142,7 @@ export function ZenMode({
             </div>
             <ol className="mt-1 flex flex-col gap-1" aria-label="Sets">
               {entry.sets.map((s, i) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: a set is its position (set 1, set 2) and has no id
                 <li key={i}>
                   <button
                     type="button"

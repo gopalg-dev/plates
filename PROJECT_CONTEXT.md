@@ -79,7 +79,7 @@ no Inter/Geist. Checked.
 - `src/lib/logic/progression.ts` per-set targets (dynamic double progression, effort, stall rule) + hints, rest seconds
 - `src/lib/logic/stats.ts` week math, volume, strength series, PRs, bodyweight trend
 - `src/lib/logic/units.ts` formatting helpers
-- `src/server/db.ts` Mongo client (tests inject a db with `useDbForTests`)
+- `src/server/db.ts` Mongo client (tests inject a db with `setDbForTests`)
 - `src/server/repo.ts` all reads/writes + `getTodayData()` / `getStatsData()`
 - `src/server/fns.ts` TanStack server functions with zod validation
 - `tests/*.test.ts` unit + repo tests
@@ -308,6 +308,27 @@ no Inter/Geist. Checked.
 - [x] 29. Content in the database: the split templates and the exercise library in `splits` and
       `library`, seeded from the bundled copies when empty or by `bun run db:seed`, read once per
       visit through the shell route. Editable without a deploy. HANDOVER.md item 35.
+- [~] 48. Guide (user request, 2026-10-12): `/guide` in the app shell, linked from the sidebar under Library. The one
+      page allowed to explain (the no-explanatory-copy rule holds everywhere else). Text in MDX, one file per section
+      in `src/content/guide/NN-id.mdx` exporting `title`, `icon` and `part`; `src/content/README.md` has the rules.
+      A reusable content layer serves it and any later long read (posts): `src/components/content/doc-page.tsx`
+      (`DocPage`, `sectionsFrom`: jump links, a sticky contents list from 1280px grouped by part, the section being read
+      highlighted by `src/lib/use-active-section.ts`) and `src/components/content/mdx.tsx` (`mdxComponents`: markdown
+      styling plus Lead, Facts/Fact, Steps/Step, More, Tip, usable in any .mdx without an import). Guide-only visuals
+      (Ladder, Methods, DayKinds, TrendShapes, WithPicture) are in `src/components/app/guide-blocks.tsx`. A route asks
+      the layout for room beside its text with `staticData: { wide: true }` (`src/lib/route-static-data.ts`). Build:
+      `@mdx-js/rollup` as a 'pre' plugin in `vite.config.ts`, `@vitejs/plugin-react` includes `.mdx`, `"mdx"` in
+      tsconfig types. Regenerate the route tree with a build or the dev server, not the standalone `tsr generate`,
+      which drops the Start `Register` block. Reader-tested twice with fresh agents; e2e "the guide lists every
+      section" passes on mobile and desktop. The full e2e run is still to do.
+- [x] 49. Biome (user request, 2026-10-12): `biome.json` (2.5.15, single quotes, no semicolons, 120 cols, trailing
+      commas, import sorting, `preset: recommended`; skips the route tree, `src/components/ui`, `.claude`, `.mcp.json`,
+      `.cta.json`). `bun run check` = `tsc --noEmit && biome ci .` (fails on errors, not warnings); `bun run check:fix`
+      formats and applies safe fixes. `vercel.json` runs `bun run check && bun run build`, so a type or Biome error
+      stops the deploy. The first pass formatted 57 files and fixed 19 errors: `useAlternate` and `useDbForTests`
+      renamed (`swapToAlternate`, `setDbForTests`) because Biome reads `use…` as a hook; stable keys or a
+      `biome-ignore` with its reason where the index is the identity; sr-only text instead of aria-label on spans; the
+      body map's muscle groups split into a button and an img branch. 66 warnings remain (mostly `!` assertions).
 - [x] 47. Google is the only door in production: the password door opens only where AUTH_PASSWORD=true.
       HANDOVER.md item 68.
 - [x] 46. Google sign-in, and the emailed link and sign-up code removed: two doors, Google or username /
@@ -372,5 +393,4 @@ Earlier note, kept for history. Phase 10: Playwright flow (setup -> log a workou
 - Large files are written with the Write tool; long shell heredocs got cut off once.
 - mongodb-memory-server was dropped: its 500 MB binary download timed out. Repo tests use the Docker Mongo instead.
 - shadcn CLI wrote `from "cn"` in the ui files; fixed to `#/lib/utils`. It also skipped installing radix-ui, sonner, next-themes; added by hand.
-- Windows App Control blocks Playwright's downloaded Chromium (0x11C7). Tests drive the installed Edge/Chrome via `channel` instead.
-- Playwright Chromium is installed (`chromium-1248`); the install log printed a non-fatal error at the end.
+- Windows App Control blocks Playwright's downloaded Chromium (0x11C7). Tests drive the installed Edge/Chrome via `channel` instead.- Playwright Chromium is installed (`chromium-1248`); the install log printed a non-fatal error at the end.

@@ -83,8 +83,9 @@ export function ExerciseRow({
             {doneCount}/{entry.sets.length}
           </span>
           {allDone && (
-            <span className="flex" aria-label="All sets done">
+            <span className="flex">
               <Check className="size-5 text-success" aria-hidden />
+              <span className="sr-only">All sets done</span>
             </span>
           )}
         </AccordionTrigger>
@@ -103,6 +104,7 @@ export function ExerciseRow({
             const prevReps = targetFor(entry, entry.sets, i, 'reps') ?? entry.repMin
             const prevSeconds = targetFor(entry, entry.sets, i, 'seconds') ?? entry.repMin
             return (
+              // biome-ignore lint/suspicious/noArrayIndexKey: a set is its position (set 1, set 2) and has no id
               <li key={i} className={cn('grid items-center gap-2', cols)}>
                 <span className="pl-1 text-sm tabular-nums text-muted-foreground">{i + 1}</span>
                 {weighted && (

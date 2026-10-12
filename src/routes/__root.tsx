@@ -1,5 +1,5 @@
-import { HeadContent, Link, Outlet, Scripts, createRootRoute, useRouter } from '@tanstack/react-router'
 import type { ErrorComponentProps } from '@tanstack/react-router'
+import { createRootRoute, HeadContent, Link, Outlet, Scripts, useRouter } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { Button } from '#/components/ui/button'
 import { Toaster } from '#/components/ui/sonner'

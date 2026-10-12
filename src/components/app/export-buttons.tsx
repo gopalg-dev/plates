@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '#/components/ui/button'
+import { errorMessage } from '#/lib/format'
 import { bodyweightsToRows, exportFileName, measurementsToRows, setHeaders, setsToRows } from '#/lib/logic/export'
 import { getExportFn } from '#/server/fns'
-import { errorMessage } from '#/lib/format'
 
 /** Builds the workbook in the browser and hands it to the browser's download. Nothing is stored. */
 async function downloadLogs(kind: 'xlsx' | 'csv') {

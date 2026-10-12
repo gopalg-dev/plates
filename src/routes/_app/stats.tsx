@@ -11,30 +11,30 @@ import {
   TrendingUp,
   Trophy,
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { paceNote } from '#/lib/logic/goal'
-import { CartesianGrid, Line, LineChart, XAxis, YAxis, useActiveTooltipLabel } from 'recharts'
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { CartesianGrid, Line, LineChart, useActiveTooltipLabel, XAxis, YAxis } from 'recharts'
+import { toast } from 'sonner'
 import { LogBodyweightDialog, LogMeasurementsDialog, TapeDialog, WeighInDialog } from '#/components/app/body-dialogs'
 import { BodyMap, BodyMapLegend } from '#/components/app/body-map'
 import { DayIcon, dayColourClass, dayColourVar, dayInkClass } from '#/components/app/day-mark'
 import { ExportButtons } from '#/components/app/export-buttons'
-import { SessionEditor, sessionSummary } from '#/components/app/session-editor'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '#/components/ui/dialog'
-import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '#/components/ui/item'
 import { SectionHeading } from '#/components/app/section-heading'
+import { SessionEditor, sessionSummary } from '#/components/app/session-editor'
 import { Button } from '#/components/ui/button'
 import { Calendar } from '#/components/ui/calendar'
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '#/components/ui/chart'
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '#/components/ui/chart'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '#/components/ui/dialog'
+import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '#/components/ui/item'
 import { Popover, PopoverContent, PopoverTrigger } from '#/components/ui/popover'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '#/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '#/components/ui/tabs'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
-import { longDate, monthYear, relativeDay, shortDate, signed, errorMessage } from '#/lib/format'
+import { errorMessage, longDate, monthYear, relativeDay, shortDate, signed } from '#/lib/format'
 import { deloadHint, effortLabel, effortThisWeek } from '#/lib/logic/effort'
+import { paceNote } from '#/lib/logic/goal'
 import { daysBetween } from '#/lib/logic/nudges'
 import { plateOf } from '#/lib/logic/progression'
-import { TRENDS, TREND_LABEL, liftTrend, type Trend } from '#/lib/logic/trend'
 import {
   addDays,
   bodyweightTrend,
@@ -45,11 +45,12 @@ import {
   sessionsInWeek,
   startOfWeek,
   volumeByMuscleInWeek,
-  weekTotals,
+  type WeeklyPoint,
   weeklyStreak,
   weeklyStrength,
-  type WeeklyPoint,
+  weekTotals,
 } from '#/lib/logic/stats'
+import { liftTrend, TREND_LABEL, TRENDS, type Trend } from '#/lib/logic/trend'
 import { fmtWeight } from '#/lib/logic/units'
 import { rowTap } from '#/lib/row-tap'
 import {
@@ -63,11 +64,11 @@ import {
   type Workout,
 } from '#/lib/types'
 import { cn } from '#/lib/utils'
-import { toast } from 'sonner'
 import { getStatsFn, resetRampFn } from '#/server/fns'
 
 type StatsTab = 'lifts' | 'sessions' | 'body'
 const TABS: StatsTab[] = ['lifts', 'sessions', 'body']
+
 import { pageTitle } from '#/lib/page-title'
 
 export const Route = createFileRoute('/_app/stats')({
@@ -803,9 +804,11 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
       </div>
       <div className="mt-1 grid grid-cols-7 gap-1 px-1 text-center text-xs text-muted-foreground" aria-hidden>
         {WEEKDAYS.map((d, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: the weekday letters repeat (T, S); the column is the identity
           <span key={i}>{d}</span>
         ))}
       </div>
+      {/* biome-ignore lint/a11y/useSemanticElements: a labelled group of calendar buttons, not a form, so no fieldset */}
       <div className="mt-1 flex flex-col gap-1" role="group" aria-label={`Weeks of ${title}`}>
         {weeks.map((week) => {
           const isSelected = week.start === selected
@@ -818,6 +821,7 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
               )}
             >
               {week.days.map((d, j) => {
+                // biome-ignore lint/suspicious/noArrayIndexKey: an empty cell before the first of the month is only a position
                 if (d === null) return <span key={`pad-${j}`} />
                 const on = names.get(d.date) ?? []
                 return (

@@ -52,10 +52,19 @@ export function NumberField({
 
   return (
     <InputGroup
-      className={cn('overflow-hidden rounded-lg border-input bg-card shadow-none dark:bg-card', tall ? 'h-14' : 'h-12', className)}
+      className={cn(
+        'overflow-hidden rounded-lg border-input bg-card shadow-none dark:bg-card',
+        tall ? 'h-14' : 'h-12',
+        className,
+      )}
     >
       <InputGroupAddon align="inline-start" className="h-full py-0 pl-0 has-[>button]:ml-0">
-        <InputGroupButton size="icon-sm" className={stepButton} aria-label={`Decrease ${label}`} onClick={() => nudge(-1)}>
+        <InputGroupButton
+          size="icon-sm"
+          className={stepButton}
+          aria-label={`Decrease ${label}`}
+          onClick={() => nudge(-1)}
+        >
           <Minus className="size-4" aria-hidden />
         </InputGroupButton>
       </InputGroupAddon>
@@ -77,7 +86,12 @@ export function NumberField({
         )}
       />
       <InputGroupAddon align="inline-end" className="h-full py-0 pr-0 has-[>button]:mr-0">
-        <InputGroupButton size="icon-sm" className={stepButton} aria-label={`Increase ${label}`} onClick={() => nudge(1)}>
+        <InputGroupButton
+          size="icon-sm"
+          className={stepButton}
+          aria-label={`Increase ${label}`}
+          onClick={() => nudge(1)}
+        >
           <Plus className="size-4" aria-hidden />
         </InputGroupButton>
       </InputGroupAddon>

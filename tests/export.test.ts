@@ -30,11 +30,7 @@ const session: Workout = {
       loadType: 'bodyweight',
       repMin: 6,
       repMax: 12,
-      sets: [
-        { reps: 8, done: true },
-        { reps: 7, done: true },
-        { done: false },
-      ],
+      sets: [{ reps: 8, done: true }, { reps: 7, done: true }, { done: false }],
     },
     {
       exerciseId: 'barbell-row',
@@ -62,7 +58,14 @@ describe('export rows', () => {
     }
     const rows = setsToRows([session, unfinished, earlier])
     expect(rows).toHaveLength(4)
-    expect(rows[0]).toMatchObject({ Date: '2026-10-08', Exercise: 'Barbell Row', Weight: 60, Reps: 8, Effort: '', Note: '' })
+    expect(rows[0]).toMatchObject({
+      Date: '2026-10-08',
+      Exercise: 'Barbell Row',
+      Weight: 60,
+      Reps: 8,
+      Effort: '',
+      Note: '',
+    })
     expect(rows[1]).toMatchObject({
       Date: '2026-10-10',
       Time: '18:05',
@@ -96,7 +99,9 @@ describe('export rows', () => {
       { Date: '2026-10-03', Weight: 72 },
       { Date: '2026-10-10', Weight: 72.5 },
     ])
-    const tape = measurementsToRows([{ id: 'm', date: new Date(2026, 9, 10).toISOString(), day: '2026-10-10', arm: 36, waist: 80 }])
+    const tape = measurementsToRows([
+      { id: 'm', date: new Date(2026, 9, 10).toISOString(), day: '2026-10-10', arm: 36, waist: 80 },
+    ])
     expect(tape).toEqual([{ Date: '2026-10-10', Arm: 36, Chest: '', Waist: 80 }])
   })
 

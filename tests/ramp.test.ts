@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { completedInRange, RAMP_MAX_SETS, RAMP_MAX_WEEKLY, rampOffer } from '#/lib/logic/ramp'
 import { emptyByMuscle } from '#/lib/logic/stats'
-import { RAMP_MAX_SETS, RAMP_MAX_WEEKLY, completedInRange, rampOffer } from '#/lib/logic/ramp'
 import type { Exercise, Workout, WorkoutEntry } from '#/lib/types'
 
 const now = new Date(2026, 9, 14, 18, 0, 0) // a Wednesday

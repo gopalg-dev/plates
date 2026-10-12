@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   defaultProgression,
   incrementFor,
+  type PastEntry,
   plateOf,
   progressionOf,
   restSecondsFor,
   suggestNext,
-  type PastEntry,
 } from '#/lib/logic/progression'
 import type { LoggedSet, WorkoutEntry } from '#/lib/types'
 

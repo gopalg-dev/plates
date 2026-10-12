@@ -15,6 +15,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppGuideRouteImport } from './routes/_app/guide'
 import { Route as AppLibraryRouteImport } from './routes/_app/library'
 import { Route as AppPlanRouteImport } from './routes/_app/plan'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
@@ -49,6 +50,11 @@ const SignupRoute = SignupRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGuideRoute = AppGuideRouteImport.update({
+  id: '/guide',
+  path: '/guide',
   getParentRoute: () => AppRoute,
 } as any)
 const AppLibraryRoute = AppLibraryRouteImport.update({
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
+  '/guide': typeof AppGuideRoute
   '/library': typeof AppLibraryRoute
   '/plan': typeof AppPlanRoute
   '/settings': typeof AppSettingsRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
+  '/guide': typeof AppGuideRoute
   '/library': typeof AppLibraryRoute
   '/plan': typeof AppPlanRoute
   '/settings': typeof AppSettingsRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
+  '/_app/guide': typeof AppGuideRoute
   '/_app/library': typeof AppLibraryRoute
   '/_app/plan': typeof AppPlanRoute
   '/_app/settings': typeof AppSettingsRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/setup'
     | '/signup'
+    | '/guide'
     | '/library'
     | '/plan'
     | '/settings'
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/setup'
     | '/signup'
+    | '/guide'
     | '/library'
     | '/plan'
     | '/settings'
@@ -157,6 +168,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/setup'
     | '/signup'
+    | '/_app/guide'
     | '/_app/library'
     | '/_app/plan'
     | '/_app/settings'
@@ -219,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/guide': {
+      id: '/_app/guide'
+      path: '/guide'
+      fullPath: '/guide'
+      preLoaderRoute: typeof AppGuideRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/library': {
       id: '/_app/library'
       path: '/library'
@@ -265,6 +284,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppGuideRoute: typeof AppGuideRoute
   AppLibraryRoute: typeof AppLibraryRoute
   AppPlanRoute: typeof AppPlanRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -274,6 +294,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppGuideRoute: AppGuideRoute,
   AppLibraryRoute: AppLibraryRoute,
   AppPlanRoute: AppPlanRoute,
   AppSettingsRoute: AppSettingsRoute,

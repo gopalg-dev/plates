@@ -1,5 +1,5 @@
 import { BookOpen, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Button } from '#/components/ui/button'
 import {
   Dialog,
@@ -11,7 +11,6 @@ import {
 } from '#/components/ui/dialog'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '#/components/ui/empty'
 import { Input } from '#/components/ui/input'
-import { ScrollArea, ScrollBar } from '#/components/ui/scroll-area'
 import {
   Item,
   ItemActions,
@@ -22,18 +21,19 @@ import {
   ItemSeparator,
   ItemTitle,
 } from '#/components/ui/item'
+import { ScrollArea, ScrollBar } from '#/components/ui/scroll-area'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import {
   EQUIPMENT,
   EQUIPMENT_LABEL,
-  imageUrl,
-  searchLibrary,
   type Equipment,
+  imageUrl,
   type LibraryExercise,
+  searchLibrary,
 } from '#/lib/library'
-import { MUSCLES, MUSCLE_LABEL } from '#/lib/logic/stats'
-import type { Muscle } from '#/lib/types'
+import { MUSCLE_LABEL, MUSCLES } from '#/lib/logic/stats'
 import { rowTap } from '#/lib/row-tap'
+import type { Muscle } from '#/lib/types'
 import { useContent } from '#/lib/use-content'
 import { cn } from '#/lib/utils'
 import { EditorPanel, PanelFooter } from './editor-panel'
@@ -239,8 +239,8 @@ export function LibraryDetail({ exercise, onClose, action, among, onStep }: Deta
             {/* A fixed height from tablets up, so the dialog does not jump between exercises. */}
             <div className="md:h-64 md:overflow-y-auto md:scrollbar-none">
               <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm md:mt-0">
-                {exercise.cues.map((c, i) => (
-                  <li key={i}>{c}</li>
+                {exercise.cues.map((c) => (
+                  <li key={c}>{c}</li>
                 ))}
               </ol>
               <p className="mt-4 text-sm text-muted-foreground">Works: {exercise.muscles.join(', ')}.</p>

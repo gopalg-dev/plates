@@ -17,8 +17,9 @@ import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { LogBodyweightDialog, LogMeasurementsDialog } from '#/components/app/body-dialogs'
 import { DayIcon } from '#/components/app/day-mark'
-import { ExerciseRow, completeSet, targetOf } from '#/components/app/exercise-row'
+import { completeSet, ExerciseRow, targetOf } from '#/components/app/exercise-row'
 import { ExerciseThumb } from '#/components/app/exercise-thumb'
+import { FeedbackFields, useSendFeedback } from '#/components/app/feedback-form'
 import { SectionHeading } from '#/components/app/section-heading'
 import { ZenMode } from '#/components/app/zen-mode'
 import { Accordion } from '#/components/ui/accordion'
@@ -31,7 +32,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '#/components/ui/dialog'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '#/components/ui/dropdown-menu'
 import {
   Drawer,
   DrawerContent,
@@ -40,6 +40,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '#/components/ui/drawer'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '#/components/ui/dropdown-menu'
 import { Input } from '#/components/ui/input'
 import {
   Item,
@@ -53,31 +54,30 @@ import {
 } from '#/components/ui/item'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { errorMessage, timeOfDay } from '#/lib/format'
-import type { NudgeKind } from '#/lib/types'
-import { EFFORTS, EFFORT_LABEL, type Effort } from '#/lib/logic/effort'
-import { nudgeFor } from '#/lib/logic/nudges'
-import { WEEKDAY_LONG, WEEKDAY_SHORT, weekdayView } from '#/lib/logic/schedule'
-import { plateOf } from '#/lib/logic/progression'
-import { plannedSetsFor, weeklyStreakOf } from '#/lib/logic/stats'
-import { useWakeLock } from '#/lib/use-wake-lock'
-import { rowTap } from '#/lib/row-tap'
-import { cn } from '#/lib/utils'
-import { type LoggedSet, type Plan, type PlanDay, type Settings, type Workout, type WorkoutEntry } from '#/lib/types'
-import { FeedbackFields, useSendFeedback } from '#/components/app/feedback-form'
+import { EFFORT_LABEL, EFFORTS, type Effort } from '#/lib/logic/effort'
 import type { Mood } from '#/lib/logic/feedback'
+import { nudgeFor } from '#/lib/logic/nudges'
+import { plateOf } from '#/lib/logic/progression'
+import { WEEKDAY_LONG, WEEKDAY_SHORT, weekdayView } from '#/lib/logic/schedule'
+import { plannedSetsFor, weeklyStreakOf } from '#/lib/logic/stats'
 import type { SessionSummary } from '#/lib/logic/summary'
-import type { TodayData } from '#/server/repo'
+import { pageTitle } from '#/lib/page-title'
+import { rowTap } from '#/lib/row-tap'
+import type { NudgeKind } from '#/lib/types'
+import { type LoggedSet, type Plan, type PlanDay, type Settings, type Workout, type WorkoutEntry } from '#/lib/types'
+import { useWakeLock } from '#/lib/use-wake-lock'
+import { cn } from '#/lib/utils'
 import {
   acceptRampFn,
   discardWorkoutFn,
   dismissFeedbackFn,
+  dismissNudgeFn,
   finishWorkoutFn,
   getTodayFn,
   saveSetsFn,
   startWorkoutFn,
-  dismissNudgeFn,
 } from '#/server/fns'
-import { pageTitle } from '#/lib/page-title'
+import type { TodayData } from '#/server/repo'
 
 export const Route = createFileRoute('/_app/')({
   head: () => ({ meta: [{ title: pageTitle('Today') }] }),
@@ -165,8 +165,9 @@ function SummaryDialog({
                 <span className="min-w-0 flex-1 truncate">{l.name}</span>
                 <span className="shrink-0 tabular-nums">{l.best}</span>
                 {l.pr ? (
-                  <span className="flex shrink-0 items-center gap-1 text-sm text-success" aria-label="New best">
+                  <span className="flex shrink-0 items-center gap-1 text-sm text-success">
                     <Trophy className="size-4" aria-hidden />
+                    <span className="sr-only">New</span>
                     best
                   </span>
                 ) : l.change ? (
@@ -210,6 +211,7 @@ function Streak({ weeks }: { weeks: number }) {
   return (
     <div
       className={cn('flex shrink-0 items-center gap-2', on ? 'text-foreground' : 'text-muted-foreground')}
+      role="img"
       aria-label={`${weeks} ${weeks === 1 ? 'week' : 'weeks'} streak`}
     >
       <Flame aria-hidden className={cn('size-8 sm:size-9', on ? 'fill-day-legs text-day-legs' : '')} />

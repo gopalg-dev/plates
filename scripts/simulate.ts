@@ -11,16 +11,16 @@
  * Results land beside this file: scripts/sim-results.json or scripts/sim-run-<split>-<method>.json.
  */
 import './sim-env'
-import { MongoClient, ObjectId } from 'mongodb'
-import { hashPassword } from 'better-auth/crypto'
-import * as repo from '../src/server/repo'
-import { deloadHint } from '../src/lib/logic/effort'
-import { liftTrend } from '../src/lib/logic/trend'
-import { attachBodyweight, epley, weeklyStrength } from '../src/lib/logic/stats'
-import { incrementFor } from '../src/lib/logic/progression'
-import type { LoggedSet, Progression } from '../src/lib/types'
 import fs from 'node:fs'
 import path from 'node:path'
+import { hashPassword } from 'better-auth/crypto'
+import { MongoClient, ObjectId } from 'mongodb'
+import { deloadHint } from '../src/lib/logic/effort'
+import { incrementFor } from '../src/lib/logic/progression'
+import { attachBodyweight, epley, weeklyStrength } from '../src/lib/logic/stats'
+import { liftTrend } from '../src/lib/logic/trend'
+import type { LoggedSet, Progression } from '../src/lib/types'
+import * as repo from '../src/server/repo'
 
 // ---------------------------------------------------------------- fake clock
 

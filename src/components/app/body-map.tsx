@@ -1,4 +1,4 @@
-import { BACK_FIGURE, FRONT_FIGURE, type BodyFigure } from '#/lib/body-figures'
+import { BACK_FIGURE, type BodyFigure, FRONT_FIGURE } from '#/lib/body-figures'
 import { MUSCLE_LABEL } from '#/lib/logic/stats'
 import type { Muscle } from '#/lib/types'
 import { cn } from '#/lib/utils'
@@ -82,6 +82,7 @@ function Figure({ side, figure, done, target, picked, onPick, className }: Figur
   }
   return (
     <figure className={cn('flex w-full flex-col items-center gap-2', className)}>
+      {/* biome-ignore lint/a11y/useSemanticElements: an svg cannot be a fieldset; the group names the figure's muscles */}
       <svg
         viewBox={VIEWBOX}
         className="h-auto w-full max-w-[22rem]"
@@ -96,22 +97,8 @@ function Figure({ side, figure, done, target, picked, onPick, className }: Figur
           const label = `${MUSCLE_LABEL[m]}: ${done[m]} of ${target[m]} sets`
           const isPicked = picked === m
           const at = placed.get(m)
-          return (
-            <g
-              key={m}
-              role={onPick ? 'button' : undefined}
-              tabIndex={onPick ? 0 : undefined}
-              aria-label={label}
-              aria-pressed={onPick ? isPicked : undefined}
-              className={cn(onPick && 'cursor-pointer outline-none')}
-              onClick={() => onPick?.(m)}
-              onKeyDown={(e) => {
-                if (onPick && (e.key === 'Enter' || e.key === ' ')) {
-                  e.preventDefault()
-                  onPick(m)
-                }
-              }}
-            >
+          const art = (
+            <>
               {figure.regions[m]!.map((points) => (
                 <polygon
                   key={points}
@@ -158,6 +145,35 @@ function Figure({ side, figure, done, target, picked, onPick, className }: Figur
                   )}
                 </>
               )}
+            </>
+          )
+          // A button when the map can be picked from, otherwise a labelled picture of the muscle.
+          if (!onPick) {
+            return (
+              // biome-ignore lint/a11y/noInteractiveElementToNoninteractiveRole: an svg group is not interactive; img names the muscle
+              <g key={m} role="img" aria-label={label}>
+                {art}
+              </g>
+            )
+          }
+          return (
+            // biome-ignore lint/a11y/useSemanticElements: a <button> cannot sit inside an svg; the group is the tap target
+            <g
+              key={m}
+              role="button"
+              tabIndex={0}
+              aria-label={label}
+              aria-pressed={isPicked}
+              className="cursor-pointer outline-none"
+              onClick={() => onPick(m)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onPick(m)
+                }
+              }}
+            >
+              {art}
             </g>
           )
         })}

@@ -7,13 +7,13 @@ import {
   BicepsFlexed,
   Dumbbell,
   Footprints,
+  type LucideIcon,
   Shield,
   Target,
   Triangle,
-  type LucideIcon,
 } from 'lucide-react'
-import { cn } from '#/lib/utils'
 import type { DayType } from '#/lib/types'
+import { cn } from '#/lib/utils'
 
 export { DAY_LABEL } from '#/lib/day-blocks'
 

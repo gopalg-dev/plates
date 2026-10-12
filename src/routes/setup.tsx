@@ -11,12 +11,12 @@ import { Label } from '#/components/ui/label'
 import { Progress } from '#/components/ui/progress'
 import { RadioGroup, RadioGroupItem } from '#/components/ui/radio-group'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
-import { dayKey } from '#/lib/logic/stats'
 import { DEFAULT_SPLIT, templateOf } from '#/lib/content'
-import { defaultProgression } from '#/lib/logic/progression'
-import { usePageHydrated } from '#/lib/use-page-hydrated'
 import { GOAL_OPTIONS } from '#/lib/logic/goal'
+import { defaultProgression } from '#/lib/logic/progression'
+import { dayKey } from '#/lib/logic/stats'
 import type { DayType, Goal, Progression, SplitId, TrainingAge, Units } from '#/lib/types'
+import { usePageHydrated } from '#/lib/use-page-hydrated'
 import {
   applySplitFn,
   createCustomPlanFn,
@@ -28,8 +28,9 @@ import {
 import { getSessionFn } from '#/server/session'
 
 type Search = { step?: 'split' }
-import { pageTitle } from '#/lib/page-title'
+
 import { errorMessage } from '#/lib/format'
+import { pageTitle } from '#/lib/page-title'
 
 export const Route = createFileRoute('/setup')({
   head: () => ({ meta: [{ title: pageTitle('Setup') }] }),

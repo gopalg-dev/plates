@@ -1,0 +1,26 @@
+import { TrendingUp } from 'lucide-react'
+import { Ladder, Methods } from '#/components/app/guide-blocks'
+
+export const title = 'How targets move'
+export const part = 'How the coach works'
+export const icon = TrendingUp
+
+<Lead>Hit the top of your rep range on every set, and the weight goes up next time.</Lead>
+
+Here is the default method on a barbell lift with 2.5 kg plates:
+
+<Ladder />
+
+Pick your method in Settings under **Progression**:
+
+<Methods />
+
+<Facts>
+  <Fact term="Weight steps">A barbell takes one plate on each side, so it steps by twice your **Smallest plate**: 5 kg with 2.5 kg plates, 2.5 kg with 1.25 kg. Dumbbells and upper-body machines step by 2.5 kg, lower-body machines by 5 kg.</Fact>
+  <Fact term="Smallest plate">Set it in Settings under Units. It starts at 2.5.</Fact>
+  <Fact term="Stuck at a weight">Three sessions in a row at one weight, with no set reaching the top of the range, and the target drops about 10% to build back up.</Fact>
+  <Fact term="First year">While **Training age** in Settings is **Under a year**, each lift is capped at 3 sets a session. Plan shows the capped number.</Fact>
+  <Fact term="+1 set">With a year or more, a lift that is going well offers **+1 set to plan** on its row on Today and in Zen mode. Tap it to train that lift with one more set from now on.</Fact>
+</Facts>
+
+<More>Going well means trained at least twice in the last two weeks, every set reached the bottom of its range, none of those sessions rated Too much, and the lift is neither stuck nor slipping. A lift gains at most one set a week, up to 6. Reps left of 0 or 1–2 leave the target to these rules; only 3+ counts as light. Last set all out skips the stuck-at-a-weight drop.</More>

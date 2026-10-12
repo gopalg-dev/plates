@@ -3,8 +3,8 @@ import { Button } from '#/components/ui/button'
 import { Label } from '#/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '#/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
-import { splitInfos, type SplitInfo, type SplitTemplate } from '#/lib/content'
-import { DAY_LABEL, buildCustomDays } from '#/lib/day-blocks'
+import { type SplitInfo, type SplitTemplate, splitInfos } from '#/lib/content'
+import { buildCustomDays, DAY_LABEL } from '#/lib/day-blocks'
 import { DAY_TYPES, type DayType, type SplitId } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { DayIcon } from './day-mark'
@@ -51,6 +51,7 @@ export function OwnDaysEditor({
   return (
     <div className={cn('flex flex-col gap-2', className)}>
       {days.map((type, i) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: a row is "Day N"; kinds repeat, so the position is the identity
         <div key={i} className="flex items-center gap-2">
           <span className="w-5 text-sm tabular-nums text-muted-foreground">{i + 1}</span>
           <Select value={type} onValueChange={(v) => onChange(days.map((d, j) => (j === i ? (v as DayType) : d)))}>

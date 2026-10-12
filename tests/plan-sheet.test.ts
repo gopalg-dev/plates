@@ -109,7 +109,15 @@ describe('parseRows', () => {
 
   it('accepts other header names and separate low and high columns', () => {
     const parsed = parseRows([
-      { Workout: 'Push', Movement: 'Incline Press', Set: '3', 'Reps low': 8, 'Reps high': 12, 'Muscle group': 'Pecs', Kind: 'Weighted' },
+      {
+        Workout: 'Push',
+        Movement: 'Incline Press',
+        Set: '3',
+        'Reps low': 8,
+        'Reps high': 12,
+        'Muscle group': 'Pecs',
+        Kind: 'Weighted',
+      },
     ])
     expect(parsed.warnings).toEqual([])
     const ex = parsed.days[0].exercises[0]

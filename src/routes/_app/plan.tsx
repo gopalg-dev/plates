@@ -1,4 +1,4 @@
-import { Link, createFileRoute, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link, useRouter } from '@tanstack/react-router'
 import { ArrowDown, ArrowUp, MoreHorizontal, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -18,6 +18,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '#/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '#/components/ui/dropdown-menu'
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
 import {
@@ -30,34 +37,29 @@ import {
   ItemSeparator,
   ItemTitle,
 } from '#/components/ui/item'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '#/components/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import { Textarea } from '#/components/ui/textarea'
-import { DAY_LABEL } from '#/lib/day-blocks'
-import { MUSCLE_BY_DAY } from '#/lib/logic/plan-sheet'
-import { WEEKDAY_LONG, WEEK_ORDER } from '#/lib/logic/schedule'
-import { MUSCLES, MUSCLE_LABEL, plannedSetsFor } from '#/lib/logic/stats'
-import { rowTap } from '#/lib/row-tap'
 import { planSourceInfo } from '#/lib/content'
-import { useContent } from '#/lib/use-content'
+import { DAY_LABEL } from '#/lib/day-blocks'
+import { errorMessage } from '#/lib/format'
+import { MUSCLE_BY_DAY } from '#/lib/logic/plan-sheet'
+import { WEEK_ORDER, WEEKDAY_LONG } from '#/lib/logic/schedule'
+import { MUSCLE_LABEL, MUSCLES, plannedSetsFor } from '#/lib/logic/stats'
+import { pageTitle } from '#/lib/page-title'
+import { rowTap } from '#/lib/row-tap'
 import {
   DAY_TYPES,
-  MAX_DAYS,
-  MAX_EXERCISES_PER_DAY,
   type DayType,
   type Exercise,
   type LoadType,
+  MAX_DAYS,
+  MAX_EXERCISES_PER_DAY,
   type Muscle,
   type PlanDay,
   type Schedule,
   type Settings,
 } from '#/lib/types'
+import { useContent } from '#/lib/use-content'
 import {
   addDayFn,
   addExerciseFn,
@@ -71,8 +73,6 @@ import {
   updateDayFn,
   updateExerciseFn,
 } from '#/server/fns'
-import { pageTitle } from '#/lib/page-title'
-import { errorMessage } from '#/lib/format'
 
 export const Route = createFileRoute('/_app/plan')({
   head: () => ({ meta: [{ title: pageTitle('Plan') }] }),
@@ -510,7 +510,7 @@ function EditorForm({ day, exercise, onClose, onSaved }: FormProps) {
     }
   }
 
-  async function useAlternate(alt: string) {
+  async function swapToAlternate(alt: string) {
     if (!exercise) return
     setBusy(true)
     try {
@@ -645,7 +645,13 @@ function EditorForm({ day, exercise, onClose, onSaved }: FormProps) {
               <li key={alt} className="flex items-center gap-2">
                 <span className="min-w-0 flex-1 truncate">{alt}</span>
                 {exercise && (
-                  <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => useAlternate(alt)}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={busy}
+                    onClick={() => swapToAlternate(alt)}
+                  >
                     Use this
                   </Button>
                 )}

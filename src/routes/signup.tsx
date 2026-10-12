@@ -1,15 +1,15 @@
-import { Link, createFileRoute, redirect, useNavigate, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link, redirect, useNavigate, useRouter } from '@tanstack/react-router'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { AuthFrame, authInput } from '#/components/app/auth-frame'
-import { Button } from '#/components/ui/button'
 import { PasswordInput } from '#/components/app/password-input'
+import { Button } from '#/components/ui/button'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '#/components/ui/field'
 import { Input } from '#/components/ui/input'
 import { authClient } from '#/lib/auth-client'
+import { pageTitle } from '#/lib/page-title'
 import { getAuthOptionsFn } from '#/server/fns'
 import { getSessionFn } from '#/server/session'
-import { pageTitle } from '#/lib/page-title'
 
 export const Route = createFileRoute('/signup')({
   head: () => ({ meta: [{ title: pageTitle('Create an account') }] }),

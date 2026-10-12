@@ -1,8 +1,8 @@
 import fs from 'node:fs'
+import { expect, type Page, test } from '@playwright/test'
 // A throwaway walkthrough that behaves like a user and cross-checks numbers between screens.
 // Not part of the suite; run with `bunx playwright test e2e/explore.spec.ts`.
 import { MongoClient } from 'mongodb'
-import { expect, test, type Page } from '@playwright/test'
 import { E2E_DB } from '../playwright.config'
 import { backdateJoin, resetDatabase } from './db'
 

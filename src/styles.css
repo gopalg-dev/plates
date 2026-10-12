@@ -1,10 +1,10 @@
-@import '@fontsource/barlow/400.css';
-@import '@fontsource/barlow/500.css';
-@import '@fontsource/barlow/600.css';
-@import '@fontsource/barlow-condensed/500.css';
-@import '@fontsource/barlow-condensed/600.css';
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "@fontsource/barlow/400.css";
+@import "@fontsource/barlow/500.css";
+@import "@fontsource/barlow/600.css";
+@import "@fontsource/barlow-condensed/500.css";
+@import "@fontsource/barlow-condensed/600.css";
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -55,8 +55,8 @@
   --day-legs-ink: hsla(0, 0%, 0%, 0.8);
 
   /* The typefaces, as tokens so a look can swap them. */
-  --app-font-sans: 'Barlow', ui-sans-serif, system-ui, sans-serif;
-  --app-font-condensed: 'Barlow Condensed', 'Barlow', ui-sans-serif, system-ui, sans-serif;
+  --app-font-sans: "Barlow", ui-sans-serif, system-ui, sans-serif;
+  --app-font-condensed: "Barlow Condensed", "Barlow", ui-sans-serif, system-ui, sans-serif;
 }
 
 .dark {
@@ -108,7 +108,7 @@
  */
 
 /* Chalk: the gym whiteboard. Warm chalk surface, graphite ink, flat with hairline rules, matte plates. */
-:root[data-theme='chalk'] {
+:root[data-theme="chalk"] {
   color-scheme: light;
   --background: hsla(40, 18%, 97%, 1);
   --foreground: hsla(30, 6%, 12%, 1);
@@ -154,10 +154,10 @@
  * Pocket: a different app altogether. The device's own typeface instead of Barlow, big soft corners,
  * white cards lifted off a grey page, and the pull blue as the primary colour instead of ink.
  */
-:root[data-theme='pocket'] {
+:root[data-theme="pocket"] {
   color-scheme: light;
-  --app-font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --app-font-condensed: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --app-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --app-font-condensed: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --background: hsla(220, 14%, 95%, 1);
   --foreground: hsla(222, 20%, 16%, 1);
   --card: hsla(0, 0%, 100%, 1);
@@ -201,7 +201,7 @@
 /* Popular themes on their own published palettes, picked from the same menu. Red, blue and yellow still mean push, pull and legs. */
 
 /* Dracula (draculatheme.com). */
-:root[data-theme='dracula'] {
+:root[data-theme="dracula"] {
   color-scheme: dark;
   --background: hsla(231, 15%, 18%, 1);
   --foreground: hsla(60, 30%, 96%, 1);
@@ -247,7 +247,7 @@
 }
 
 /* Catppuccin Latte (catppuccin.com), the light flavour. */
-:root[data-theme='latte'] {
+:root[data-theme="latte"] {
   color-scheme: light;
   --background: hsla(220, 23%, 95%, 1);
   --foreground: hsla(234, 16%, 35%, 1);
@@ -351,13 +351,13 @@
     overscroll-behavior-y: none;
   }
 
-  input[type='number'] {
+  input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
   }
 
-  input[type='number']::-webkit-outer-spin-button,
-  input[type='number']::-webkit-inner-spin-button {
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
@@ -374,7 +374,7 @@
 
   /* No 300ms tap delay on anything tappable. */
   button,
-  [role='button'],
+  [role="button"],
   a,
   input,
   label {
@@ -387,11 +387,11 @@
   }
   /* Small buttons grow to a thumb-sized target on touch screens; desktop keeps the compact size. */
   @media (pointer: coarse) {
-    [data-slot='button'][data-size='sm'],
-    [data-slot='button'][data-size='icon-sm'] {
+    [data-slot="button"][data-size="sm"],
+    [data-slot="button"][data-size="icon-sm"] {
       min-height: 2.75rem;
     }
-    [data-slot='button'][data-size='icon-sm'] {
+    [data-slot="button"][data-size="icon-sm"] {
       min-width: 2.75rem;
     }
   }

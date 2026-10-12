@@ -22,7 +22,20 @@ export type SetRow = {
 }
 
 export function setHeaders(units: Units): string[] {
-  return ['Date', 'Time', 'Day', 'Type', 'Exercise', 'Muscle', 'Set', `Weight (${units})`, 'Reps', 'Seconds', 'Effort', 'Note']
+  return [
+    'Date',
+    'Time',
+    'Day',
+    'Type',
+    'Exercise',
+    'Muscle',
+    'Set',
+    `Weight (${units})`,
+    'Reps',
+    'Seconds',
+    'Effort',
+    'Note',
+  ]
 }
 
 function localTime(iso: string): string {

@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs'
-import { expect, test, type Page } from '@playwright/test'
+import { expect, type Page, test } from '@playwright/test'
 import { backdateJoin, resetDatabase, traceOf } from './db'
 
 test.describe.configure({ mode: 'serial' })
@@ -582,6 +582,34 @@ test('the library is searchable and shows a picture and cues', async () => {
   await expect(page.getByRole('heading', { name: 'Barbell Row', exact: true })).toBeVisible()
   await page.keyboard.press('Escape')
   await expect(page.getByRole('heading', { name: 'Barbell Row', exact: true })).not.toBeVisible()
+})
+
+test('the guide lists every section and its links jump to them', async () => {
+  await open(page, '/guide')
+  await expect(page.getByRole('heading', { name: 'Guide', exact: true })).toBeVisible()
+  // Ten sections from src/content/guide, each with a jump link of the same name.
+  const links = page.getByRole('navigation', { name: 'Guide sections' }).getByRole('link')
+  await expect(links).toHaveCount(10)
+  await expect(page.getByRole('heading', { level: 2 })).toHaveCount(10)
+  // MDX bold becomes an on-screen label, and a list item carries the text.
+  await expect(page.getByText('Every tap saves', { exact: false })).toBeVisible()
+  // The app's own pieces inside the text: an exercise picture, the progression methods, the day kinds, a tip.
+  await expect(page.getByRole('link', { name: 'About Barbell Bench Press' })).toBeVisible()
+  await expect(page.getByText('Reps first, then weight', { exact: true })).toBeVisible()
+  await expect(page.getByText('Full body', { exact: true })).toBeVisible()
+  await expect(page.getByText('Rate every session honestly', { exact: false })).toBeVisible()
+  await links.filter({ hasText: 'Your data' }).click()
+  await expect(page).toHaveURL(/#data$/)
+  await expect(page.getByRole('heading', { name: 'Your data' })).toBeInViewport()
+  // From 1280px the links are a sticky column that marks the section being read.
+  if ((page.viewportSize()?.width ?? 0) >= 1280) {
+    await expect(links.filter({ hasText: 'Your data' })).toHaveAttribute('aria-current', 'location')
+    await expect(links.filter({ hasText: 'A session, start to finish' })).not.toHaveAttribute(
+      'aria-current',
+      'location',
+    )
+  }
+  await snap(page, '18b-guide')
 })
 
 test('settings change units, and start fresh wipes the data', async () => {

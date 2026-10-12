@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { EQUIPMENT, LIBRARY, findLibrary, imageUrl, searchLibrary } from '#/lib/library'
+import { EQUIPMENT, findLibrary, imageUrl, LIBRARY, searchLibrary } from '#/lib/library'
 import { MUSCLES } from '#/lib/logic/stats'
 
 describe('exercise library', () => {
@@ -20,8 +20,18 @@ describe('exercise library', () => {
   })
 
   it('covers the names the templates use', () => {
-    for (const name of ['Barbell Bench Press', 'Pull-ups', 'Barbell Squat', 'Romanian Deadlift', 'Lateral Raise', 'Plank']) {
-      expect(LIBRARY.some((e) => e.name === name), name).toBe(true)
+    for (const name of [
+      'Barbell Bench Press',
+      'Pull-ups',
+      'Barbell Squat',
+      'Romanian Deadlift',
+      'Lateral Raise',
+      'Plank',
+    ]) {
+      expect(
+        LIBRARY.some((e) => e.name === name),
+        name,
+      ).toBe(true)
     }
     expect(findLibrary(LIBRARY, 'plank')?.loadType).toBe('time')
     expect(findLibrary(LIBRARY, 'pull-ups')?.loadType).toBe('bodyweight')
@@ -33,7 +43,9 @@ describe('exercise library', () => {
     expect(rows.every((e) => /row/i.test(`${e.name} ${e.muscles.join(' ')}`))).toBe(true)
     expect(searchLibrary({ query: 'incline db press' }, LIBRARY).map((e) => e.name)).toContain('Incline DB Press')
     expect(searchLibrary({ muscle: 'calves' }, LIBRARY).every((e) => e.muscle === 'calves')).toBe(true)
-    expect(searchLibrary({ equipment: 'bodyweight', muscle: 'abs' }, LIBRARY).every((e) => e.equipment === 'bodyweight')).toBe(true)
+    expect(
+      searchLibrary({ equipment: 'bodyweight', muscle: 'abs' }, LIBRARY).every((e) => e.equipment === 'bodyweight'),
+    ).toBe(true)
     expect(searchLibrary({ query: 'zzzz' }, LIBRARY)).toEqual([])
   })
 })

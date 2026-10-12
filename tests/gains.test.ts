@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { bodyweightAlert, stallAlerts, weekAlert } from '#/lib/logic/alerts'
 import { paceNote } from '#/lib/logic/goal'
-import { suggestNext, type PastEntry } from '#/lib/logic/progression'
+import { type PastEntry, suggestNext } from '#/lib/logic/progression'
 import { plannedPerWeek, summarize } from '#/lib/logic/summary'
 import type { BodyweightLog, LoggedSet, Plan, Workout, WorkoutEntry } from '#/lib/types'
 

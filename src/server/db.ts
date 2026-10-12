@@ -1,4 +1,4 @@
-import { MongoClient, type Db } from 'mongodb'
+import { type Db, MongoClient } from 'mongodb'
 
 let client: MongoClient | undefined
 let connected: Promise<MongoClient> | undefined
@@ -14,7 +14,7 @@ function theClient(): MongoClient {
 }
 
 /** Tests hand in a database so no real server is needed. */
-export function useDbForTests(db: Db | undefined) {
+export function setDbForTests(db: Db | undefined) {
   override = db
 }
 

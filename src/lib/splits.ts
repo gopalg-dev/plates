@@ -1,5 +1,5 @@
 import { DEFAULT_SPLIT, type SplitInfo, type SplitTemplate } from './content'
-import { SEED_DAYS, ex } from './seed-plan'
+import { ex, SEED_DAYS } from './seed-plan'
 import type { DayType, Exercise, PlanDay, SplitId } from './types'
 
 // The templates that ship with the app. They seed the `splits` collection; the app reads from there.
@@ -9,7 +9,12 @@ export { DEFAULT_SPLIT, type SplitInfo }
 /** The picker order: the default first, then by sessions per week. */
 export const SPLITS: SplitInfo[] = [
   { id: 'ppl6', name: 'Push / Pull / Legs', days: 6, fit: 'Six sessions a week, every muscle twice. The default.' },
-  { id: 'ppl3', name: 'Push / Pull / Legs, 3 days', days: 3, fit: 'Three sessions, each muscle once, the big lifts first.' },
+  {
+    id: 'ppl3',
+    name: 'Push / Pull / Legs, 3 days',
+    days: 3,
+    fit: 'Three sessions, each muscle once, the big lifts first.',
+  },
   {
     id: 'pplul5',
     name: 'Push / Pull / Legs + Upper / Lower',
@@ -19,9 +24,19 @@ export const SPLITS: SplitInfo[] = [
   { id: 'ul4', name: 'Upper / Lower', days: 4, fit: 'Four sessions, every muscle twice, each session a bit longer.' },
   { id: 'phul4', name: 'PHUL', days: 4, fit: 'Four sessions: two heavy for strength, two for size.' },
   { id: 'ulf3', name: 'Upper / Lower / Full body', days: 3, fit: 'Three sessions with a full-body day to catch up.' },
-  { id: 'full3', name: 'Full body', days: 3, fit: 'Three short sessions, everything every time. Good for a first year.' },
+  {
+    id: 'full3',
+    name: 'Full body',
+    days: 3,
+    fit: 'Three short sessions, everything every time. Good for a first year.',
+  },
   { id: 'bro5', name: 'One muscle a day', days: 5, fit: 'Five sessions, one muscle each, lots of sets per muscle.' },
-  { id: 'arnold6', name: 'Arnold split', days: 6, fit: 'Six sessions: chest with back, shoulders with arms, legs alone.' },
+  {
+    id: 'arnold6',
+    name: 'Arnold split',
+    days: 6,
+    fit: 'Six sessions: chest with back, shoulders with arms, legs alone.',
+  },
 ]
 
 export function splitInfo(id: SplitId): SplitInfo {

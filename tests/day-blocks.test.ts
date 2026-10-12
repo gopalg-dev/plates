@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DAY_BLOCKS, DAY_LABEL, buildCustomDays, buildDay } from '#/lib/day-blocks'
+import { buildCustomDays, buildDay, DAY_BLOCKS, DAY_LABEL } from '#/lib/day-blocks'
 import { LIBRARY } from '#/lib/library'
 import { DAY_TYPES, MAX_EXERCISES_PER_DAY } from '#/lib/types'
 

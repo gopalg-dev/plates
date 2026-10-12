@@ -1,6 +1,6 @@
 import { MongoClient } from 'mongodb'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { useDbForTests } from '#/server/db'
+import { setDbForTests } from '#/server/db'
 import * as repo from '#/server/repo'
 
 // Runs against the local MongoDB (Docker: `bun run db:up`) in its own database.
@@ -24,11 +24,11 @@ if (!client) console.warn(`Skipping repo tests: no MongoDB at ${uri}. Start one 
 const suite = describe.skipIf(!client)
 
 beforeAll(() => {
-  if (client) useDbForTests(client.db(dbName))
+  if (client) setDbForTests(client.db(dbName))
 })
 
 afterAll(async () => {
-  useDbForTests(undefined)
+  setDbForTests(undefined)
   if (client) {
     await client.db(dbName).dropDatabase()
     await client.close()

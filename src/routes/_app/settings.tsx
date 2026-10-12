@@ -1,4 +1,4 @@
-import { Link, createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate, useRouter } from '@tanstack/react-router'
 import {
   CalendarDays,
   ChevronsUpDown,
@@ -15,8 +15,8 @@ import {
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { ExportButtons } from '#/components/app/export-buttons'
-import { SectionHeading } from '#/components/app/section-heading'
 import { ProgressionPicker } from '#/components/app/progression-picker'
+import { SectionHeading } from '#/components/app/section-heading'
 import { DEFAULT_OWN_DAYS, OWN_SPLIT, SplitPicker } from '#/components/app/split-picker'
 import { WeekShape } from '#/components/app/week-shape'
 import { Button } from '#/components/ui/button'
@@ -34,14 +34,16 @@ import { Input } from '#/components/ui/input'
 import { Label } from '#/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '#/components/ui/radio-group'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
+import { authClient } from '#/lib/auth-client'
 import { buildSplitFrom, planSourceInfo, splitInfoOf } from '#/lib/content'
-import { useContent } from '#/lib/use-content'
-import { cn } from '#/lib/utils'
+import { errorMessage } from '#/lib/format'
+import { GOAL_DONE, GOAL_OPTIONS } from '#/lib/logic/goal'
 import { PLATES, PROGRESSION_LABEL, plateOf, progressionOf } from '#/lib/logic/progression'
 import { fmtWeight } from '#/lib/logic/units'
-import { GOAL_DONE, GOAL_OPTIONS } from '#/lib/logic/goal'
+import { pageTitle } from '#/lib/page-title'
 import type { DayType, Goal, Schedule, SplitId, TrainingAge, Units } from '#/lib/types'
-import { authClient } from '#/lib/auth-client'
+import { useContent } from '#/lib/use-content'
+import { cn } from '#/lib/utils'
 import {
   applySplitFn,
   createCustomPlanFn,
@@ -52,8 +54,6 @@ import {
   setScheduleFn,
   startFreshFn,
 } from '#/server/fns'
-import { pageTitle } from '#/lib/page-title'
-import { errorMessage } from '#/lib/format'
 
 export const Route = createFileRoute('/_app/settings')({
   head: () => ({ meta: [{ title: pageTitle('Settings') }] }),

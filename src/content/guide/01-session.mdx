@@ -1,0 +1,26 @@
+import { Dumbbell } from 'lucide-react'
+import { WithPicture } from '#/components/app/guide-blocks'
+
+export const title = 'A session, start to finish'
+export const part = 'In the gym'
+export const icon = Dumbbell
+
+<Lead>Four steps, and every tap is saved as you go.</Lead>
+
+<Steps>
+  <Step n={1} title="Start">Today shows the next day in your plan. Tap **Start**, or **Pick a day** to train another one.</Step>
+  <Step n={2} title="Log each set">Tap an exercise to open its sets. Each set shows a target. Set the numbers to what you actually did with − and +, then tick it.</Step>
+  <Step n={3} title="Say what was left">After the last set of a weighted lift, pick **Reps left**: how many more you could have done. 3+ tells the next session the weight was light.</Step>
+  <Step n={4} title="Finish and rate">Tap **Finish workout** and rate it **Easy**, **OK**, **Hard** or **Too much**. The summary shows any new bests.</Step>
+</Steps>
+
+<Tip>Rate every session honestly. **Too much** holds the weight next time on lifts that missed the top of their range, and the deload hint reads your ratings.</Tip>
+
+<Facts>
+  <Fact term="Every tap saves">So you can close the app between sets. Saving needs a connection: if a save fails, the app tells you.</Fact>
+  <Fact term="Screen stays on">While a session runs. To let it sleep, change **Screen during a session** in Settings.</Fact>
+  <Fact term="One more set">**Add a set** and **Remove the last set** change today only. The plan stays as it is.</Fact>
+  <Fact term="Wrong day">**Change session** under Session options switches day, but drops the sets logged so far. **Discard workout** throws the session away.</Fact>
+</Facts>
+
+<WithPicture name="Barbell Bench Press">Every exercise has a picture like this one. Tap it to see how to do the lift and the muscles it works.</WithPicture>

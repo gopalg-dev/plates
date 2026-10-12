@@ -1,10 +1,15 @@
 import { createHash } from 'node:crypto'
-import { ObjectId, type Db } from 'mongodb'
+import { type Db, ObjectId } from 'mongodb'
+import { DEFAULT_SPLIT } from '#/lib/content'
+import { buildCustomDays, buildDay } from '#/lib/day-blocks'
+import { findLibraryByName } from '#/lib/library'
+import { type Alert, bodyweightAlert, stallAlerts, weekAlert } from '#/lib/logic/alerts'
+import { type FeedbackTrigger, feedbackDue, type Mood } from '#/lib/logic/feedback'
 import { nextDayId } from '#/lib/logic/next-day'
-import { STALL_SESSIONS, progressionOf, suggestNext, type PastEntry } from '#/lib/logic/progression'
+import { guessLoad } from '#/lib/logic/plan-sheet'
+import { type PastEntry, progressionOf, STALL_SESSIONS, suggestNext } from '#/lib/logic/progression'
+import { rampOffer } from '#/lib/logic/ramp'
 import { assignWeekdays, type Finished } from '#/lib/logic/schedule'
-import { bodyweightAlert, stallAlerts, weekAlert, type Alert } from '#/lib/logic/alerts'
-import { feedbackDue, type FeedbackTrigger, type Mood } from '#/lib/logic/feedback'
 import {
   attachBodyweight,
   dayKey,
@@ -13,23 +18,17 @@ import {
   sessionsInWeek,
   startOfWeek,
 } from '#/lib/logic/stats'
-import { rampOffer } from '#/lib/logic/ramp'
-import { plannedPerWeek, summarize, type SessionSummary } from '#/lib/logic/summary'
-import { buildCustomDays, buildDay } from '#/lib/day-blocks'
+import { plannedPerWeek, type SessionSummary, summarize } from '#/lib/logic/summary'
 import { slug } from '#/lib/seed-plan'
-import { DEFAULT_SPLIT } from '#/lib/content'
-import { readContent, splitTemplate } from './content'
-import { findLibraryByName } from '#/lib/library'
-import { guessLoad } from '#/lib/logic/plan-sheet'
 import {
-  MAX_DAYS,
-  MAX_EXERCISES_PER_DAY,
-  type NudgeKind,
   type BodyweightLog,
   type DayType,
   type Exercise,
   type LoggedSet,
+  MAX_DAYS,
+  MAX_EXERCISES_PER_DAY,
   type MeasurementLog,
+  type NudgeKind,
   type Plan,
   type PlanDay,
   type PlanSource,
@@ -39,6 +38,7 @@ import {
   type Workout,
   type WorkoutEntry,
 } from '#/lib/types'
+import { readContent, splitTemplate } from './content'
 import { getDb } from './db'
 
 // Every document belongs to one user. Settings use the user id as their _id; plans and the log

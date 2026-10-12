@@ -1,8 +1,9 @@
-import { Link, Outlet, createFileRoute, redirect, useLocation } from '@tanstack/react-router'
+import { createFileRoute, Link, Outlet, redirect, useLocation, useMatches } from '@tanstack/react-router'
 import {
   BookOpen,
   ChartColumn,
   ChevronsUpDown,
+  CircleHelp,
   Dumbbell,
   ListChecks,
   LogOut,
@@ -11,6 +12,9 @@ import {
   Settings,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { AppMark } from '#/components/app/app-mark'
+import { ExerciseDialog, ExerciseListProvider } from '#/components/app/exercise-dialog'
+import { FeedbackDialog } from '#/components/app/feedback-form'
 import { Avatar, AvatarFallback, AvatarImage } from '#/components/ui/avatar'
 import {
   DropdownMenu,
@@ -40,10 +44,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '#/components/ui/sidebar'
-import { AppMark } from '#/components/app/app-mark'
-import { ExerciseDialog, ExerciseListProvider } from '#/components/app/exercise-dialog'
-import { FeedbackDialog } from '#/components/app/feedback-form'
-import { THEME_OPTIONS, readTheme, saveTheme, type Theme } from '#/lib/theme'
+import { readTheme, saveTheme, THEME_OPTIONS, type Theme } from '#/lib/theme'
 import { usePageHydrated } from '#/lib/use-page-hydrated'
 import { useSignOut } from '#/lib/use-sign-out'
 import { getContentFn, getShellFn } from '#/server/fns'
@@ -75,7 +76,10 @@ const primary = [
   { to: '/stats', label: 'Stats', icon: ChartColumn, exact: false },
 ] as const
 
-const secondary = [{ to: '/library', label: 'Library', icon: BookOpen, exact: false }] as const
+const secondary = [
+  { to: '/library', label: 'Library', icon: BookOpen, exact: false },
+  { to: '/guide', label: 'Guide', icon: CircleHelp, exact: false },
+] as const
 
 function isActive(pathname: string, to: string, exact: boolean): boolean {
   return exact ? pathname === to : pathname === to || pathname.startsWith(`${to}/`)
@@ -93,6 +97,7 @@ function initials(who: string): string {
 
 function AppLayout() {
   const { pathname } = useLocation()
+  const wide = useMatches({ select: (matches) => matches.some((m) => m.staticData.wide) })
   const { user } = Route.useRouteContext()
   usePageHydrated()
   // Accounts made from an emailed link have no username and an empty name.
@@ -139,7 +144,11 @@ function AppLayout() {
               Plates
             </p>
           </header>
-          <main className="mx-auto w-full max-w-2xl px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-16">
+          {/* A route with staticData.wide (a content page) gets room beside its text for a sticky contents list on wide
+              screens; its text column stays this width. See src/lib/route-static-data.ts. */}
+          <main
+            className={`mx-auto w-full max-w-2xl px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-16 ${wide ? 'xl:max-w-[57rem]' : ''}`}
+          >
             <Outlet />
           </main>
           <ExerciseDialog />

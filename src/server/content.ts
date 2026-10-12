@@ -1,4 +1,4 @@
-import { MongoBulkWriteError, type Db } from 'mongodb'
+import { type Db, MongoBulkWriteError } from 'mongodb'
 import type { Content, SplitTemplate } from '#/lib/content'
 import { LIBRARY, type LibraryExercise } from '#/lib/library'
 import { BUNDLED_SPLITS } from '#/lib/splits'

@@ -81,7 +81,7 @@ export const GUIDE_LINES: string[][] = [
   ['Exercise: the name you want to see in the app.'],
   ['Sets: a whole number, like 4.'],
   ['Reps: a range like 6-10, a single number like 12, or seconds for holds like 30-45 s.'],
-  ['If Excel turns 6-10 into a date, type an apostrophe first: \'6-10'],
+  ["If Excel turns 6-10 into a date, type an apostrophe first: '6-10"],
   ['Load: weight, bodyweight or time. Blank is fine, it is guessed from the name.'],
   [`Muscle: one of ${MUSCLES.join(', ')}. Blank is fine, it is guessed from the name.`],
   ['Note: a short cue. Alternates: other exercises for the same slot, separated by commas.'],
@@ -193,7 +193,11 @@ export function guessMuscle(name: string, dayType: DayType): Muscle {
   if (/squat|leg press|lunge|leg extension|step-?up|hack|quad|pistol/.test(n)) return 'quads'
   if (/curl/.test(n)) return 'biceps'
   if (/tricep|pushdown|skull|extension|close-?grip|kickback|jm press/.test(n)) return 'triceps'
-  if (/lateral|face pull|rear delt|reverse fly|overhead press|shoulder press|military|upright row|arnold|pike|handstand|delt/.test(n))
+  if (
+    /lateral|face pull|rear delt|reverse fly|overhead press|shoulder press|military|upright row|arnold|pike|handstand|delt/.test(
+      n,
+    )
+  )
     return 'shoulders'
   if (/row|pulldown|pull-?up|chin-?up|pullover|\blats?\b|straight-?arm/.test(n)) return 'back'
   if (/bench|press|fly|flye|push-?up|dip|chest|pec/.test(n)) return 'chest'
@@ -204,7 +208,9 @@ export function guessLoad(name: string, repsText: string): LoadType {
   const n = name.toLowerCase()
   if (/\bsec|seconds?\b|\bs\b|hold|plank|l-sit/.test(`${repsText.toLowerCase()} ${n}`)) return 'time'
   if (
-    /pull-?up|chin-?up|push-?up|\bdips?\b|leg raise|knee raise|rollout|hanging|inverted row|pistol|nordic|hollow|dead bug/.test(n) &&
+    /pull-?up|chin-?up|push-?up|\bdips?\b|leg raise|knee raise|rollout|hanging|inverted row|pistol|nordic|hollow|dead bug/.test(
+      n,
+    ) &&
     !/weighted/.test(n)
   )
     return 'bodyweight'
@@ -373,7 +379,8 @@ export function parseRows(rows: SheetRow[]): ParsedPlan {
   })
 
   const kept = days.filter((d) => d.exercises.length > 0)
-  if (kept.length === 0) warnings.push({ row: 0, message: 'No exercises found. Check the header row and the Exercise column.' })
+  if (kept.length === 0)
+    warnings.push({ row: 0, message: 'No exercises found. Check the header row and the Exercise column.' })
   return { days: kept, warnings }
 }
 

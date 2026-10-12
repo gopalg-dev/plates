@@ -1,4 +1,4 @@
-import { WEEKDAY_SHORT, WEEK_ORDER, defaultWeekdays } from '#/lib/logic/schedule'
+import { defaultWeekdays, WEEK_ORDER, WEEKDAY_SHORT } from '#/lib/logic/schedule'
 import type { DayType, PlanDay } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { DAY_LABEL, dayColourClass } from './day-mark'

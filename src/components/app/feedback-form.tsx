@@ -14,9 +14,9 @@ import {
 import { Textarea } from '#/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { errorMessage } from '#/lib/format'
-import { MOODS, type FeedbackTrigger, type Mood } from '#/lib/logic/feedback'
-import { sendFeedbackFn } from '#/server/fns'
+import { type FeedbackTrigger, MOODS, type Mood } from '#/lib/logic/feedback'
 import { cn } from '#/lib/utils'
+import { sendFeedbackFn } from '#/server/fns'
 
 const ICON = { 1: Frown, 2: Meh, 3: Smile } as const
 

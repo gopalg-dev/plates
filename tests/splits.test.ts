@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MUSCLES } from '#/lib/logic/stats'
-import { DEFAULT_SPLIT, SPLITS, buildSplit, splitInfo } from '#/lib/splits'
+import { buildSplit, DEFAULT_SPLIT, SPLITS, splitInfo } from '#/lib/splits'
 import { DAY_TYPES, MAX_EXERCISES_PER_DAY, SPLIT_IDS } from '#/lib/types'
 
 describe('split templates', () => {

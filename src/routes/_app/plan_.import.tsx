@@ -1,8 +1,8 @@
-import { Link, createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate, useRouter } from '@tanstack/react-router'
 import { BookOpen, ChevronLeft, X } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { DayIcon } from '#/components/app/day-mark'
+import { DAY_LABEL, DayIcon } from '#/components/app/day-mark'
 import { LibraryPicker } from '#/components/app/library-list'
 import { Button } from '#/components/ui/button'
 import {
@@ -16,34 +16,33 @@ import {
 } from '#/components/ui/dialog'
 import { Input } from '#/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
+import { buildSplitFrom, planSourceInfo, splitInfoOf, splitInfos } from '#/lib/content'
+import { errorMessage } from '#/lib/format'
 import {
   GUIDE_LINES,
-  TEMPLATE_HEADERS,
+  type ParsedPlan,
   parseRows,
   planToRows,
+  type SheetRow,
   splitFromMarker,
+  TEMPLATE_HEADERS,
   templateMarker,
   templateTitle,
-  type ParsedPlan,
-  type SheetRow,
 } from '#/lib/logic/plan-sheet'
-import { buildSplitFrom, planSourceInfo, splitInfoOf, splitInfos } from '#/lib/content'
-import { useContent } from '#/lib/use-content'
-import { MUSCLES, MUSCLE_LABEL } from '#/lib/logic/stats'
+import { MUSCLE_LABEL, MUSCLES } from '#/lib/logic/stats'
+import { pageTitle } from '#/lib/page-title'
 import {
   DAY_TYPES,
-  MAX_EXERCISES_PER_DAY,
   type DayType,
   type Exercise,
   type LoadType,
+  MAX_EXERCISES_PER_DAY,
   type Muscle,
   type PlanDay,
   type SplitId,
 } from '#/lib/types'
+import { useContent } from '#/lib/use-content'
 import { getPlanFn, replacePlanFn } from '#/server/fns'
-import { DAY_LABEL } from '#/components/app/day-mark'
-import { pageTitle } from '#/lib/page-title'
-import { errorMessage } from '#/lib/format'
 
 export const Route = createFileRoute('/_app/plan_/import')({
   head: () => ({ meta: [{ title: pageTitle('Bring your own plan') }] }),
@@ -265,8 +264,8 @@ function ImportPage() {
             <div className="mt-4 rounded-lg border px-3 py-2 text-sm">
               <p className="font-medium">Check these rows</p>
               <ul className="mt-1 space-y-0.5 text-muted-foreground">
-                {parsed.warnings.map((w, i) => (
-                  <li key={i}>
+                {parsed.warnings.map((w) => (
+                  <li key={`${w.row}-${w.message}`}>
                     {w.row > 0 ? `Row ${w.row}: ` : ''}
                     {w.message}
                   </li>
