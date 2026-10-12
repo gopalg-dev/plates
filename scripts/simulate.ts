@@ -5,12 +5,14 @@
  *
  *   bun run db:simulate -- [split] [progression] [days]            one run, prints the summary
  *   bun run db:simulate -- matrix [splits] [methods] [days]        every split × method, writes results.json
+ *   bun run db:simulate -- seed [split] [method] [days] [--email …]  two years for a new account in the dev database
  *
  * Needs the local MongoDB (bun run db:up). Uses its own database, workout_plan_v3_sim, and drops it first.
  * Results land beside this file: scripts/sim-results.json or scripts/sim-run-<split>-<method>.json.
  */
 import './sim-env'
-import { MongoClient } from 'mongodb'
+import { MongoClient, ObjectId } from 'mongodb'
+import { hashPassword } from 'better-auth/crypto'
 import * as repo from '../src/server/repo'
 import { deloadHint } from '../src/lib/logic/effort'
 import { liftTrend } from '../src/lib/logic/trend'
@@ -132,17 +134,29 @@ interface RunResult {
   months: { day: number; lifts: Record<string, { w: number; reps: number; e1rm: number; sets: number }> }[]
 }
 
-const UID = 'sim-user'
+let UID = 'sim-user'
 
 async function run(
   split: string,
   progression: Progression,
   totalDays: number,
   client: MongoClient,
+  into?: { db: string; userId: string },
 ): Promise<RunResult> {
-  const db = client.db('workout_plan_v3_sim')
-  await db.dropDatabase()
-  if (process.env.MONGODB_DB !== 'workout_plan_v3_sim') throw new Error('refusing to run outside the sim database')
+  if (into) {
+    // Into a real database for one account: that account's own rows go first, nothing else is touched.
+    process.env.MONGODB_DB = into.db
+    UID = into.userId
+    const live = client.db(into.db)
+    for (const name of ['settings', 'plans', 'plan', 'workouts', 'bodyweights', 'measurements', 'feedback']) {
+      await live.collection(name).deleteMany(name === 'settings' ? { _id: UID as never } : { userId: UID })
+    }
+  } else {
+    UID = 'sim-user'
+    const db = client.db('workout_plan_v3_sim')
+    await db.dropDatabase()
+    if (process.env.MONGODB_DB !== 'workout_plan_v3_sim') throw new Error('refusing to run outside the sim database')
+  }
   clock = new RealDate(2024, 9, 14, 18, 0, 0).getTime()
   seed = 12345
 
@@ -439,6 +453,52 @@ if (args[0] === 'matrix') {
       console.log(`(${Math.round((performance.now() - t0) / 1000)} s)\n`)
       fs.writeFileSync(path.join(dir, 'sim-results.json'), JSON.stringify(out))
     }
+} else if (args[0] === 'seed') {
+  // Two years for one new account in a real local database, so Stats can be looked at by eye.
+  //   bun run db:simulate -- seed [split] [method] [days] [--db workout_plan_v3] [--email sim@example.com] [--password password123]
+  const opt = (name: string, fallback: string) => {
+    const i = args.indexOf(`--${name}`)
+    return i >= 0 && args[i + 1] ? args[i + 1] : fallback
+  }
+  const positional = args.slice(1).filter((a, i, all) => !a.startsWith('--') && !(i > 0 && all[i - 1].startsWith('--')))
+  const dbName = opt('db', 'workout_plan_v3')
+  const email = opt('email', 'sim@example.com').toLowerCase()
+  const password = opt('password', 'password123')
+  const username =
+    email
+      .split('@')[0]
+      .replace(/[^a-zA-Z0-9_.]/g, '')
+      .slice(0, 30) || 'sim'
+  const live = client.db(dbName)
+  if (await live.collection('user').findOne({ email })) {
+    throw new Error(
+      `"${email}" already exists in "${dbName}". Pick another --email, or delete that account in the app first.`,
+    )
+  }
+  const _id = new ObjectId()
+  const stamp = { createdAt: new RealDate(), updatedAt: new RealDate() }
+  await live
+    .collection('user')
+    .insertOne({ _id, name: username, email, emailVerified: true, username, displayUsername: username, ...stamp })
+  await live.collection('account').insertOne({
+    _id: new ObjectId(),
+    accountId: _id.toHexString(),
+    providerId: 'credential',
+    userId: _id,
+    password: await hashPassword(password),
+    ...stamp,
+  })
+  const r = await run(
+    positional[0] ?? 'full3',
+    (positional[1] ?? 'double') as Progression,
+    Number(positional[2] ?? 730),
+    client,
+    { db: dbName, userId: _id.toHexString() },
+  )
+  console.log(summary(r))
+  console.log(
+    `\nSigned up in "${dbName}": ${email} / ${password} (username ${username}). Sign in on the dev server to see it.`,
+  )
 } else {
   const r = await run(args[0] ?? 'full3', (args[1] ?? 'linear') as Progression, Number(args[2] ?? 730), client)
   console.log(summary(r))

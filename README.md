@@ -79,6 +79,7 @@ bun run db:seed                 # adds whatever the bundle has that the database
 bun run db:seed -- --reset      # replaces both collections with the bundle
 bun run db:repair               # lists exercises whose load type disagrees with the library; --yes applies
 bun run db:simulate -- matrix   # two years of a beginner through the real server code, every split × method
+bun run db:simulate -- seed     # the same two years for a new sim@example.com account in the dev database, to look at
 bun run db:seed -- --demo       # also a demo account with eight weeks of logs; empty database only
 ```
 
