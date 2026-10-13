@@ -18,6 +18,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppLibraryRouteImport } from './routes/_app/library'
 import { Route as AppPlanRouteImport } from './routes/_app/plan'
+import { Route as AppReportRouteImport } from './routes/_app/report'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppStatsRouteImport } from './routes/_app/stats'
 import { Route as DemoScreenRouteImport } from './routes/demo.$screen'
@@ -68,6 +69,11 @@ const AppPlanRoute = AppPlanRouteImport.update({
   path: '/plan',
   getParentRoute: () => AppRoute,
 } as any)
+const AppReportRoute = AppReportRouteImport.update({
+  id: '/report',
+  path: '/report',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/library': typeof AppLibraryRoute
   '/plan': typeof AppPlanRoute
+  '/report': typeof AppReportRoute
   '/settings': typeof AppSettingsRoute
   '/stats': typeof AppStatsRoute
   '/demo/$screen': typeof DemoScreenRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/library': typeof AppLibraryRoute
   '/plan': typeof AppPlanRoute
+  '/report': typeof AppReportRoute
   '/settings': typeof AppSettingsRoute
   '/stats': typeof AppStatsRoute
   '/demo/$screen': typeof DemoScreenRoute
@@ -134,6 +142,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_app/library': typeof AppLibraryRoute
   '/_app/plan': typeof AppPlanRoute
+  '/_app/report': typeof AppReportRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/stats': typeof AppStatsRoute
   '/demo/$screen': typeof DemoScreenRoute
@@ -152,6 +161,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/library'
     | '/plan'
+    | '/report'
     | '/settings'
     | '/stats'
     | '/demo/$screen'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/library'
     | '/plan'
+    | '/report'
     | '/settings'
     | '/stats'
     | '/demo/$screen'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_app/library'
     | '/_app/plan'
+    | '/_app/report'
     | '/_app/settings'
     | '/_app/stats'
     | '/demo/$screen'
@@ -266,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppPlanRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/report': {
+      id: '/_app/report'
+      path: '/report'
+      fullPath: '/report'
+      preLoaderRoute: typeof AppReportRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
@@ -307,6 +326,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppLibraryRoute: typeof AppLibraryRoute
   AppPlanRoute: typeof AppPlanRoute
+  AppReportRoute: typeof AppReportRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStatsRoute: typeof AppStatsRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -316,6 +336,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppLibraryRoute: AppLibraryRoute,
   AppPlanRoute: AppPlanRoute,
+  AppReportRoute: AppReportRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStatsRoute: AppStatsRoute,
   AppIndexRoute: AppIndexRoute,

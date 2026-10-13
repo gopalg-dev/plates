@@ -86,7 +86,7 @@ test('signed out, the home page is How it works, with the way in', async () => {
   await demo.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Plan' }).click()
   await expect(demo.getByText('Push / Pull / Legs, 6 days')).toBeVisible()
   await demo.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Stats' }).click()
-  await demo.getByRole('tab', { name: 'Sessions' }).click()
+  await demo.getByRole('radio', { name: 'Sessions' }).click()
   await expect(demo.getByText(/of 6 sessions/)).toBeVisible()
   await demo.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Today' }).click()
   await expect(demo.getByText(/^1 of \d+ sets done$/)).toBeVisible()
@@ -371,7 +371,7 @@ test('stats reflect the logged workout and bodyweight', async () => {
   await page.getByRole('button', { name: 'Next month', exact: true }).click()
   await expect(page.getByText('3 of 20')).toBeVisible()
   // Strength: pick a lift and the big number, the week chart and the week table follow it.
-  await page.getByRole('tab', { name: 'Lifts' }).click()
+  await page.getByRole('radio', { name: 'Lifts' }).click()
   // Lifts carry a trend; one week of history reads as new, and the chip narrows the list to those lifts.
   await expect(page.getByRole('radio', { name: 'All' })).toBeVisible()
   await page.getByRole('radio', { name: /^New/ }).click()
@@ -383,7 +383,7 @@ test('stats reflect the logged workout and bodyweight', async () => {
   await expect(page.getByRole('cell', { name: '65 kg × 7' })).toBeVisible()
   // The week's totals sit under the session count: 60 × 8 + 65 × 7 on the rows, plus 8 pull-ups at the 72 kg
   // weighed in at setup.
-  await page.getByRole('tab', { name: 'Sessions' }).click()
+  await page.getByRole('radio', { name: 'Sessions' }).click()
   await expect(page.getByText(/^1,511\s*kg$/)).toBeVisible()
   // The body map: back was trained, chest was planned and not yet; a tap names the number.
   await expect(page.getByRole('group', { name: 'Front' })).toBeVisible()
@@ -394,7 +394,7 @@ test('stats reflect the logged workout and bodyweight', async () => {
   await expect(page.getByRole('button', { name: /^Chest: 0 of \d+ sets$/ })).toBeVisible()
   await snap(page, '08b-body-map')
 
-  await page.getByRole('tab', { name: 'Body' }).click()
+  await page.getByRole('radio', { name: 'Body' }).click()
   await expect(page.getByText('No tape yet', { exact: false })).toBeVisible()
   await page.getByRole('button', { name: 'Log bodyweight' }).click()
   await page.getByLabel('Bodyweight in kg', { exact: true }).fill('72.5')
@@ -489,6 +489,26 @@ test('stats reflect the logged workout and bodyweight', async () => {
     page.getByText(new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })),
   ).toBeVisible()
   await page.emulateMedia({ colorScheme: 'light' })
+})
+
+test('the report waits for a finished week, and is reached from the sidebar', async () => {
+  await open(page, '/report')
+  await expect(page.getByRole('heading', { name: 'Report' })).toBeVisible()
+  // The only session is this week: the first weekly report comes when it ends.
+  await expect(page.getByRole('radio', { name: 'Week' })).toBeChecked()
+  await expect(page.getByText(/^Your first weekly report comes on /)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Next week' })).toBeDisabled()
+  await page.getByRole('radio', { name: 'Month' }).click()
+  await expect(page).toHaveURL(/period=month/)
+  await expect(page.getByText(/^Your first monthly report comes on /)).toBeVisible()
+  await snap(page, '09d-report')
+  // The sidebar lists it with Library; phones open the sidebar first.
+  await open(page, '/')
+  if ((page.viewportSize()?.width ?? 0) < 768) await page.getByRole('button', { name: 'Open menu' }).click()
+  await page.getByRole('listitem').filter({ hasText: 'Report' }).getByRole('link').click()
+  await expect(page.getByRole('heading', { name: 'Report' })).toBeVisible()
+  // With only this week's session there is no report yet, so nothing to share: no options menu either.
+  await expect(page.getByRole('button', { name: 'Report options' })).toHaveCount(0)
 })
 
 test('keyboard focus is visible and the tab bar switches screens', async () => {
@@ -598,17 +618,17 @@ test('a day on the stats calendar opens its session to fix a set or remove it', 
   await sheet.getByRole('button', { name: 'Save changes' }).click()
   await expect(page.getByText('Session updated')).toBeVisible()
   await expect(sheet).not.toBeVisible()
-  await page.getByRole('tab', { name: 'Lifts' }).click()
+  await page.getByRole('radio', { name: 'Lifts' }).click()
   await page.getByRole('combobox', { name: 'Lift' }).click()
   await page.getByRole('option', { name: 'Barbell Row' }).click()
   // The week's best row set is 65 × 7 (set 2); the edited set 1 is 60 × 9 and scores a hair under it.
   await expect(page.getByRole('cell', { name: '65 kg × 7' })).toBeVisible()
-  await page.getByRole('tab', { name: 'Sessions' }).click()
+  await page.getByRole('radio', { name: 'Sessions' }).click()
   await page.getByRole('button', { name: `${today}, Pull A` }).click()
   await page.getByRole('button', { name: 'Delete session' }).click()
   await page.getByRole('button', { name: 'Delete', exact: true }).click()
   await expect(page.getByText('Session removed')).toBeVisible()
-  await page.getByRole('tab', { name: 'Lifts' }).click()
+  await page.getByRole('radio', { name: 'Lifts' }).click()
   await expect(page.getByText('Nothing logged yet', { exact: false })).toBeVisible()
 })
 

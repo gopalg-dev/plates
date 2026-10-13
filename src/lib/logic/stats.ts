@@ -215,15 +215,19 @@ export function emptyByMuscle(): Record<Muscle, number> {
   return Object.fromEntries(MUSCLES.map((m) => [m, 0])) as Record<Muscle, number>
 }
 
-export function volumeByMuscleInWeek(ws: Workout[], now: Date): Record<Muscle, number> {
-  const start = startOfWeek(now)
-  const end = addDays(start, 7)
+/** Hard sets per muscle over sessions finished from `start` up to, not including, `end`. */
+export function volumeByMuscle(ws: Workout[], start: Date, end: Date): Record<Muscle, number> {
   const out = emptyByMuscle()
   for (const w of finished(ws)) {
     if (!inRange(w.finishedAt, start, end)) continue
     for (const e of w.entries) out[e.muscle] += effectiveSets(e).length
   }
   return out
+}
+
+export function volumeByMuscleInWeek(ws: Workout[], now: Date): Record<Muscle, number> {
+  const start = startOfWeek(now)
+  return volumeByMuscle(ws, start, addDays(start, 7))
 }
 
 export function plannedSetsFor(sets: number, trainingAge: TrainingAge): number {
@@ -316,7 +320,11 @@ export interface WeekTotals {
 /** Totals for the week that holds `at`. */
 export function weekTotals(ws: Workout[], at: Date): WeekTotals {
   const start = startOfWeek(at)
-  const end = addDays(start, 7)
+  return totalsBetween(ws, start, addDays(start, 7))
+}
+
+/** Totals over sessions finished from `start` up to, not including, `end`. */
+export function totalsBetween(ws: Workout[], start: Date, end: Date): WeekTotals {
   const out: WeekTotals = { sets: 0, lifted: 0, minutes: 0 }
   for (const w of finished(ws)) {
     if (!inRange(w.finishedAt, start, end)) continue
@@ -346,10 +354,19 @@ export interface PR {
 
 /** Best sets in the last `days` days that beat every earlier best for that exercise. Newest first. */
 export function recentPRs(ws: Workout[], now: Date, days = 14): PR[] {
-  const since = addDays(now, -days).getTime()
+  return prsBetween(ws, addDays(now, -days))
+}
+
+/**
+ * Best sets from `start` (up to `end` when given) that beat every earlier best for that exercise, newest first.
+ * Every session before `start` still counts towards the earlier best.
+ */
+export function prsBetween(ws: Workout[], start: Date, end?: Date): PR[] {
+  const since = start.getTime()
   const best = new Map<string, number>()
   const prs: PR[] = []
   for (const w of finished(ws)) {
+    if (end && new Date(w.finishedAt).getTime() >= end.getTime()) break
     for (const e of w.entries) {
       const b = bestSet(e)
       if (!b) continue
@@ -390,14 +407,17 @@ function avg(xs: number[]): number | undefined {
   return xs.reduce((a, b) => a + b, 0) / xs.length
 }
 
+/** The average weigh-in from `start` up to, not including, `end`; undefined when there is none. */
+export function averageWeight(logs: BodyweightLog[], start: Date, end: Date): number | undefined {
+  return avg(logs.filter((l) => inRange(l.date, start, end)).map((l) => l.weight))
+}
+
 export function bodyweightTrend(logs: BodyweightLog[], now: Date): BodyweightTrend {
   const sorted = [...logs].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
   const latest = sorted.at(-1)
   const weekAgo = addDays(now, -7)
-  const twoWeeksAgo = addDays(now, -14)
-  const end = addDays(now, 1)
-  const weekAvg = avg(sorted.filter((l) => inRange(l.date, weekAgo, end)).map((l) => l.weight))
-  const prevWeekAvg = avg(sorted.filter((l) => inRange(l.date, twoWeeksAgo, weekAgo)).map((l) => l.weight))
+  const weekAvg = averageWeight(sorted, weekAgo, addDays(now, 1))
+  const prevWeekAvg = averageWeight(sorted, addDays(now, -14), weekAgo)
   const changePct =
     weekAvg !== undefined && prevWeekAvg !== undefined && prevWeekAvg > 0
       ? ((weekAvg - prevWeekAvg) / prevWeekAvg) * 100

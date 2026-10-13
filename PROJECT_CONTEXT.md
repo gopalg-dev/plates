@@ -322,6 +322,66 @@ no Inter/Geist. Checked.
       tsconfig types. Regenerate the route tree with a build or the dev server, not the standalone `tsr generate`,
       which drops the Start `Register` block. Reader-tested twice with fresh agents; e2e "the guide lists every
       section" passes on mobile and desktop. The full e2e run is still to do.
+- [x] 55. Report (2026-10-13, user request, the third attempt after the two undone ones noted under 54; this one
+      starts from the research and keeps Stats untouched). `/report` (src/routes/_app/report.tsx,
+      components/app/report-view.tsx) from the sidebar and a Today alert (a button beside the Stats title was
+      built and removed at the user's request). One rule: a report is of a **finished** week (Mon–Sun) or
+      calendar month, never the one running; it opens on the last finished one, arrows back a year; a week needs 1
+      session, a month 3; a new account sees "Your first weekly report comes on <date>".
+      - `src/lib/logic/report.ts`: `finishedPeriod`, `lastFinished`, `shiftPeriod`, `hasNext`, `firstReportOn`,
+        `periodLabel`, `buildReport` (sessions of planned, hard sets, bests bounded by the period, movers = lifts
+        without a best whose best set beat the period before, bodyweight 7-day average into and out of the period,
+        attention (a muscle counts as under target below `UNDER_TARGET`, 0.9), hard sets per muscle a week against the plan, effort counts and reps left) and
+        `reviewCard` (the Today line for the first two days after a period ends). stats.ts gained range helpers
+        (`volumeByMuscle`, `totalsBetween`, `prsBetween`, `averageWeight`); the week-only names wrap them.
+      - Laid out the way the best-regarded training reports are (visual research 2026-10-13: Hevy's monthly report,
+        Strava, Oura, Peloton, Garmin), in the order a lifter asks: did I show up (one giant number, sessions of
+        planned with its change in words; the period's days as a calendar in the day colours, `daysOf`; a bar strip
+        of the last 8 weeks or 6 months with this period in the foreground colour and a chip row for Sessions / Hard
+        sets, `history`), what did I get (tiles for hard sets, new bests and bodyweight with green-up / grey-down
+        deltas; Hevy never uses red), what should I do (Needs attention, only when there is something), what went
+        well (bests, movers), where the work went (a horizontal bar chart per muscle against the period before), how
+        it felt (the effort bar), and the body last (a bodyweight line over the run-up). report-parts.tsx holds the shared pieces,
+        report-dashboard.tsx the body, report-view.tsx the shell and empty states. A stack-of-cards look was built
+        beside it and dropped: that is the year-in-review style, a slideshow for a weekly report. Today's alerts gained `kind: 'review'` with a `to` link (`reviewAlerts` in
+        alerts.ts, rendered as a Link row).
+      - The guide pictures are unchanged, since Stats is. The report was reader-tested from a temporary demo screen,
+        removed afterwards.
+      - Share: `share-report.tsx` (`ShareReportDialog`, opened from a ⋯ menu beside the title, which keeps the period row
+        clean on phones; a Dialog with the card in every look, `cardThemes` reading each look's tokens by
+        setting data-theme on the document and reading computed style back before the next paint; the look on
+        screen first; a Checkbox for bodyweight, off by default; Share… via navigator.share with the PNG file where
+        files can be shared, Save image via `saveBlob` in src/lib/download.ts, which export-buttons now uses too).
+        `src/lib/logic/share-card.ts` is the pure content (the comparison words moved here from report-parts) and
+        `src/lib/share-card-draw.ts` the canvas drawing, 1080 × 1350, the favicon as the mark. The first card
+        (sessions, hard sets, bests count, every number with "vs the week before") was judged not worth posting:
+        the deltas against an empty week only repeated the numbers, hard sets mean nothing to a friend, the win was
+        buried, and nothing said whose week it was. The card now: "Sam's week · Sep 21 – 27", the days strip as
+        the hero, "5 of 6 sessions" (its change only when the period before had sessions), and one win standing on
+        the bottom margin, which the lifter picks from a Highlight select (a beginner's first month has nothing a
+        card can call a win, so the app does not guess): the count of new bests, each best heaviest first, a streak
+        of two or more periods (`Report.streak`, `periodsInARow`), every planned session done, or nothing. The
+        planned sessions are pro-rated from the join date (`plannedFrom`), so a month joined on the 22nd asks for
+        eight, not twenty-six, on the card and the page alike. Hard sets stay on the page.
+        The look picker is a row of swatches (ToggleGroup items as circles in each look's card colour; the joined
+        outline chips broke when they wrapped). The period name in the period row opens a shadcn
+        Calendar (dropdown captions) to pick a period, only once a report exists (`hasReports`): in Week mode the row is the
+        target (the picked week is a band, a hovered row lights up whole, the days have no hover of their own, any
+        day picks its week; the cells stay real buttons, as a `tr` cannot take `role="button"` under the a11y
+        rules); in Month mode only the caption shows (arrows and the month and year dropdowns, via the Calendar's
+        `classNames` hiding `month_grid`) and the month picks as it moves. The explore e2e spec had three stale steps
+        (bench planted 35 days back was time-of-day flaky after 18:00, now 32; Zen mode is a button, not a menu
+        item; the effort dialog has no Skip), fixed when the suite ran for the report.
+      - (user request) Stats switches its three views with the same control as the report's Week | Month: shadcn
+        `ToggleGroup variant="outline" size="sm"` (`StatsTabs` in stats-view.tsx, items `px-3`), no custom class
+        anywhere. The panels are plain `div`s shown by the `?tab=` state; the shadcn Tabs file was removed as unused;
+        the e2e specs find the views by `radio` role.
+      - `scripts/day.ts` plays one day at a time for a test account (`day@example.com`) in the database `.env` points
+        at, so the report could be watched growing; the lifter it logs as (a capacity per lift that grows and
+        saturates, fatigue across sets, misses, a lift skipped now and then) is `scripts/lifter.ts`, shared with the
+        two-year simulator. Running it showed the phone sidebar stayed open after a tap on one of its links
+        (`CloseSidebarOnNavigate` in `_app.tsx` now closes it on every route change; the app spec's report test
+        caught it on mobile, the first test to tap a nav link from the phone sidebar).
 - [x] 54. Today touches (2026-10-13, user requests): the streak shows "week"/"weeks" under its number; Pick a day
       shows "Done today / yesterday / 3 days ago" per day (`lastDoneAt` in schedule.ts with `relativeDay`).
       Carrying a skipped day in the rolling order was weighed and dropped: it would reshuffle the plan's order.

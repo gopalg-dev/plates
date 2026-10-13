@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '#/components/ui/button'
 import { planSourceInfo, type SplitTemplate } from '#/lib/content'
+import { saveBlob } from '#/lib/download'
 import { errorMessage } from '#/lib/format'
 import {
   bodyweightsToRows,
@@ -95,13 +96,11 @@ async function downloadAll(splits: SplitTemplate[]) {
     'feedback.json': json(data.feedback),
     'everything.json': json({ exportedAt: new Date().toISOString(), ...data }),
   })
-  const url = URL.createObjectURL(new Blob([zip], { type: 'application/zip' }))
-  const link = document.createElement('a')
-  link.href = url
   // Named for the account, so a download among others says whose it is: plates-data-alex-2026-10-13.zip.
-  link.download = `plates-data-${slug(data.account.username ?? data.account.email) || 'account'}-${today}.zip`
-  link.click()
-  URL.revokeObjectURL(url)
+  saveBlob(
+    new Blob([zip], { type: 'application/zip' }),
+    `plates-data-${slug(data.account.username ?? data.account.email) || 'account'}-${today}.zip`,
+  )
 }
 
 /** Runs one export, with the buttons held while the file is built. */

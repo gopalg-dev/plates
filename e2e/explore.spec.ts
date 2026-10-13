@@ -215,7 +215,7 @@ test('stats agree with what was logged', async () => {
   await expect(page.getByRole('button', { name: /^Back: 0 of \d+ sets$/ })).toBeVisible()
   await snap('05-stats-sessions')
 
-  await page.getByRole('tab', { name: 'Lifts' }).click()
+  await page.getByRole('radio', { name: 'Lifts' }).click()
   await page.getByRole('combobox', { name: 'Lift' }).click()
   await page.getByRole('option', { name: 'Barbell Bench Press' }).click()
   await expect(page.getByText('kg × 8').first()).toBeVisible()
@@ -223,7 +223,7 @@ test('stats agree with what was logged', async () => {
   await expect(page.getByText('None yet.')).toBeVisible()
   await snap('06-stats-lifts')
 
-  await page.getByRole('tab', { name: 'Body' }).click()
+  await page.getByRole('radio', { name: 'Body' }).click()
   await expect(page.getByText('80', { exact: true }).first()).toBeVisible()
   await snap('07-stats-body')
 })
@@ -318,7 +318,8 @@ test('Today warns about a flat scale and a lift that stopped moving', async () =
     { daysAgo: 6, weight: 80.1 },
     { daysAgo: 3, weight: 80 },
   ])
-  await plantBenchSession(35, 70)
+  // 32 days: out of the four-week window today, inside it a week ago, whatever the hour the suite runs at.
+  await plantBenchSession(32, 70)
   await plantBenchSession(20, 60)
   await plantBenchSession(13, 60)
   await open('/')
@@ -346,7 +347,7 @@ test('fixing a set from the calendar moves the lift, removing a session removes 
   await expect(reps).toHaveValue('10')
   await sheet.getByRole('button', { name: 'Save changes' }).click()
   await expect(page.getByText('Session updated')).toBeVisible()
-  await page.getByRole('tab', { name: 'Lifts' }).click()
+  await page.getByRole('radio', { name: 'Lifts' }).click()
   await page.getByRole('combobox', { name: 'Lift' }).click()
   await page.getByRole('option', { name: 'Barbell Bench Press' }).click()
   await expect(page.getByRole('cell', { name: '65 kg × 10' })).toBeVisible()
@@ -413,8 +414,7 @@ test('weight every session: a completed session earns a step on every set', asyn
   await snap('15-linear-targets')
 
   // Zen mode: one exercise at a time, kept in the URL across a reload.
-  await page.getByRole('button', { name: 'Session options' }).click()
-  await page.getByRole('menuitem', { name: 'Zen mode' }).click()
+  await page.getByRole('button', { name: 'Zen mode' }).click()
   const zen = page.getByRole('dialog', { name: 'Zen mode' })
   await expect(zen.getByText('1 of 5', { exact: true })).toBeVisible()
   await zen.getByRole('button', { name: 'Mark set 1 done' }).click()
@@ -471,7 +471,8 @@ test('the fifth session brings the feedback prompt, once', async () => {
     .getByRole('button', { name: 'Mark set 1 done' })
     .click()
   await page.getByRole('button', { name: 'Finish workout' }).click()
-  await page.getByRole('button', { name: 'Skip' }).click()
+  await page.getByRole('radio', { name: 'Easy' }).click()
+  await page.getByRole('button', { name: 'Save and finish' }).click()
   await expect(page.getByRole('heading', { name: 'Workout saved' })).toBeVisible()
   await expect(page.getByText('How is Plates for you?')).toHaveCount(0)
   await page.getByRole('button', { name: 'Done' }).click()
@@ -616,6 +617,36 @@ test('picking a past week points every number at that week', async () => {
   await page.getByRole('button', { name: 'Back to this week' }).click()
   await expect(page.getByRole('heading', { name: 'This week', exact: true })).toBeVisible()
   await expect(page.getByText('3 hard sets')).toBeVisible()
+})
+
+test('the report reads last week, picks a week from a calendar, and shares it as an image', async () => {
+  // Last week holds the moved session, so there is a report; its sessions sit against the plan's three.
+  await open('/report')
+  await expect(page.getByRole('heading', { name: 'Report' })).toBeVisible()
+  await expect(page.getByText('of 3 sessions')).toBeVisible()
+  // The period label opens a calendar; a day picks its week.
+  await page.getByRole('button', { name: /Pick a week$/ }).click()
+  await expect(page.getByLabel('Choose the Month')).toBeVisible()
+  await page.keyboard.press('Escape')
+  // The card: every look, the one on screen first, with the image drawn in the browser.
+  await page.getByRole('button', { name: 'Report options' }).click()
+  await page.getByRole('menuitem', { name: 'Share…' }).click()
+  const dialog = page.getByRole('dialog', { name: 'Share this week' })
+  await expect(dialog).toBeVisible()
+  await expect(dialog.getByRole('img', { name: 'week in review card' })).toBeVisible()
+  // The highlight is the lifter's pick: something on offer to start with, nothing as a choice.
+  await expect(dialog.getByRole('combobox', { name: 'Highlight' })).not.toHaveText('Nothing')
+  await dialog.getByRole('combobox', { name: 'Highlight' }).click()
+  await page.getByRole('option', { name: 'Nothing' }).click()
+  await expect(dialog.getByRole('combobox', { name: 'Highlight' })).toHaveText('Nothing')
+  await dialog.getByRole('radio', { name: 'Dracula' }).click()
+  await expect(dialog.getByRole('radio', { name: 'Dracula' })).toBeChecked()
+  await snap('22-share-card')
+  const download = page.waitForEvent('download')
+  await dialog.getByRole('button', { name: 'Save image' }).click()
+  expect((await download).suggestedFilename()).toMatch(/^plates-week-\d{4}-\d{2}-\d{2}\.png$/)
+  await page.keyboard.press('Escape')
+  await expect(dialog).not.toBeVisible()
 })
 
 test('a template resets to its original, and the plan of your own is untouched by it', async () => {

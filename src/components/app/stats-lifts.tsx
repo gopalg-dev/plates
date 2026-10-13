@@ -4,12 +4,11 @@ import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts'
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '#/components/ui/chart'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '#/components/ui/table'
-import { TabsContent } from '#/components/ui/tabs'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { relativeDay, shortDate, signed } from '#/lib/format'
 import { dayKey, keyTime, noon, type PR, startOfWeek, type WeeklyPoint, weeklyStrength } from '#/lib/logic/stats'
 import { liftTrend, TREND_LABEL, TRENDS, type Trend } from '#/lib/logic/trend'
-import { fmtWeight } from '#/lib/logic/units'
+import { fmtSet, fmtWeight } from '#/lib/logic/units'
 import type { DayType, Exercise, LoadType, Plan, Units, Workout } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { dayColourVar } from './day-mark'
@@ -31,12 +30,6 @@ type SetLike = Pick<WeeklyPoint, 'weight' | 'reps' | 'seconds'>
 interface LiftData {
   ex: Lift
   weeks: WeeklyPoint[]
-}
-
-function setText(loadType: LoadType, p: SetLike, units: Units): string {
-  if (loadType === 'weight') return `${fmtWeight(p.weight, units)} × ${p.reps}`
-  if (loadType === 'bodyweight') return `${p.reps} reps`
-  return `${p.seconds} s`
 }
 
 /** The number the chart plots: weight for weighted lifts, reps or seconds otherwise. */
@@ -111,7 +104,7 @@ export function liftsFrom(plan: Plan, workouts: Workout[]): LiftData[] {
 /** The Lifts tab: a lift picked and followed week by week, and the bests of the last two weeks. */
 export function LiftsTab({ lifts, prs, units, now }: { lifts: LiftData[]; prs: PR[]; units: Units; now: Date }) {
   return (
-    <TabsContent value="lifts" className="mt-6 grid gap-10">
+    <div className="mt-6 grid gap-10">
       <section aria-labelledby="strength-h">
         <SectionHeading id="strength-h" icon={TrendingUp}>
           Strength
@@ -134,7 +127,7 @@ export function LiftsTab({ lifts, prs, units, now }: { lifts: LiftData[]; prs: P
             {prs.slice(0, 8).map((pr) => (
               <li key={`${pr.exerciseId}-${pr.date}`} className="flex items-baseline gap-3 py-2.5">
                 <span className="min-w-0 flex-1 truncate">{pr.name}</span>
-                <span className="tabular-nums">{setText(pr.loadType, pr, units)}</span>
+                <span className="tabular-nums">{fmtSet(pr.loadType, pr, units)}</span>
                 <span className="w-20 shrink-0 text-right text-sm text-muted-foreground">
                   {relativeDay(pr.date, now)}
                 </span>
@@ -143,7 +136,7 @@ export function LiftsTab({ lifts, prs, units, now }: { lifts: LiftData[]; prs: P
           </ul>
         )}
       </section>
-    </TabsContent>
+    </div>
   )
 }
 
@@ -241,8 +234,8 @@ function LiftProgress({ lift, weeks, units, now }: { lift: Lift; weeks: WeeklyPo
   const rows = weeks.slice(-TABLE_WEEKS).reverse()
   const summary =
     weeks.length === 1
-      ? `${lift.name}: ${setText(lift.loadType, last, units)}, first week.`
-      : `${lift.name}: ${setText(lift.loadType, first, units)} ${weeks.length} weeks ago, ${setText(lift.loadType, last, units)} now.`
+      ? `${lift.name}: ${fmtSet(lift.loadType, last, units)}, first week.`
+      : `${lift.name}: ${fmtSet(lift.loadType, first, units)} ${weeks.length} weeks ago, ${fmtSet(lift.loadType, last, units)} now.`
 
   return (
     <div>
@@ -288,7 +281,7 @@ function LiftProgress({ lift, weeks, units, now }: { lift: Lift; weeks: WeeklyPo
                 }}
                 formatter={(_value, _name, item) => (
                   <span className="font-medium tabular-nums">
-                    {setText(lift.loadType, (item.payload as { point: WeeklyPoint }).point, units)}
+                    {fmtSet(lift.loadType, (item.payload as { point: WeeklyPoint }).point, units)}
                   </span>
                 )}
               />
@@ -323,7 +316,7 @@ function LiftProgress({ lift, weeks, units, now }: { lift: Lift; weeks: WeeklyPo
                 <TableCell className="px-0">
                   {weekLabel(p.week, now)} <span className="text-muted-foreground">{shortDate(noon(p.week))}</span>
                 </TableCell>
-                <TableCell className="px-0">{setText(lift.loadType, p, units)}</TableCell>
+                <TableCell className="px-0">{fmtSet(lift.loadType, p, units)}</TableCell>
                 <TableCell className={cn('px-0 text-right', c?.up ? 'text-success' : 'text-muted-foreground')}>
                   {c ? c.text : '–'}
                 </TableCell>

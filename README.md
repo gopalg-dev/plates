@@ -29,6 +29,15 @@ Four screens, one job each:
   work count at your logged bodyweight in the weight lifted and in new bests. Body: bodyweight chart (tap
   a point to edit or remove a weigh-in) and measurements, arm, chest and waist on one chart as the change
   since the first tape.
+- **Report** (menu): a finished week or month next to the one before. Sessions
+  against the plan, hard sets, new bests and bodyweight, each compared with the period before in words; what needs
+  attention (muscles under nine tenths of their target, stuck or slipping lifts, Too much sessions, the deload signal), shown only when
+  there is something; new bests and lifts that beat the period before; a bar strip of the last 8 weeks or 6 months
+  with this period in colour; the period name opens a calendar picker; the period's days as a calendar; hard sets per muscle as bars against the period
+  before; a bodyweight line; the effort mix and reps left. Finished periods only, a week needs 1 session and a month 3; Today links to the new report
+  for two days after a week or month ends. Share draws the week as a 1080 × 1350 PNG in any of the
+  looks: the days, the sessions, and a highlight the lifter picks: a new best, how many, the streak, every session
+  done, or nothing (the share sheet on phones, a download elsewhere); bodyweight only when ticked.
 - **Library**: 137 exercises with a picture, muscles, equipment and cues, searchable and
   filterable. "Pick from library" fills an exercise in from the plan editor or the import preview.
   The picture on any exercise row (Plan, Today, a session) opens the same view in place, through
@@ -81,6 +90,8 @@ bun run db:seed -- --reset      # replaces both collections with the bundle
 bun run db:repair               # lists exercises whose load type disagrees with the library; --yes applies
 bun run db:simulate -- matrix   # two years of a beginner through the real server code, every split × method
 bun run db:simulate -- seed     # the same two years for a new sim@example.com account in the dev database, to look at
+bun scripts/day.ts              # one day at a time for day@example.com in the database .env points at: sessions as the
+                                # simulated lifter logs them, to watch Today, Stats and the Report change day by day
 bun run db:seed -- --demo       # also a demo account with eight weeks of logs; empty database only
 ```
 

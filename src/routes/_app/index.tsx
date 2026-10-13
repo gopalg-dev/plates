@@ -1,8 +1,10 @@
-import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate, useRouter } from '@tanstack/react-router'
 import {
   ArrowLeftRight,
   CalendarClock,
   CalendarX,
+  ChevronRight,
+  FileChartColumn,
   Flame,
   MoreHorizontal,
   Ruler,
@@ -204,20 +206,41 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
 
       {data.alerts.length > 0 && (
         <ul className="mt-5 flex flex-col gap-2">
-          {data.alerts.map((a) => (
-            <li key={a.kind + a.title} className="flex items-start gap-3 rounded-lg border px-3 py-2.5">
-              {a.kind === 'stall' ? (
-                <TrendingDown className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
-              ) : a.kind === 'week' ? (
-                <CalendarClock className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
-              ) : (
-                <Scale className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
-              )}
-              <p className="min-w-0 flex-1">
-                <span className="font-medium">{a.title}</span> <span className="text-muted-foreground">{a.detail}</span>
-              </p>
-            </li>
-          ))}
+          {data.alerts.map((a) => {
+            const Icon =
+              a.kind === 'stall'
+                ? TrendingDown
+                : a.kind === 'week'
+                  ? CalendarClock
+                  : a.kind === 'review'
+                    ? FileChartColumn
+                    : Scale
+            const body = (
+              <>
+                <Icon className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
+                <p className="min-w-0 flex-1">
+                  <span className="font-medium">{a.title}</span>{' '}
+                  <span className="text-muted-foreground">{a.detail}</span>
+                </p>
+              </>
+            )
+            // An alert about another screen is a link to it, the whole row.
+            return (
+              <li key={a.kind + a.title}>
+                {a.to ? (
+                  <Link
+                    to={a.to}
+                    className="flex items-start gap-3 rounded-lg border px-3 py-2.5 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {body}
+                    <ChevronRight className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
+                  </Link>
+                ) : (
+                  <div className="flex items-start gap-3 rounded-lg border px-3 py-2.5">{body}</div>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
 

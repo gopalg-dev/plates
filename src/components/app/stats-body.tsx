@@ -2,7 +2,6 @@ import { Ruler, Scale } from 'lucide-react'
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CartesianGrid, Line, LineChart, useActiveTooltipLabel, XAxis, YAxis } from 'recharts'
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '#/components/ui/chart'
-import { TabsContent } from '#/components/ui/tabs'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { longDate, relativeDay, shortDate, signed } from '#/lib/format'
 import { paceNote } from '#/lib/logic/goal'
@@ -49,7 +48,7 @@ export function BodyTab({
   onPickTape,
 }: BodyTabProps) {
   return (
-    <TabsContent value="body" className="mt-6 grid gap-10">
+    <div className="mt-6 grid gap-10">
       <section aria-labelledby="bw-h">
         <SectionHeading id="bw-h" icon={Scale}>
           Bodyweight
@@ -85,7 +84,7 @@ export function BodyTab({
         </SectionHeading>
         <Measurements logs={measurements} lengthUnit={lengthUnit} now={now} log={logMeasurements} onPick={onPickTape} />
       </section>
-    </TabsContent>
+    </div>
   )
 }
 

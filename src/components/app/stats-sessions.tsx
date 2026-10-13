@@ -3,7 +3,6 @@ import { type ReactNode, useMemo, useState } from 'react'
 import { Button } from '#/components/ui/button'
 import { Calendar } from '#/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '#/components/ui/popover'
-import { TabsContent } from '#/components/ui/tabs'
 import { monthYear, shortDate } from '#/lib/format'
 import { deloadHint, effortLabel, effortThisWeek } from '#/lib/logic/effort'
 import {
@@ -85,7 +84,7 @@ export function SessionsTab({
   const weekName = isThisWeek ? 'this week' : `week of ${shortDate(noon(weekKey))}`
 
   return (
-    <TabsContent value="sessions" className="mt-6 grid gap-10 lg:grid-cols-2 lg:gap-x-10">
+    <div className="mt-6 grid gap-10 lg:grid-cols-2 lg:gap-x-10">
       <section aria-labelledby="week-h" className="lg:col-span-2">
         <SectionHeading id="week-h" icon={CalendarDays}>
           {isThisWeek ? 'This week' : `Week of ${shortDate(noon(weekKey))}`}
@@ -161,7 +160,7 @@ export function SessionsTab({
           <div className="mt-3">{exportButtons}</div>
         </section>
       )}
-    </TabsContent>
+    </div>
   )
 }
 

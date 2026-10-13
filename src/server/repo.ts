@@ -3,7 +3,7 @@ import { type Db, ObjectId } from 'mongodb'
 import { DEFAULT_SPLIT } from '#/lib/content'
 import { buildCustomDays, buildDay } from '#/lib/day-blocks'
 import { findLibraryByName } from '#/lib/library'
-import { type Alert, bodyweightAlert, stallAlerts, weekAlert } from '#/lib/logic/alerts'
+import { type Alert, bodyweightAlert, reviewAlerts, stallAlerts, weekAlert } from '#/lib/logic/alerts'
 import {
   addExerciseTo,
   type ExercisePatch,
@@ -917,6 +917,8 @@ export async function getTodayData(userId: string): Promise<TodayData> {
     measurements.findOne({ userId }, { sort: { date: -1 } }),
   ])
   const alerts: Alert[] = [
+    // The report on a week or month just finished, for its first two days.
+    ...reviewAlerts(now, { settings, plan, workouts: attachBodyweight(recent, bodyweights), bodyweights }),
     ...stallAlerts(attachBodyweight(recent, bodyweights), now),
     weekAlert(sessionsInWeek(recent, now), plannedPerWeek(plan, settings), now),
     bodyweightAlert(bodyweights, settings.goal, settings.units, now),

@@ -1,6 +1,16 @@
 import { createFileRoute, Link, Outlet, redirect, useLocation } from '@tanstack/react-router'
-import { BookOpen, ChevronsUpDown, CircleHelp, Download, LogOut, MessageSquare, Palette, Settings } from 'lucide-react'
-import { useState } from 'react'
+import {
+  BookOpen,
+  ChevronsUpDown,
+  CircleHelp,
+  Download,
+  FileChartColumn,
+  LogOut,
+  MessageSquare,
+  Palette,
+  Settings,
+} from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { AppMark, Wordmark } from '#/components/app/app-mark'
 import { ExerciseDialog, ExerciseListProvider } from '#/components/app/exercise-dialog'
 import { ExercisePictures } from '#/components/app/exercise-thumb'
@@ -35,6 +45,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '#/components/ui/sidebar'
+import { accountName } from '#/lib/format'
 import { useInstallApp } from '#/lib/install-app'
 import { ContentProvider } from '#/lib/use-content'
 import { usePageHydrated } from '#/lib/use-page-hydrated'
@@ -65,6 +76,7 @@ export const Route = createFileRoute('/_app')({
 })
 
 const secondary = [
+  { to: '/report', label: 'Report', icon: FileChartColumn, exact: false },
   { to: '/library', label: 'Library', icon: BookOpen, exact: false },
   { to: '/how-it-works', label: 'How it works', icon: CircleHelp, exact: false },
 ] as const
@@ -88,13 +100,13 @@ function AppLayout() {
   const { user } = Route.useRouteContext()
   const content = Route.useLoaderData()
   usePageHydrated()
-  // Accounts made from an emailed link have no username and an empty name.
-  const who = user.username ?? (user.name || user.email)
+  const who = accountName(user)
   return (
     <ContentProvider content={content}>
       <ExercisePictures pictures={content.library} opens="here">
         <ExerciseListProvider>
           <SidebarProvider>
+            <CloseSidebarOnNavigate />
             <Sidebar collapsible="icon">
               <SidebarHeader className="h-12 flex-row items-center justify-between gap-2 px-2 group-data-[collapsible=icon]:justify-center">
                 <Link
@@ -160,6 +172,19 @@ function AppLayout() {
       </ExercisePictures>
     </ContentProvider>
   )
+}
+
+/** On a phone the sidebar is a sheet over the screen: a tap on one of its links closes it as the screen changes. */
+function CloseSidebarOnNavigate() {
+  const { pathname } = useLocation()
+  const { setOpenMobile } = useSidebar()
+  const shown = useRef(pathname)
+  useEffect(() => {
+    if (shown.current === pathname) return
+    shown.current = pathname
+    setOpenMobile(false)
+  }, [pathname, setOpenMobile])
+  return null
 }
 
 /** The profile row at the bottom of the sidebar. Opens a menu with Settings and Sign out. */

@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Accordion } from '#/components/ui/accordion'
-import { Tabs } from '#/components/ui/tabs'
 import { DEMO_SETTINGS, DEMO_SPLIT, demoHistory, demoSession } from '#/content/guide/demo-data'
 import { addExerciseTo, removeExerciseFrom, swapExerciseIn, updateExerciseIn } from '#/lib/logic/day-edit'
 import { bodyweightTrend, recentPRs } from '#/lib/logic/stats'
@@ -18,7 +17,7 @@ import { SessionExercises, SessionFooter, SessionTitle, ZenButton } from './sess
 import { BodyTab } from './stats-body'
 import { LiftsTab, liftsFrom } from './stats-lifts'
 import { SessionsTab } from './stats-sessions'
-import { type StatsTab, StatsTabsList, StatsTitle, TABS } from './stats-view'
+import { type StatsTab, StatsTabs, StatsTitle } from './stats-view'
 import { type PrimaryTab, TabBar } from './tab-bar'
 import { useSessionSets } from './use-session-sets'
 import { ZenScreen } from './zen-mode'
@@ -352,9 +351,9 @@ function StatsDemo({ tab: first, history }: { tab: StatsTab; history: History })
       <DemoHeader />
       <div className="px-4 pt-5 pb-6">
         <StatsTitle />
-        <Tabs value={tab} onValueChange={(v) => setTab(TABS.find((t) => t === v) ?? 'lifts')} className="mt-6">
-          <StatsTabsList />
-          <LiftsTab lifts={data.lifts} prs={data.prs} units={units} now={history.now} />
+        <StatsTabs tab={tab} onChange={setTab} />
+        {tab === 'lifts' && <LiftsTab lifts={data.lifts} prs={data.prs} units={units} now={history.now} />}
+        {tab === 'sessions' && (
           <SessionsTab
             workouts={history.workouts}
             plan={data.plan}
@@ -364,6 +363,8 @@ function StatsDemo({ tab: first, history }: { tab: StatsTab; history: History })
             now={history.now}
             onOpenDay={nothing}
           />
+        )}
+        {tab === 'body' && (
           <BodyTab
             bw={data.bw}
             bodyweights={history.bodyweights}
@@ -375,7 +376,7 @@ function StatsDemo({ tab: first, history }: { tab: StatsTab; history: History })
             onPickWeight={nothing}
             onPickTape={nothing}
           />
-        </Tabs>
+        )}
       </div>
     </>
   )

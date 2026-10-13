@@ -1,15 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import {
   attachBodyweight,
+  averageWeight,
   bodyweightTrend,
   epley,
   monthCalendar,
   plannedVolumeByMuscle,
+  prsBetween,
   recentPRs,
   sessionsInWeek,
   setScore,
   startOfWeek,
   strengthSeries,
+  totalsBetween,
+  volumeByMuscle,
   volumeByMuscleInWeek,
   weeklyStreak,
   weeklyStrength,
@@ -284,5 +288,32 @@ describe('bodyweight', () => {
     const t = bodyweightTrend([], now)
     expect(t.latest).toBeUndefined()
     expect(t.changePct).toBeUndefined()
+  })
+})
+
+describe('ranges', () => {
+  it('counts sets, totals and bests between two dates, the end left out', () => {
+    const ws = [
+      workout(daysAgo(20), 'push', [benchEntry([{ weight: 60, reps: 8, done: true }])]),
+      workout(daysAgo(6), 'push', [benchEntry([{ weight: 62.5, reps: 8, done: true }])]),
+      workout(daysAgo(2), 'push', [benchEntry([{ weight: 65, reps: 8, done: true }])]),
+    ]
+    const start = daysAgo(10)
+    const end = daysAgo(3)
+    expect(volumeByMuscle(ws, start, end).chest).toBe(1)
+    expect(totalsBetween(ws, start, end).sets).toBe(1)
+    // Only the 62.5 kg set falls inside; the 60 kg one before still counts as the best it beat.
+    expect(prsBetween(ws, start, end).map((p) => p.weight)).toEqual([62.5])
+    expect(prsBetween(ws, start).map((p) => p.weight)).toEqual([65, 62.5])
+  })
+
+  it('averages the weigh-ins between two dates', () => {
+    const logs: BodyweightLog[] = [
+      { id: 'a', date: daysAgo(9, 7).toISOString(), weight: 70 },
+      { id: 'b', date: daysAgo(5, 7).toISOString(), weight: 72 },
+      { id: 'c', date: daysAgo(1, 7).toISOString(), weight: 80 },
+    ]
+    expect(averageWeight(logs, daysAgo(10), daysAgo(3))).toBe(71)
+    expect(averageWeight(logs, daysAgo(30), daysAgo(20))).toBeUndefined()
   })
 })

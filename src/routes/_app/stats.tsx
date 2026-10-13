@@ -8,11 +8,10 @@ import { SessionEditor, sessionSummary } from '#/components/app/session-editor'
 import { BodyTab } from '#/components/app/stats-body'
 import { LiftsTab, liftsFrom } from '#/components/app/stats-lifts'
 import { SessionsTab } from '#/components/app/stats-sessions'
-import { type StatsTab, StatsTabsList, StatsTitle, TABS } from '#/components/app/stats-view'
+import { type StatsTab, StatsTabs, StatsTitle, TABS } from '#/components/app/stats-view'
 import { Button } from '#/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '#/components/ui/dialog'
 import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '#/components/ui/item'
-import { Tabs } from '#/components/ui/tabs'
 import { errorMessage, longDate } from '#/lib/format'
 import { stepsOf } from '#/lib/logic/progression'
 import { bodyweightTrend, dayKey, noon, recentPRs } from '#/lib/logic/stats'
@@ -79,15 +78,11 @@ function StatsPage() {
     <div>
       <StatsTitle />
 
-      <Tabs
-        value={tab}
-        onValueChange={(v) => navigate({ to: '/stats', search: { tab: v as StatsTab }, replace: true })}
-        className="mt-6"
-      >
-        <StatsTabsList />
+      <StatsTabs tab={tab} onChange={(v) => navigate({ to: '/stats', search: { tab: v }, replace: true })} />
 
-        <LiftsTab lifts={lifts} prs={prs} units={units} now={now} />
+      {tab === 'lifts' && <LiftsTab lifts={lifts} prs={prs} units={units} now={now} />}
 
+      {tab === 'sessions' && (
         <SessionsTab
           workouts={workouts}
           plan={plan}
@@ -105,8 +100,10 @@ function StatsPage() {
           }
           exportButtons={<ExportButtons />}
         />
+      )}
 
-        {/* Two columns only from 1024px: beside the sidebar a tablet leaves 448px, too narrow for two. */}
+      {/* Two columns only from 1024px: beside the sidebar a tablet leaves 448px, too narrow for two. */}
+      {tab === 'body' && (
         <BodyTab
           bw={bw}
           bodyweights={bodyweights}
@@ -120,7 +117,7 @@ function StatsPage() {
           onPickWeight={setPicked}
           onPickTape={setPickedTape}
         />
-      </Tabs>
+      )}
 
       <SessionEditor
         workout={editing}

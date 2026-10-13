@@ -1,5 +1,10 @@
 const LOCALE = 'en-US'
 
+/** The name an account goes by: the username, else the name, else the email (an emailed-link account has only that). */
+export function accountName(user: { username?: string | null; name?: string | null; email: string }): string {
+  return user.username ?? (user.name || user.email)
+}
+
 export function relativeDay(iso: string, now = new Date()): string {
   const a = new Date(now)
   a.setHours(0, 0, 0, 0)

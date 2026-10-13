@@ -1,6 +1,6 @@
 import type { BodyweightLog, Plan, Settings, Units, Workout } from '../types'
 import { attachBodyweight, bestSet, effectiveSets, finished, sessionsInWeek, setScore } from './stats'
-import { fmtWeight } from './units'
+import { fmtSet, fmtWeight } from './units'
 
 /** One line per exercise in the finish summary: the best set, and whether it moved. */
 export interface SummaryLine {
@@ -27,12 +27,6 @@ export function plannedPerWeek(plan: Plan, settings: Pick<Settings, 'schedule'>)
     return withDay || Math.min(plan.days.length, 6)
   }
   return Math.min(plan.days.length, 6)
-}
-
-function describe(loadType: string, s: { weight?: number; reps?: number; seconds?: number }, units: Units): string {
-  if (loadType === 'weight') return `${fmtWeight(s.weight, units)} × ${s.reps ?? 0}`
-  if (loadType === 'bodyweight') return `${s.reps ?? 0} reps`
-  return `${s.seconds ?? 0} s`
 }
 
 /**
@@ -88,7 +82,7 @@ export function summarize(
     const line: SummaryLine = {
       exerciseId: entry.exerciseId,
       name: entry.name,
-      best: describe(entry.loadType, best, units),
+      best: fmtSet(entry.loadType, best, units),
       pr: previousBest > 0 && score > previousBest,
     }
     if (entry.loadType === 'weight' && previousTop !== undefined) {

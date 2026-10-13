@@ -1,11 +1,34 @@
 import type { BodyweightLog, Goal, Units, Workout } from '../types'
+import { PERIOD_KINDS, type ReportData, reviewCard } from './report'
 import { addDays, bestSet, finished, setScore } from './stats'
 
-/** Something on Today that asks for a decision: a lift that stopped moving, a week slipping, a scale not moving. */
+/**
+ * Something on Today that asks for a look: a lift that stopped moving, a week slipping, a scale not moving, or the
+ * report on a week or month just finished.
+ */
 export interface Alert {
-  kind: 'stall' | 'week' | 'weight'
+  kind: 'stall' | 'week' | 'weight' | 'review'
   title: string
   detail: string
+  /** Where the alert leads, when it is about something on another screen. */
+  to?: string
+}
+
+/** The report on a week or month just finished, for its first two days. The week's first, when both fall on one day. */
+export function reviewAlerts(now: Date, data: ReportData): Alert[] {
+  return PERIOD_KINDS.flatMap((kind) => {
+    const card = reviewCard(kind, now, data)
+    return card
+      ? [
+          {
+            kind: 'review' as const,
+            title: card.title,
+            detail: card.detail,
+            to: `/report?period=${kind}&at=${card.at}`,
+          },
+        ]
+      : []
+  })
 }
 
 /** Weeks without a new best before a lift counts as stuck. */
