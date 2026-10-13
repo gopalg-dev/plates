@@ -20,6 +20,7 @@ import { SectionHeading } from '#/components/app/section-heading'
 import { DEFAULT_OWN_DAYS, OWN_SPLIT, SplitPicker } from '#/components/app/split-picker'
 import { WeekShape } from '#/components/app/week-shape'
 import { Button } from '#/components/ui/button'
+import { Checkbox } from '#/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -38,7 +39,7 @@ import { authClient } from '#/lib/auth-client'
 import { buildSplitFrom, planSourceInfo, splitInfoOf } from '#/lib/content'
 import { errorMessage } from '#/lib/format'
 import { GOAL_DONE, GOAL_OPTIONS } from '#/lib/logic/goal'
-import { PLATES, PROGRESSION_LABEL, plateOf, progressionOf } from '#/lib/logic/progression'
+import { PROGRESSION_LABEL, progressionOf, STEP_OPTIONS, type StepKind, stepsOf } from '#/lib/logic/progression'
 import { fmtWeight } from '#/lib/logic/units'
 import { pageTitle } from '#/lib/page-title'
 import type { DayType, Goal, Schedule, SplitId, TrainingAge, Units } from '#/lib/types'
@@ -64,6 +65,34 @@ export const Route = createFileRoute('/_app/settings')({
   component: SettingsPage,
 })
 
+/** One row of weight steps: the kind, the setting it saves to, and what the toast says for a value. */
+interface StepRow {
+  kind: StepKind
+  field: 'plate' | 'dumbbellStep' | 'stackStep'
+  label: string
+  done: (value: number, units: Units) => string
+}
+
+const STEP_ROWS: StepRow[] = [
+  // Bar plates go on in pairs, one each side, so a barbell steps by two of them.
+  { kind: 'plates', field: 'plate', label: 'Bar plates', done: (v, u) => `Barbell steps of ${fmtWeight(2 * v, u)}` },
+  {
+    kind: 'dumbbell',
+    field: 'dumbbellStep',
+    label: 'Dumbbells',
+    done: (v, u) => `Dumbbell steps of ${fmtWeight(v, u)}`,
+  },
+  { kind: 'stack', field: 'stackStep', label: 'Machine stack', done: (v, u) => `Stack steps of ${fmtWeight(v, u)}` },
+]
+
+/** "Same for all": the plate row alone, its value used for every kind. */
+const SAME_ROW: StepRow = {
+  kind: 'plates',
+  field: 'plate',
+  label: 'Smallest step',
+  done: (v, u) => `Steps of ${fmtWeight(v, u)} for all`,
+}
+
 const ageOptions: { value: TrainingAge; title: string; detail: string }[] = [
   { value: 'under1', title: 'Under a year', detail: 'Every 4-set lift becomes 3 sets while you build the base.' },
   { value: 'over1', title: 'A year or more', detail: 'The full plan, 4 sets on the big lifts.' },
@@ -84,6 +113,7 @@ function SettingsPage() {
   const [splitOpen, setSplitOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
   const schedule: Schedule = settings.schedule ?? 'rolling'
+  const steps = stepsOf(settings)
 
   async function switchSplit() {
     const keeping = pickedSplit === OWN_SPLIT && ownPlan !== undefined && ownMode === 'keep'
@@ -155,26 +185,43 @@ function SettingsPage() {
               Pounds
             </ToggleGroupItem>
           </ToggleGroup>
-          {/* A barbell takes a plate each side, so the smallest plate sets how far a barbell lift steps. */}
-          <p className="mt-4 text-muted-foreground">Smallest plate</p>
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            value={String(plateOf(settings))}
-            onValueChange={(v) =>
-              v &&
-              Number(v) !== plateOf(settings) &&
-              save({ plate: Number(v) }, `Barbell steps of ${fmtWeight(2 * Number(v), settings.units)}`)
-            }
-            className="mt-2 w-full max-w-xs"
-            aria-label="Smallest plate"
-          >
-            {PLATES[settings.units].map((p) => (
-              <ToggleGroupItem key={p} value={String(p)} className="h-12 flex-1 text-base">
-                {p} {settings.units}
-              </ToggleGroupItem>
-            ))}
-          </ToggleGroup>
+          <p className="mt-6 font-medium">Smallest steps</p>
+          <Label className="mt-3 flex cursor-pointer items-center gap-3 text-base font-normal">
+            <Checkbox
+              checked={settings.sameStep ?? false}
+              onCheckedChange={(c) =>
+                save(
+                  { sameStep: c === true },
+                  c === true ? SAME_ROW.done(steps.plates, settings.units) : 'A step for each kind',
+                )
+              }
+              className="size-5"
+            />
+            Same for all
+          </Label>
+          {(settings.sameStep ? [SAME_ROW] : STEP_ROWS).map((row) => (
+            <div key={row.label}>
+              <p className="mt-4 text-muted-foreground">{row.label}</p>
+              <ToggleGroup
+                type="single"
+                variant="outline"
+                value={String(steps[row.kind])}
+                onValueChange={(v) =>
+                  v &&
+                  Number(v) !== steps[row.kind] &&
+                  save({ [row.field]: Number(v) }, row.done(Number(v), settings.units))
+                }
+                className="mt-2 w-full max-w-xs"
+                aria-label={row.label}
+              >
+                {STEP_OPTIONS[row.kind][settings.units].map((p) => (
+                  <ToggleGroupItem key={p} value={String(p)} className="h-12 flex-1 text-base">
+                    {p} {settings.units}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </div>
+          ))}
         </section>
 
         <section aria-labelledby="age-h">

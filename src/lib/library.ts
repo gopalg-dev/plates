@@ -25,6 +25,8 @@ export interface LibraryExercise {
   /** Everything it works, in the source's words. */
   muscles: string[]
   equipment: Equipment
+  /** A machine loaded with bar plates, one each side, rather than a pin stack: it steps like a barbell. */
+  plateLoaded?: boolean
   loadType: LoadType
   level: Level
   cues: string[]

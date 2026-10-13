@@ -515,6 +515,7 @@
     "muscle": "back",
     "muscles": ["middle back", "biceps", "lats"],
     "equipment": "machine",
+    "plateLoaded": true,
     "loadType": "weight",
     "level": "intermediate",
     "cues": [
@@ -1363,6 +1364,7 @@
     "muscle": "quads",
     "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "machine",
+    "plateLoaded": true,
     "loadType": "weight",
     "level": "beginner",
     "cues": [
@@ -1378,6 +1380,7 @@
     "muscle": "quads",
     "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "machine",
+    "plateLoaded": true,
     "loadType": "weight",
     "level": "beginner",
     "cues": [
@@ -1543,6 +1546,7 @@
     "muscle": "quads",
     "muscles": ["quadriceps", "calves", "glutes", "hamstrings", "lower back"],
     "equipment": "machine",
+    "plateLoaded": true,
     "loadType": "weight",
     "level": "beginner",
     "cues": [
@@ -1782,6 +1786,7 @@
     "muscle": "calves",
     "muscles": ["calves"],
     "equipment": "machine",
+    "plateLoaded": true,
     "loadType": "weight",
     "level": "beginner",
     "cues": [
@@ -1812,6 +1817,7 @@
     "muscle": "calves",
     "muscles": ["calves"],
     "equipment": "machine",
+    "plateLoaded": true,
     "loadType": "weight",
     "level": "beginner",
     "cues": [

@@ -79,8 +79,14 @@ export interface Plan {
 
 export interface Settings {
   units: Units
-  /** The smallest plate in the gym, in the units above. Unset reads as 2.5. A barbell step is two of them. */
+  /** The smallest bar plate in the gym, in the units above. A barbell step is two of them. See `stepsOf`. */
   plate?: number
+  /** The gap between dumbbells on the rack. See `stepsOf`. */
+  dumbbellStep?: number
+  /** The smallest step on a pin-loaded stack: cables and most machines. See `stepsOf`. */
+  stackStep?: number
+  /** One value, the plate's, for every kind of weight. */
+  sameStep?: boolean
   bodyweight?: number
   trainingAge: TrainingAge
   setupDone: boolean
@@ -137,8 +143,10 @@ export interface WorkoutEntry {
   suggested?: SetTarget[]
   /** This lift has earned one more set this week (see `lib/logic/ramp.ts`); a tap adds it, here and on the plan. */
   rampOffer?: boolean
-  /** From the library, when the name is in it: sets the plate step for the sets below. */
+  /** From the library, when the name is in it: sets the weight step for the sets below (see `incrementFor`). */
   equipment?: Equipment
+  /** A machine loaded with bar plates, one each side: it steps like a barbell. */
+  plateLoaded?: true
   sets: LoggedSet[]
 }
 

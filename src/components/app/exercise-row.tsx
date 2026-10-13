@@ -3,7 +3,7 @@ import { AccordionContent, AccordionItem, AccordionTrigger } from '#/components/
 import { Button } from '#/components/ui/button'
 import { Toggle } from '#/components/ui/toggle'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
-import { incrementFor } from '#/lib/logic/progression'
+import { incrementFor, type Steps } from '#/lib/logic/progression'
 import type { Exercise, LoggedSet, Units, WorkoutEntry } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { ExerciseThumb } from './exercise-thumb'
@@ -24,8 +24,8 @@ export function targetOf(e: Pick<Exercise, 'repMin' | 'repMax' | 'loadType'>): s
 export interface ExerciseRowProps {
   entry: WorkoutEntry
   units: Units
-  /** The gym's smallest plate; see `plateOf`. Unset reads as the common 2.5. */
-  plate?: number
+  /** The gym's smallest steps; see `stepsOf`. Unset reads as the common ones. */
+  steps?: Steps
   onChangeSet: (index: number, patch: Partial<LoggedSet>) => void
   onToggleDone: (index: number) => void
   onAddSet: () => void
@@ -51,7 +51,7 @@ function lastFilled(sets: LoggedSet[], index: number, key: 'weight' | 'reps' | '
 export function ExerciseRow({
   entry,
   units,
-  plate,
+  steps,
   onChangeSet,
   onToggleDone,
   onAddSet,
@@ -113,7 +113,7 @@ export function ExerciseRow({
                     value={s.weight}
                     base={prevWeight}
                     onChange={(v) => onChangeSet(i, { weight: v })}
-                    step={incrementFor(entry.muscle, units, entry.equipment, plate)}
+                    step={incrementFor(units, entry.equipment, steps, entry.plateLoaded)}
                     inputMode="decimal"
                     placeholder={prevWeight !== undefined ? String(prevWeight) : '0'}
                   />

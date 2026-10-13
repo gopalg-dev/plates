@@ -13,7 +13,7 @@ import {
 } from '#/lib/logic/day-edit'
 import { type FeedbackTrigger, feedbackDue, type Mood } from '#/lib/logic/feedback'
 import { nextDayId } from '#/lib/logic/next-day'
-import { type PastEntry, progressionOf, STALL_SESSIONS, suggestNext } from '#/lib/logic/progression'
+import { type PastEntry, progressionOf, STALL_SESSIONS, stepsOf, suggestNext } from '#/lib/logic/progression'
 import { rampOffer } from '#/lib/logic/ramp'
 import { assignWeekdays, type Finished } from '#/lib/logic/schedule'
 import { missingFrom, syncEntries } from '#/lib/logic/session-sync'
@@ -429,11 +429,13 @@ async function sessionEntries(
   for (const ex of exercises) {
     const targetSets = plannedSetsFor(ex.sets, settings.trainingAge)
     const history = await recentEntries(userId, ex.id, dayId)
-    // The library knows what the lift is done on; with the gym's smallest plate that sets the step.
+    // The library knows what the lift is done on; with the gym's smallest steps that sets the step.
     const known = findLibraryByName(library, ex.name)
+    const plateLoaded = known?.plateLoaded === true
     const s = suggestNext(ex, targetSets, history, settings.units, progressionOf(settings), {
       equipment: known?.equipment,
-      plate: settings.plate,
+      plateLoaded,
+      steps: stepsOf(settings),
     })
     entries.push({
       exerciseId: ex.id,
@@ -441,6 +443,7 @@ async function sessionEntries(
       muscle: ex.muscle,
       loadType: ex.loadType,
       ...(known ? { equipment: known.equipment } : {}),
+      ...(plateLoaded ? { plateLoaded: true as const } : {}),
       repMin: ex.repMin,
       repMax: ex.repMax,
       ...(s.hint ? { hint: s.hint } : {}),

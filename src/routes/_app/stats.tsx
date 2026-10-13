@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '#/components/ui/item'
 import { Tabs } from '#/components/ui/tabs'
 import { errorMessage, longDate } from '#/lib/format'
-import { plateOf } from '#/lib/logic/progression'
+import { stepsOf } from '#/lib/logic/progression'
 import { bodyweightTrend, dayKey, noon, recentPRs } from '#/lib/logic/stats'
 import { pageTitle } from '#/lib/page-title'
 import { rowTap } from '#/lib/row-tap'
@@ -125,7 +125,7 @@ function StatsPage() {
       <SessionEditor
         workout={editing}
         units={units}
-        plate={plateOf(settings)}
+        steps={stepsOf(settings)}
         onClose={() => setEditing(null)}
         onSaved={async () => {
           setEditing(null)

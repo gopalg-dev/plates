@@ -3,9 +3,10 @@ import {
   defaultProgression,
   incrementFor,
   type PastEntry,
-  plateOf,
   progressionOf,
   restSecondsFor,
+  type Steps,
+  stepsOf,
   suggestNext,
 } from '#/lib/logic/progression'
 import type { LoggedSet, WorkoutEntry } from '#/lib/types'
@@ -38,21 +39,6 @@ function session(weight: number, reps: number[], effort?: number, partial: Parti
     effort,
   }
 }
-
-describe('incrementFor', () => {
-  it('uses 2.5 kg for upper body and 5 kg for lower body', () => {
-    expect(incrementFor('chest', 'kg')).toBe(2.5)
-    expect(incrementFor('back', 'kg')).toBe(2.5)
-    expect(incrementFor('quads', 'kg')).toBe(5)
-    expect(incrementFor('hamstrings', 'kg')).toBe(5)
-    expect(incrementFor('calves', 'kg')).toBe(5)
-  })
-
-  it('uses 5 lb for upper body and 10 lb for lower body', () => {
-    expect(incrementFor('shoulders', 'lb')).toBe(5)
-    expect(incrementFor('quads', 'lb')).toBe(10)
-  })
-})
 
 describe('restSecondsFor', () => {
   it('gives big lifts longer rest', () => {
@@ -125,9 +111,12 @@ describe('suggestNext for weight lifts', () => {
     )
   })
 
-  it('uses the lower body step for legs', () => {
-    const s = suggestNext(squat, 4, [session(100, [8, 8, 8, 8], undefined, { muscle: 'quads' })], 'kg')
+  it('steps a plate-loaded machine like a barbell', () => {
+    const past = [session(100, [8, 8, 8, 8], undefined, { muscle: 'quads' })]
+    const s = suggestNext(squat, 4, past, 'kg', 'double', { equipment: 'machine', plateLoaded: true })
     expect(s.suggested?.[0].weight).toBe(105)
+    // The same machine on a pin stack steps by the stack.
+    expect(suggestNext(squat, 4, past, 'kg', 'double', { equipment: 'machine' }).suggested?.[0].weight).toBe(102.5)
   })
 
   it('repeats the weights and aims a rep higher when no set reached the top', () => {
@@ -232,7 +221,7 @@ describe('the progression methods', () => {
     expect(at(11).suggested?.map((x) => x.weight)).toEqual([65, 65, 65])
     // On a barbell the step is 5 kg: one step at most, whatever the count.
     const bar = (reps: number) =>
-      suggestNext(bench, 3, [session(60, [5, 5, reps])], 'kg', 'topset', { equipment: 'barbell', plate: 2.5 })
+      suggestNext(bench, 3, [session(60, [5, 5, reps])], 'kg', 'topset', { equipment: 'barbell' })
     expect(bar(11).suggested?.[0].weight).toBe(65)
     expect(bar(8).suggested?.[0].weight).toBe(65)
     // The last set aims for the top of the range, the others for the bottom.
@@ -293,31 +282,58 @@ describe('suggestNext for bodyweight and timed work', () => {
 })
 
 describe('incrementFor by equipment', () => {
+  const kg = (s: Partial<Steps>) => ({ ...stepsOf({ units: 'kg' }), ...s })
+
   it('steps a barbell by two of the smallest plate', () => {
-    expect(incrementFor('chest', 'kg', 'barbell')).toBe(5)
-    expect(incrementFor('chest', 'kg', 'barbell', 1.25)).toBe(2.5)
-    expect(incrementFor('quads', 'kg', 'barbell', 5)).toBe(10)
-    expect(incrementFor('chest', 'lb', 'barbell')).toBe(5)
-    expect(incrementFor('chest', 'lb', 'barbell', 5)).toBe(10)
+    expect(incrementFor('kg', 'barbell')).toBe(5)
+    expect(incrementFor('kg', 'barbell', kg({ plates: 1.25 }))).toBe(2.5)
+    expect(incrementFor('kg', 'barbell', kg({ plates: 5 }))).toBe(10)
+    expect(incrementFor('lb', 'barbell')).toBe(5)
+    expect(incrementFor('lb', 'barbell', { plates: 5, dumbbell: 5, stack: 5 })).toBe(10)
   })
 
-  it('steps a dumbbell by one rack step, whatever the plate', () => {
-    expect(incrementFor('shoulders', 'kg', 'dumbbell', 1.25)).toBe(2.5)
-    expect(incrementFor('shoulders', 'lb', 'dumbbell', 10)).toBe(5)
+  it('steps a plate-loaded machine like a barbell', () => {
+    expect(incrementFor('kg', 'machine', kg({ plates: 1.25, stack: 10 }), true)).toBe(2.5)
   })
 
-  it('keeps the stack rule for machines, cables and unknown lifts', () => {
-    expect(incrementFor('back', 'kg', 'cable', 1.25)).toBe(2.5)
-    expect(incrementFor('quads', 'kg', 'machine', 1.25)).toBe(5)
-    expect(incrementFor('back', 'kg', undefined, 1.25)).toBe(2.5)
+  it('steps a dumbbell by the rack step, whatever the plate', () => {
+    expect(incrementFor('kg', 'dumbbell')).toBe(2.5)
+    expect(incrementFor('kg', 'dumbbell', kg({ plates: 1.25, dumbbell: 2 }))).toBe(2)
+    expect(incrementFor('kg', 'dumbbell', kg({ dumbbell: 5 }))).toBe(5)
+    expect(incrementFor('lb', 'dumbbell')).toBe(5)
+  })
+
+  it('steps cables, pin machines and unknown lifts by the stack, upper or lower body', () => {
+    expect(incrementFor('kg', 'cable')).toBe(2.5)
+    expect(incrementFor('kg', 'machine', kg({ stack: 5 }))).toBe(5)
+    expect(incrementFor('kg', undefined, kg({ stack: 10 }))).toBe(10)
+    expect(incrementFor('lb', 'machine')).toBe(5)
   })
 })
 
-describe('plateOf', () => {
-  it('reads an unset or foreign plate as the common one', () => {
-    expect(plateOf({ units: 'kg' })).toBe(2.5)
-    expect(plateOf({ units: 'kg', plate: 1.25 })).toBe(1.25)
-    expect(plateOf({ units: 'lb', plate: 1.25 })).toBe(2.5)
-    expect(plateOf({ units: 'lb', plate: 10 })).toBe(10)
+describe('stepsOf', () => {
+  it("reads unset or foreign values as the unit's common ones", () => {
+    expect(stepsOf({ units: 'kg' })).toEqual({ plates: 2.5, dumbbell: 2.5, stack: 2.5 })
+    expect(stepsOf({ units: 'lb' })).toEqual({ plates: 2.5, dumbbell: 5, stack: 5 })
+    expect(stepsOf({ units: 'kg', plate: 1.25, dumbbellStep: 2, stackStep: 5 })).toEqual({
+      plates: 1.25,
+      dumbbell: 2,
+      stack: 5,
+    })
+    // 1.25 is no lb plate, 2 kg dumbbells no lb rack, 10 a stack step in both.
+    expect(stepsOf({ units: 'lb', plate: 1.25, dumbbellStep: 2, stackStep: 10 })).toEqual({
+      plates: 2.5,
+      dumbbell: 5,
+      stack: 10,
+    })
+  })
+
+  it('puts the plate on every kind when the same is set for all', () => {
+    expect(stepsOf({ units: 'kg', plate: 5, dumbbellStep: 2, stackStep: 10, sameStep: true })).toEqual({
+      plates: 5,
+      dumbbell: 5,
+      stack: 5,
+    })
+    expect(stepsOf({ units: 'kg', sameStep: true })).toEqual({ plates: 2.5, dumbbell: 2.5, stack: 2.5 })
   })
 })

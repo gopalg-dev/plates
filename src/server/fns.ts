@@ -70,6 +70,9 @@ export const saveSettingsFn = createServerFn({ method: 'POST' })
       goal: z.enum(GOALS).optional(),
       keepAwake: z.boolean().optional(),
       plate: z.number().positive().max(50).optional(),
+      dumbbellStep: z.number().positive().max(50).optional(),
+      stackStep: z.number().positive().max(50).optional(),
+      sameStep: z.boolean().optional(),
     }),
   )
   .handler(({ data, context }) => repo.saveSettings(context.userId, data))

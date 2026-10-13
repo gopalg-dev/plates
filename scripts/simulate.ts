@@ -7,6 +7,9 @@
  *   bun run db:simulate -- matrix [splits] [methods] [days]        every split × method, writes results.json
  *   bun run db:simulate -- seed [split] [method] [days] [--email …]  two years for a new account in the dev database
  *
+ * Any of them takes the gym's smallest steps in kg, as Settings holds them: --plate 5 --dumbbell 2 --stack 5,
+ * or --same 5 for one value everywhere. Unset is the app's defaults.
+ *
  * Needs the local MongoDB (bun run db:up). Uses its own database, workout_plan_v3_sim, and drops it first.
  * Results land beside this file: scripts/sim-results.json or scripts/sim-run-<split>-<method>.json.
  */
@@ -16,10 +19,10 @@ import path from 'node:path'
 import { hashPassword } from 'better-auth/crypto'
 import { MongoClient, ObjectId } from 'mongodb'
 import { deloadHint } from '../src/lib/logic/effort'
-import { incrementFor } from '../src/lib/logic/progression'
+import { incrementFor, stepsOf } from '../src/lib/logic/progression'
 import { attachBodyweight, epley, weeklyStrength } from '../src/lib/logic/stats'
 import { liftTrend } from '../src/lib/logic/trend'
-import type { LoggedSet, Progression } from '../src/lib/types'
+import type { LoggedSet, Progression, Settings } from '../src/lib/types'
 import * as repo from '../src/server/repo'
 
 // ---------------------------------------------------------------- fake clock
@@ -113,6 +116,8 @@ interface EntryLog {
   rampOffer: boolean
   ramped: boolean
   planSets: number
+  /** What the app steps this lift by; weight lifts only. */
+  step?: number
 }
 interface SessionLog {
   day: number
@@ -135,6 +140,8 @@ interface RunResult {
 }
 
 let UID = 'sim-user'
+/** The gym's smallest steps, from the command line; empty is the app's defaults. */
+let gym: Pick<Settings, 'plate' | 'dumbbellStep' | 'stackStep' | 'sameStep'> = {}
 
 async function run(
   split: string,
@@ -177,6 +184,7 @@ async function run(
     bodyweight: 60,
     goal: 'gain',
     progression,
+    ...gym,
   })
   await repo.applySplit(UID, split)
   let plan = await repo.getPlan(UID)
@@ -266,7 +274,8 @@ async function run(
           const fatigue = 1 - 0.03 * i
           const target = entry.suggested?.[i]
           if (entry.loadType === 'weight') {
-            const step = incrementFor(entry.muscle, 'kg', entry.equipment, 2.5)
+            const step = incrementFor('kg', entry.equipment, stepsOf({ units: 'kg', ...gym }), entry.plateLoaded)
+            log.step = step
             let wgt = target?.weight ?? chosen.get(entry.exerciseId)
             if (wgt === undefined) {
               // First time: a weight for the middle of the range, rounded down to a plate step.
@@ -378,8 +387,8 @@ function findAnomalies(r: RunResult) {
       const prev = lastTop.get(e.id)
       if (prev) {
         const t = e.sets[0]?.target
-        if (t !== undefined && t % 1.25 !== 0)
-          r.anomalies.push(`${s.date} ${e.name}: target ${t} is not on a plate step`)
+        if (t !== undefined && e.step && Math.abs(t / e.step - Math.round(t / e.step)) > 1e-9)
+          r.anomalies.push(`${s.date} ${e.name}: target ${t} is not on its ${e.step} kg step`)
         if (t !== undefined && t < prev.w * 0.85 && !s.deload)
           r.anomalies.push(`${s.date} ${e.name}: target ${t} fell from ${prev.w} without a deload`)
         if (prev.failed && t !== undefined && t > prev.w && r.progression === 'linear')
@@ -443,12 +452,26 @@ function summary(r: RunResult): string {
 // ---------------------------------------------------------------- main
 
 const args = process.argv.slice(2)
+// The gym's steps, the same for every mode; the positional words are what is left.
+const stepFlag = (name: string) => {
+  const i = args.indexOf(`--${name}`)
+  return i >= 0 && args[i + 1] ? Number(args[i + 1]) : undefined
+}
+const same = stepFlag('same')
+const picked =
+  same !== undefined
+    ? { plate: same, sameStep: true }
+    : { plate: stepFlag('plate'), dumbbellStep: stepFlag('dumbbell'), stackStep: stepFlag('stack') }
+gym = Object.fromEntries(Object.entries(picked).filter(([, v]) => v !== undefined))
+const pos = args.filter((a, i) => !a.startsWith('--') && !args[i - 1]?.startsWith('--'))
+const inForce = stepsOf({ units: 'kg', ...gym })
+console.log(`steps: bar plates ${inForce.plates}, dumbbells ${inForce.dumbbell}, stack ${inForce.stack} kg\n`)
 const client = await MongoClient.connect('mongodb://localhost:27017')
 const dir = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'))
-if (args[0] === 'matrix') {
-  const splits = (args[1] ?? 'full3,ppl3,ul4,ppl6').split(',')
-  const methods = (args[2] ?? 'linear,double,topset').split(',') as Progression[]
-  const days = Number(args[3] ?? 730)
+if (pos[0] === 'matrix') {
+  const splits = (pos[1] ?? 'full3,ppl3,ul4,ppl6').split(',')
+  const methods = (pos[2] ?? 'linear,double,topset').split(',') as Progression[]
+  const days = Number(pos[3] ?? 730)
   const out: RunResult[] = []
   for (const s of splits)
     for (const m of methods) {
@@ -459,14 +482,14 @@ if (args[0] === 'matrix') {
       console.log(`(${Math.round((performance.now() - t0) / 1000)} s)\n`)
       fs.writeFileSync(path.join(dir, 'sim-results.json'), JSON.stringify(out))
     }
-} else if (args[0] === 'seed') {
+} else if (pos[0] === 'seed') {
   // Two years for one new account in a real local database, so Stats can be looked at by eye.
   //   bun run db:simulate -- seed [split] [method] [days] [--db workout_plan_v3] [--email sim@example.com] [--password password123]
   const opt = (name: string, fallback: string) => {
     const i = args.indexOf(`--${name}`)
     return i >= 0 && args[i + 1] ? args[i + 1] : fallback
   }
-  const positional = args.slice(1).filter((a, i, all) => !a.startsWith('--') && !(i > 0 && all[i - 1].startsWith('--')))
+  const positional = pos.slice(1)
   const dbName = opt('db', 'workout_plan_v3')
   const email = opt('email', 'sim@example.com').toLowerCase()
   const password = opt('password', 'password123')
@@ -506,7 +529,7 @@ if (args[0] === 'matrix') {
     `\nSigned up in "${dbName}": ${email} / ${password} (username ${username}). Sign in on the dev server to see it.`,
   )
 } else {
-  const r = await run(args[0] ?? 'full3', (args[1] ?? 'linear') as Progression, Number(args[2] ?? 730), client)
+  const r = await run(pos[0] ?? 'full3', (pos[1] ?? 'linear') as Progression, Number(pos[2] ?? 730), client)
   console.log(summary(r))
   fs.writeFileSync(path.join(dir, `sim-run-${r.split}-${r.progression}.json`), JSON.stringify(r))
 }

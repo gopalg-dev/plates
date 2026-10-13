@@ -42,10 +42,10 @@ import {
   ItemSeparator,
   ItemTitle,
 } from '#/components/ui/item'
-import { errorMessage } from '#/lib/format'
+import { errorMessage, relativeDay } from '#/lib/format'
 import { nudgeFor } from '#/lib/logic/nudges'
-import { plateOf } from '#/lib/logic/progression'
-import { WEEKDAY_SHORT, weekdayOf, weekdayView } from '#/lib/logic/schedule'
+import { stepsOf } from '#/lib/logic/progression'
+import { lastDoneAt, WEEKDAY_SHORT, weekdayOf, weekdayView } from '#/lib/logic/schedule'
 import { plannedSetsFor, weeklyStreakOf } from '#/lib/logic/stats'
 import type { SessionSummary } from '#/lib/logic/summary'
 import { pageTitle } from '#/lib/page-title'
@@ -105,17 +105,21 @@ function TodayPage() {
 
 // ---------------------------------------------------------------- next up
 
-/** The week streak, top right of Today: a flame and a big number. Muted until the first streak week. */
+/** The week streak, top right of Today: a flame and a big number of weeks. Muted until the first streak week. */
 function Streak({ weeks }: { weeks: number }) {
   const on = weeks > 0
+  const unit = weeks === 1 ? 'week' : 'weeks'
   return (
     <div
       className={cn('flex shrink-0 items-center gap-2', on ? 'text-foreground' : 'text-muted-foreground')}
       role="img"
-      aria-label={`${weeks} ${weeks === 1 ? 'week' : 'weeks'} streak`}
+      aria-label={`${weeks} ${unit} streak`}
     >
       <Flame aria-hidden className={cn('size-8 sm:size-9', on ? 'fill-day-legs text-day-legs' : '')} />
-      <span className="font-condensed text-4xl font-semibold leading-none tabular-nums sm:text-5xl">{weeks}</span>
+      <span className="flex flex-col items-center">
+        <span className="font-condensed text-4xl font-semibold leading-none tabular-nums sm:text-5xl">{weeks}</span>
+        <span className="mt-1 text-sm leading-none text-muted-foreground">{unit}</span>
+      </span>
     </div>
   )
 }
@@ -308,31 +312,40 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
               <DrawerDescription className="sr-only">Start a different day.</DrawerDescription>
             </DrawerHeader>
             <ItemGroup className="px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
-              {plan.days.map((d) => (
-                <Item key={d.id} size="sm" className="cursor-pointer px-2" onClick={rowTap(() => start(d.id)).onClick}>
-                  <ItemMedia>
-                    <DayIcon type={d.type} className="size-8 rounded-md" />
-                  </ItemMedia>
-                  <ItemContent>
-                    <ItemTitle className="text-base">{d.name}</ItemTitle>
-                    <ItemDescription>
-                      {byWeekday && d.weekday !== undefined
-                        ? WEEKDAY_SHORT[d.weekday]
-                        : `${d.exercises.length} exercises`}
-                    </ItemDescription>
-                  </ItemContent>
-                  <ItemActions>
-                    <Button
-                      size="sm"
-                      aria-label={`Start ${d.name}`}
-                      onClick={() => start(d.id)}
-                      disabled={starting !== null}
-                    >
-                      Start
-                    </Button>
-                  </ItemActions>
-                </Item>
-              ))}
+              {plan.days.map((d) => {
+                const doneAt = lastDoneAt(d.id, data.recent)
+                // The day's weekday (or its size), and when it was last done, so a day just trained stands out.
+                const detail = [
+                  byWeekday && d.weekday !== undefined ? WEEKDAY_SHORT[d.weekday] : `${d.exercises.length} exercises`,
+                  doneAt ? `Done ${relativeDay(doneAt, now)}` : null,
+                ]
+                return (
+                  <Item
+                    key={d.id}
+                    size="sm"
+                    className="cursor-pointer px-2"
+                    onClick={rowTap(() => start(d.id)).onClick}
+                  >
+                    <ItemMedia>
+                      <DayIcon type={d.type} className="size-8 rounded-md" />
+                    </ItemMedia>
+                    <ItemContent>
+                      <ItemTitle className="text-base">{d.name}</ItemTitle>
+                      <ItemDescription>{detail.filter(Boolean).join(' · ')}</ItemDescription>
+                    </ItemContent>
+                    <ItemActions>
+                      <Button
+                        size="sm"
+                        aria-label={`Start ${d.name}`}
+                        onClick={() => start(d.id)}
+                        disabled={starting !== null}
+                      >
+                        Start
+                      </Button>
+                    </ItemActions>
+                  </Item>
+                )
+              })}
             </ItemGroup>
           </DrawerContent>
         </Drawer>
@@ -542,7 +555,7 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
         onDiscard={discard}
       />
 
-      <SessionExercises sets={sets} units={settings.units} plate={plateOf(settings)} onRamp={rampUp} />
+      <SessionExercises sets={sets} units={settings.units} steps={stepsOf(settings)} onRamp={rampUp} />
 
       {/* Above the tab bar on phones, at the foot of the window from 768px. */}
       <SessionFooter
@@ -567,7 +580,7 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
           entries={entries}
           current={sets.openId}
           units={settings.units}
-          plate={plateOf(settings)}
+          steps={stepsOf(settings)}
           doneSets={doneSets}
           totalSets={sets.totalSets}
           busy={busy}

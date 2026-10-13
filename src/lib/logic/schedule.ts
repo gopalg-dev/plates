@@ -39,6 +39,15 @@ export interface Finished {
   finishedAt: string
 }
 
+/** When a plan day was last finished, from recent sessions: the latest finish time, or null when never. */
+export function lastDoneAt(dayId: string, finished: Finished[]): string | null {
+  let last: string | null = null
+  for (const f of finished) {
+    if (f.dayId === dayId && (last === null || new Date(f.finishedAt) > new Date(last))) last = f.finishedAt
+  }
+  return last
+}
+
 export interface WeekdayView {
   /** The day planned for today, if any. */
   today: PlanDay | null

@@ -1,32 +1,61 @@
 import type { Equipment } from '../library'
-import type { Exercise, LoggedSet, Muscle, Progression, SetTarget, Settings, Units, WorkoutEntry } from '../types'
+import type { Exercise, LoggedSet, Progression, SetTarget, Settings, Units, WorkoutEntry } from '../types'
 import { fmtWeight } from './units'
 
-const LOWER: Muscle[] = ['quads', 'hamstrings', 'calves']
+/**
+ * The kinds of weight a gym steps by: bar plates (barbells and plate-loaded machines), the dumbbell
+ * rack, and the pin-loaded stack of cables and most machines.
+ */
+export const STEP_KINDS = ['plates', 'dumbbell', 'stack'] as const
+export type StepKind = (typeof STEP_KINDS)[number]
+/** The smallest step of each kind, in the user's units. */
+export type Steps = Record<StepKind, number>
 
-/** The plates a gym might have as its smallest, per unit. */
-export const PLATES: Record<Units, number[]> = { kg: [1.25, 2.5, 5], lb: [2.5, 5, 10] }
+/** The smallest steps a gym might have, per kind and unit. */
+export const STEP_OPTIONS: Record<StepKind, Record<Units, number[]>> = {
+  plates: { kg: [1.25, 2.5, 5], lb: [2.5, 5, 10] },
+  dumbbell: { kg: [2, 2.5, 5], lb: [2.5, 5, 10] },
+  stack: { kg: [2.5, 5, 10], lb: [5, 10, 15] },
+}
 /** The common case, and what an unset setting reads as. */
-export const DEFAULT_PLATE: Record<Units, number> = { kg: 2.5, lb: 2.5 }
-
-/** The smallest plate in force: the setting when it is one of this unit's plates, else the common one. */
-export function plateOf(settings: Pick<Settings, 'units' | 'plate'>): number {
-  return settings.plate !== undefined && PLATES[settings.units].includes(settings.plate)
-    ? settings.plate
-    : DEFAULT_PLATE[settings.units]
+const DEFAULT_STEP: Record<StepKind, Record<Units, number>> = {
+  plates: { kg: 2.5, lb: 2.5 },
+  dumbbell: { kg: 2.5, lb: 5 },
+  stack: { kg: 2.5, lb: 5 },
 }
 
+type StepSettings = Pick<Settings, 'units' | 'plate' | 'dumbbellStep' | 'stackStep' | 'sameStep'>
+
 /**
- * The step a lift goes up by. A barbell takes a plate each side, so two of the gym's smallest;
- * dumbbells go up one rack step (2.5 kg, 5 lb); machines and cables by the stack pin, 2.5 kg upper
- * and 5 kg lower (5 / 10 in lb), which is also the rule for a lift the library does not know.
+ * The steps in force: each setting when it is one of its kind's options in this unit, else the common
+ * one. "Same for all" puts the plate on every kind.
  */
-export function incrementFor(muscle: Muscle, units: Units, equipment?: Equipment, plate?: number): number {
-  if (equipment === 'barbell') return 2 * (plate ?? DEFAULT_PLATE[units])
-  if (equipment === 'dumbbell') return units === 'kg' ? 2.5 : 5
-  const lower = LOWER.includes(muscle)
-  if (units === 'kg') return lower ? 5 : 2.5
-  return lower ? 10 : 5
+export function stepsOf(settings: StepSettings): Steps {
+  const read = (kind: StepKind, value: number | undefined) =>
+    value !== undefined && STEP_OPTIONS[kind][settings.units].includes(value)
+      ? value
+      : DEFAULT_STEP[kind][settings.units]
+  const plates = read('plates', settings.plate)
+  if (settings.sameStep) return { plates, dumbbell: plates, stack: plates }
+  return { plates, dumbbell: read('dumbbell', settings.dumbbellStep), stack: read('stack', settings.stackStep) }
+}
+
+/** Which kind of weight a lift steps by. A lift the library does not know steps like a stack. */
+export function stepKind(equipment?: Equipment, plateLoaded?: boolean): StepKind {
+  if (equipment === 'barbell' || plateLoaded) return 'plates'
+  if (equipment === 'dumbbell') return 'dumbbell'
+  return 'stack'
+}
+
+/** The step a lift goes up by. Bar plates go on in pairs, one each side, so twice the smallest. */
+export function incrementFor(
+  units: Units,
+  equipment?: Equipment,
+  steps: Steps = stepsOf({ units }),
+  plateLoaded?: boolean,
+): number {
+  const kind = stepKind(equipment, plateLoaded)
+  return kind === 'plates' ? 2 * steps.plates : steps[kind]
 }
 
 /** Rest between sets, in seconds. Big lifts get 2-3 min, small ones 60-90 s. */
@@ -128,13 +157,13 @@ function listSets(indexes: number[]): string {
  * tenth to build back up. Bodyweight work at the top asks for a slower tempo; timed holds add 5 s.
  */
 export function suggestNext(
-  exercise: Pick<Exercise, 'repMin' | 'repMax' | 'muscle' | 'loadType'> & Partial<Pick<Exercise, 'alternates'>>,
+  exercise: Pick<Exercise, 'repMin' | 'repMax' | 'loadType'> & Partial<Pick<Exercise, 'alternates'>>,
   targetSets: number,
   history: PastEntry[],
   units: Units,
   method: Progression = 'double',
-  /** What the lift is done on and the gym's smallest plate: they set the step (see `incrementFor`). */
-  step: { equipment?: Equipment; plate?: number } = {},
+  /** What the lift is done on and the gym's smallest steps: they set the step (see `incrementFor`). */
+  step: { equipment?: Equipment; plateLoaded?: boolean; steps?: Steps } = {},
 ): Suggestion {
   const sets = blank(targetSets)
   const past = history.filter((h) => doneOf(h.entry).length > 0)
@@ -143,7 +172,7 @@ export function suggestNext(
   const done = doneOf(last.entry)
 
   if (exercise.loadType === 'weight') {
-    const inc = incrementFor(exercise.muscle, units, step.equipment, step.plate)
+    const inc = incrementFor(units, step.equipment, step.steps, step.plateLoaded)
     const top = Math.max(...done.map((s) => s.weight ?? 0))
     const reps = done.map((s) => s.reps ?? 0)
     // One weight across the sets reads "60 kg × 8, 8, 7"; a pyramid reads "10 × 12, 12.5 × 10, 15 kg × 8".

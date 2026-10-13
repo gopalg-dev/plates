@@ -313,6 +313,19 @@ suite('workouts', () => {
     expect(w.entries[2].sets).toHaveLength(3)
   })
 
+  it('marks a plate-loaded machine, so it steps like a barbell', async () => {
+    await repo.applySplit(U, 'ul4')
+    const w = await repo.startWorkout(U, 'lower-a')
+    const byName = (name: string) =>
+      must(
+        w.entries.find((e) => e.name === name),
+        name,
+      )
+    expect(byName('Leg Press')).toMatchObject({ equipment: 'machine', plateLoaded: true })
+    expect(byName('Leg Curl').plateLoaded).toBeUndefined()
+    expect(byName('Barbell Squat').plateLoaded).toBeUndefined()
+  })
+
   it('replaces an unfinished workout when a new one starts', async () => {
     const first = await repo.startWorkout(U, 'pull-a')
     const second = await repo.startWorkout(U, 'push-a')

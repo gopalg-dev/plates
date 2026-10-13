@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Button } from '#/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '#/components/ui/dialog'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
-import { incrementFor } from '#/lib/logic/progression'
+import { incrementFor, type Steps } from '#/lib/logic/progression'
 import type { LoggedSet, Units, Workout, WorkoutEntry } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { DayIcon } from './day-mark'
@@ -22,7 +22,7 @@ export interface ZenProps {
   entries: WorkoutEntry[]
   current: string | null
   units: Units
-  plate?: number
+  steps?: Steps
   doneSets: number
   totalSets: number
   busy: boolean
@@ -63,7 +63,7 @@ export function ZenScreen({
   entries,
   current,
   units,
-  plate,
+  steps,
   doneSets,
   totalSets,
   busy,
@@ -200,7 +200,7 @@ export function ZenScreen({
                 value={set.weight}
                 base={prevWeight}
                 onChange={(v) => onChangeSet(entry.exerciseId, index, { weight: v })}
-                step={incrementFor(entry.muscle, units, entry.equipment, plate)}
+                step={incrementFor(units, entry.equipment, steps, entry.plateLoaded)}
                 inputMode="decimal"
                 placeholder={prevWeight !== undefined ? String(prevWeight) : '0'}
               />

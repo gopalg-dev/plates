@@ -16,6 +16,7 @@ import {
 } from '#/components/ui/dialog'
 import { errorMessage, shortDate } from '#/lib/format'
 import { EFFORT_LABEL, type Effort } from '#/lib/logic/effort'
+import type { Steps } from '#/lib/logic/progression'
 import { effectiveSets } from '#/lib/logic/stats'
 import type { LoggedSet, Units, Workout, WorkoutEntry } from '#/lib/types'
 import { deleteWorkoutFn, updateWorkoutFn } from '#/server/fns'
@@ -39,13 +40,13 @@ export function sessionSummary(w: Workout): string {
 interface EditorProps {
   workout: Workout | null
   units: Units
-  plate?: number
+  steps?: Steps
   onClose: () => void
   onSaved: () => void | Promise<void>
 }
 
 /** A finished session: fix a set, add or drop one, or remove the session. Opened from the Stats calendar. */
-export function SessionEditor({ workout, units, plate, onClose, onSaved }: EditorProps) {
+export function SessionEditor({ workout, units, steps, onClose, onSaved }: EditorProps) {
   // Keep the last session while the panel animates closed, so the title does not blink away.
   const shown = useRef(workout)
   if (workout) shown.current = workout
@@ -86,7 +87,7 @@ export function SessionEditor({ workout, units, plate, onClose, onSaved }: Edito
           openId={openId}
           setOpenId={setOpenId}
           units={units}
-          plate={plate}
+          steps={steps}
           onClose={onClose}
           onSaved={onSaved}
         />
@@ -102,7 +103,7 @@ function EditorBody({
   openId,
   setOpenId,
   units,
-  plate,
+  steps,
   onClose,
   onSaved,
 }: EditorProps & {
@@ -162,7 +163,7 @@ function EditorBody({
             key={entry.exerciseId}
             entry={entry}
             units={units}
-            plate={plate}
+            steps={steps}
             onChangeSet={(i, patch) =>
               updateSets(entry.exerciseId, (sets) => sets.map((s, j) => (j === i ? { ...s, ...patch } : s)))
             }

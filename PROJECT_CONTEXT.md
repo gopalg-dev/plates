@@ -322,6 +322,28 @@ no Inter/Geist. Checked.
       tsconfig types. Regenerate the route tree with a build or the dev server, not the standalone `tsr generate`,
       which drops the Start `Register` block. Reader-tested twice with fresh agents; e2e "the guide lists every
       section" passes on mobile and desktop. The full e2e run is still to do.
+- [x] 54. Today touches (2026-10-13, user requests): the streak shows "week"/"weeks" under its number; Pick a day
+      shows "Done today / yesterday / 3 days ago" per day (`lastDoneAt` in schedule.ts with `relativeDay`).
+      Carrying a skipped day in the rolling order was weighed and dropped: it would reshuffle the plan's order.
+      A Report page, then a Stats Overview with a period control, were built the same day and undone: the
+      pieces repeated Stats and the period logic kept shifting. Kept for the next attempt, from the research
+      (Hevy, Fitbod, Alpha Progression, Boostcamp; Schoenfeld, Baz-Valle, Pelland, Plotkin, Helms, Iraki):
+      a training report holds weekly hard sets per muscle against a target, per-lift progress and new bests,
+      sessions done against planned, bodyweight rate a week against the goal, and the effort trend; each number
+      against the period before; it is of a finished week or month, never the one running; tonnage, calories
+      and percentiles are left out as misleading.
+- [x] 53. Weight steps per equipment (2026-10-13, user request). Settings under Units: "Smallest steps" with
+      three rows, Bar plates (kg 1.25 / 2.5 / 5, lb 2.5 / 5 / 10), Dumbbells (kg 2 / 2.5 / 5, lb 2.5 / 5 / 10) and
+      Machine stack (kg 2.5 / 5 / 10, lb 5 / 10 / 15), or one row with **Same for all** ticked (shadcn Checkbox).
+      - `Settings.plate` / `dumbbellStep` / `stackStep` / `sameStep`; `stepsOf(settings)` in progression.ts reads
+        them (an unset or other-unit value falls back to 2.5 kg, or 2.5 / 5 / 5 lb, which is what the app used
+        before) and `incrementFor(units, equipment, steps, plateLoaded)` picks the kind: bar plates step by two (one
+        each side), the others by the value. Set rows take `steps` in place of `plate`.
+      - Plate-loaded machines (Leg Press, Leg Press Calf Raise, Hack Squat, Smith Machine Squat / Calf Raise,
+        Chest-Supported T-Bar Row) carry `"plateLoaded": true` in library.json and step like a barbell; `startWorkout`
+        copies it onto the entry. The live `library` collection got the flag by hand with one `updateMany` (the
+        seed only adds missing exercises).
+      - The old hidden rule "lower-body machines step 5 kg" is gone: pin machines step by the stack value.
 - [x] 52. Session and data safeguards (2026-10-13, user request).
       - Plan edits while a session runs: a session starts from a copy of its plan day, so the day being trained
         wears an "In progress" badge on Plan, and saving an exercise edit or a reorder on it asks "Change today's

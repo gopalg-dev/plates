@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assignWeekdays, defaultWeekdays, weekdayView } from '#/lib/logic/schedule'
+import { assignWeekdays, defaultWeekdays, lastDoneAt, weekdayView } from '#/lib/logic/schedule'
 import { buildSplit } from '#/lib/splits'
 
 // Push / Pull / Legs, six days: Monday to Saturday once weekdays are assigned.
@@ -20,6 +20,22 @@ describe('weekday defaults', () => {
     const out = assignWeekdays(plan)
     expect(out.map((d) => d.weekday)).toEqual([1, 0, 5])
     expect(assignWeekdays(out)).toBe(out)
+  })
+})
+
+describe('last done', () => {
+  it('finds the latest finish of a day, in any order, or null when never done', () => {
+    const at = (d: number) => new Date(2026, 9, d, 18).toISOString()
+    const finished = [
+      { dayId: 'pull-a', finishedAt: at(5) },
+      { dayId: 'pull-a', finishedAt: at(12) },
+      { dayId: 'push-a', finishedAt: at(13) },
+      { dayId: 'pull-a', finishedAt: at(9) },
+    ]
+    expect(lastDoneAt('pull-a', finished)).toBe(at(12))
+    expect(lastDoneAt('push-a', finished)).toBe(at(13))
+    expect(lastDoneAt('legs-a', finished)).toBeNull()
+    expect(lastDoneAt('pull-a', [])).toBeNull()
   })
 })
 

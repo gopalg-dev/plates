@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Accordion } from '#/components/ui/accordion'
 import { Button } from '#/components/ui/button'
 import { timeOfDay } from '#/lib/format'
+import type { Steps } from '#/lib/logic/progression'
 import type { Units, Workout } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { DayIcon } from './day-mark'
@@ -49,12 +50,12 @@ export function ZenButton({ onClick }: { onClick: () => void }) {
 export function SessionExercises({
   sets,
   units,
-  plate,
+  steps,
   onRamp,
 }: {
   sets: SessionSets
   units: Units
-  plate?: number
+  steps?: Steps
   onRamp?: (exerciseId: string) => void
 }) {
   return (
@@ -70,7 +71,7 @@ export function SessionExercises({
           key={entry.exerciseId}
           entry={entry}
           units={units}
-          plate={plate}
+          steps={steps}
           onChangeSet={(i, patch) => sets.changeSet(entry.exerciseId, i, patch)}
           onToggleDone={(i) => sets.toggleDone(entry.exerciseId, i)}
           onAddSet={() => sets.addSet(entry.exerciseId)}
