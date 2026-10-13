@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 import { usePageHydrated } from '#/lib/use-page-hydrated'
 import { AppMark } from './app-mark'
@@ -18,10 +19,14 @@ export function AuthFrame({ title, intro, children, footer }: Props) {
   usePageHydrated()
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col justify-center px-4 py-12">
-      <p className="flex items-center gap-2.5 text-muted-foreground">
+      {/* Home: How it works for someone signed out. */}
+      <Link
+        to="/"
+        className="flex items-center gap-2.5 self-start text-muted-foreground rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+      >
         <AppMark className="size-7" />
         <span className="font-condensed text-lg font-medium leading-none">Plates</span>
-      </p>
+      </Link>
       <h1 className="mt-6 font-condensed text-5xl font-semibold leading-none">{title}</h1>
       <p className="mt-3 text-muted-foreground">{intro}</p>
 

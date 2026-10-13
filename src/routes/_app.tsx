@@ -1,30 +1,19 @@
-import { createFileRoute, Link, Outlet, redirect, useLocation, useMatches } from '@tanstack/react-router'
-import {
-  BookOpen,
-  ChartColumn,
-  ChevronsUpDown,
-  CircleHelp,
-  Download,
-  Dumbbell,
-  ListChecks,
-  LogOut,
-  MessageSquare,
-  Palette,
-  Settings,
-} from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { AppMark } from '#/components/app/app-mark'
+import { createFileRoute, Link, Outlet, redirect, useLocation } from '@tanstack/react-router'
+import { BookOpen, ChevronsUpDown, CircleHelp, Download, LogOut, MessageSquare, Palette, Settings } from 'lucide-react'
+import { useState } from 'react'
+import { AppMark, Wordmark } from '#/components/app/app-mark'
 import { ExerciseDialog, ExerciseListProvider } from '#/components/app/exercise-dialog'
+import { ExercisePictures } from '#/components/app/exercise-thumb'
 import { FeedbackDialog } from '#/components/app/feedback-form'
 import { InstallDialog } from '#/components/app/install-dialog'
+import { LookRadioGroup } from '#/components/app/look-menu'
+import { PRIMARY_TABS, TabBar } from '#/components/app/tab-bar'
 import { Avatar, AvatarFallback, AvatarImage } from '#/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -47,7 +36,7 @@ import {
   useSidebar,
 } from '#/components/ui/sidebar'
 import { useInstallApp } from '#/lib/install-app'
-import { readTheme, saveTheme, THEME_OPTIONS, type Theme } from '#/lib/theme'
+import { ContentProvider } from '#/lib/use-content'
 import { usePageHydrated } from '#/lib/use-page-hydrated'
 import { useSignOut } from '#/lib/use-sign-out'
 import { getContentFn, getShellFn } from '#/server/fns'
@@ -56,32 +45,28 @@ export const Route = createFileRoute('/_app')({
   // ?exercise=<library id> opens the library's view of that exercise over any screen; see ExerciseDialog.
   validateSearch: (search: Record<string, unknown>): { exercise?: string } =>
     typeof search.exercise === 'string' && search.exercise ? { exercise: search.exercise } : {},
-  // Signed out: sign in first. Signed in but not set up: three questions first.
+  // Signed out: the home page is How it works, any other screen asks to sign in first.
+  // Signed in but not set up: three questions first.
   beforeLoad: async ({ location }) => {
     const shell = await getShellFn()
     if (!shell) {
       // A failed sign-in link can land on the home page with ?error=…; carry the reason to the sign-in page.
       const error = new URLSearchParams(location.searchStr).get('error')
-      throw redirect({ to: '/login', search: error ? { error } : {} })
+      if (error) throw redirect({ to: '/login', search: { error } })
+      throw redirect({ to: location.pathname === '/' ? '/how-it-works' : '/login' })
     }
     if (!shell.settings.setupDone) throw redirect({ to: '/setup' })
     return { user: shell.user }
   },
-  // The split templates and the exercise library, once per visit; every screen reads them through useContent().
+  // The split templates and the exercise library, once per visit; the layout provides them to useContent().
   loader: () => getContentFn(),
   staleTime: 60 * 60 * 1000,
   component: AppLayout,
 })
 
-const primary = [
-  { to: '/', label: 'Today', icon: Dumbbell, exact: true },
-  { to: '/plan', label: 'Plan', icon: ListChecks, exact: false },
-  { to: '/stats', label: 'Stats', icon: ChartColumn, exact: false },
-] as const
-
 const secondary = [
   { to: '/library', label: 'Library', icon: BookOpen, exact: false },
-  { to: '/guide', label: 'Guide', icon: CircleHelp, exact: false },
+  { to: '/how-it-works', label: 'How it works', icon: CircleHelp, exact: false },
 ] as const
 
 function isActive(pathname: string, to: string, exact: boolean): boolean {
@@ -100,89 +85,80 @@ function initials(who: string): string {
 
 function AppLayout() {
   const { pathname } = useLocation()
-  const wide = useMatches({ select: (matches) => matches.some((m) => m.staticData.wide) })
   const { user } = Route.useRouteContext()
+  const content = Route.useLoaderData()
   usePageHydrated()
   // Accounts made from an emailed link have no username and an empty name.
   const who = user.username ?? (user.name || user.email)
   return (
-    <ExerciseListProvider>
-      <SidebarProvider>
-        <Sidebar collapsible="icon">
-          <SidebarHeader className="h-12 flex-row items-center justify-between gap-2 px-2 group-data-[collapsible=icon]:justify-center">
-            <p className="flex min-w-0 items-center gap-2 pl-1 font-condensed text-xl font-semibold leading-none group-data-[collapsible=icon]:hidden">
-              <AppMark className="size-7" />
-              <span className="truncate group-data-[collapsible=icon]:hidden">Plates</span>
-            </p>
-            <SidebarTrigger aria-label="Toggle sidebar" />
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarGroup>
-              <SidebarMenu>
-                {[...primary, ...secondary].map(({ to, label, icon: Icon, exact }) => (
-                  <SidebarMenuItem key={to}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive(pathname, to, exact)}
-                      tooltip={label}
-                      className="h-9 text-base"
-                    >
-                      <Link to={to}>
-                        <Icon aria-hidden />
-                        <span>{label}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          </SidebarContent>
-          <SidebarFooter>
-            <AccountMenu who={who} email={user.email} image={user.image} />
-          </SidebarFooter>
-          <SidebarRail />
-        </Sidebar>
-
-        <SidebarInset className="min-w-0">
-          {/* Phones have no rail: a slim header opens the same sidebar as a sheet with every screen in it. */}
-          <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b bg-background/95 px-2 backdrop-blur md:hidden">
-            <SidebarTrigger aria-label="Open menu" />
-            <p className="flex items-center gap-2 font-condensed text-lg font-medium leading-none">
-              <AppMark />
-              Plates
-            </p>
-          </header>
-          {/* A route with staticData.wide (a content page) gets room beside its text for a sticky contents list on wide
-              screens; its text column stays this width. See src/lib/route-static-data.ts. */}
-          <main
-            className={`mx-auto w-full max-w-2xl px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-16 ${wide ? 'xl:max-w-[57rem]' : ''}`}
-          >
-            <Outlet />
-          </main>
-          <ExerciseDialog />
-        </SidebarInset>
-
-        <nav
-          aria-label="Main"
-          className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-safe backdrop-blur md:hidden"
-        >
-          <ul className="grid grid-cols-3">
-            {primary.map(({ to, label, icon: Icon, exact }) => (
-              <li key={to}>
+    <ContentProvider content={content}>
+      <ExercisePictures pictures={content.library} opens="here">
+        <ExerciseListProvider>
+          <SidebarProvider>
+            <Sidebar collapsible="icon">
+              <SidebarHeader className="h-12 flex-row items-center justify-between gap-2 px-2 group-data-[collapsible=icon]:justify-center">
                 <Link
-                  to={to}
-                  activeOptions={{ exact }}
-                  className="flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium text-muted-foreground data-[status=active]:text-foreground"
+                  to="/"
+                  className="flex min-w-0 items-center gap-2 pl-1 font-condensed text-xl font-semibold leading-none group-data-[collapsible=icon]:hidden rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 >
-                  <Icon className="size-5" aria-hidden />
-                  {label}
+                  <AppMark className="size-7" />
+                  <span className="truncate group-data-[collapsible=icon]:hidden">Plates</span>
                 </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </SidebarProvider>
-    </ExerciseListProvider>
+                <SidebarTrigger aria-label="Toggle sidebar" />
+              </SidebarHeader>
+              <SidebarContent>
+                <SidebarGroup>
+                  <SidebarMenu>
+                    {[...PRIMARY_TABS, ...secondary].map(({ to, label, icon: Icon, exact }) => (
+                      <SidebarMenuItem key={to}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={isActive(pathname, to, exact)}
+                          tooltip={label}
+                          className="h-9 text-base"
+                        >
+                          <Link to={to}>
+                            <Icon aria-hidden />
+                            <span>{label}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroup>
+              </SidebarContent>
+              <SidebarFooter>
+                <AccountMenu who={who} email={user.email} image={user.image} />
+              </SidebarFooter>
+              <SidebarRail />
+            </Sidebar>
+
+            <SidebarInset className="min-w-0">
+              {/* Phones have no rail: a slim header opens the same sidebar as a sheet with every screen in it. */}
+              <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b bg-background/95 px-2 backdrop-blur md:hidden">
+                <SidebarTrigger aria-label="Open menu" />
+                <Link to="/" className="rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+                  <Wordmark />
+                </Link>
+              </header>
+              <main className="mx-auto w-full max-w-2xl px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-16">
+                <Outlet />
+              </main>
+              <ExerciseDialog />
+            </SidebarInset>
+
+            <TabBar
+              className="fixed inset-x-0 bottom-0 z-40 pb-safe md:hidden"
+              renderTab={(tab, content, className) => (
+                <Link to={tab.to} activeOptions={{ exact: tab.exact }} className={className}>
+                  {content}
+                </Link>
+              )}
+            />
+          </SidebarProvider>
+        </ExerciseListProvider>
+      </ExercisePictures>
+    </ContentProvider>
   )
 }
 
@@ -194,9 +170,6 @@ function AccountMenu({ who, email, image }: { who: string; email: string; image:
   const { way: installWay } = useInstallApp()
   const { isMobile } = useSidebar()
   const { signOut, busy } = useSignOut()
-  /** The look is kept on the device, so it is read after mount: the server does not know it. */
-  const [theme, setTheme] = useState<Theme>('system')
-  useEffect(() => setTheme(readTheme()), [])
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -246,19 +219,7 @@ function AccountMenu({ who, email, image }: { who: string; email: string; image:
                 Look
               </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
-                <DropdownMenuRadioGroup
-                  value={theme}
-                  onValueChange={(v) => {
-                    setTheme(v as Theme)
-                    saveTheme(v as Theme)
-                  }}
-                >
-                  {THEME_OPTIONS.map((o) => (
-                    <DropdownMenuRadioItem key={o.value} value={o.value} className="text-base">
-                      {o.label}
-                    </DropdownMenuRadioItem>
-                  ))}
-                </DropdownMenuRadioGroup>
+                <LookRadioGroup />
               </DropdownMenuSubContent>
             </DropdownMenuSub>
             <DropdownMenuItem onSelect={() => setFeedbackOpen(true)} className="text-base">

@@ -1,11 +1,14 @@
 import type { ReactNode } from 'react'
+import { Iphone } from '#/components/ui/iphone'
 import { DAY_LABEL } from '#/lib/day-blocks'
 import { PROGRESSION_OPTIONS } from '#/lib/logic/progression'
 import { TREND_LABEL, TREND_WEEKS, type Trend } from '#/lib/logic/trend'
 import { DAY_TYPES } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { DayIcon } from './day-mark'
+import { PHONE_SHADOW } from './demo-phone'
 import { ExerciseThumb } from './exercise-thumb'
+import type { DemoScreenName } from './guide-demos'
 import { Sparkline } from './sparkline'
 
 /**
@@ -15,12 +18,48 @@ import { Sparkline } from './sparkline'
  * `src/components/content/mdx.tsx`. Styling stays here, in TSX, where Tailwind looks for class names.
  */
 
-/** A real exercise picture beside a line of text; the picture opens the exercise, as it does on Plan and Today. */
+/**
+ * A real exercise picture beside a line of text: the app's own thumb, with the pictures and the tap the page's
+ * `ExercisePictures` gives it.
+ */
 export function WithPicture({ name, children }: { name: string; children: ReactNode }) {
   return (
     <div className="mt-6 flex items-center gap-3">
       <ExerciseThumb name={name} className="size-12" />
       <p className="text-muted-foreground">{children}</p>
+    </div>
+  )
+}
+
+/** Where a phone sits beside the facts from 768px: the right column, in view while they are read. */
+const PHONE_BESIDE = 'md:sticky md:top-16 md:col-start-2 md:row-start-1 md:w-full'
+
+/**
+ * A screenshot of one of the demo screens (`/demo/<name>`, the app's own pieces on made-up numbers) in the iPhone
+ * frame, light or dark to match the page. The pictures are `public/guide/<name>-light.webp` and `-dark.webp`, taken by
+ * `scripts/guide-pictures.spec.ts`: take them again after a screen changes. The two frames share one grid cell and
+ * the other look's is made invisible, not removed: each frame cuts its screen with an SVG mask found by id, and a
+ * mask inside a `display: none` frame stops working for every frame that shares the id.
+ */
+export function Shot({ name, alt, className }: { name: DemoScreenName; alt: string; className?: string }) {
+  const layer = '[grid-area:1/1]'
+  return (
+    <figure role="img" aria-label={alt} className={cn('mt-6 grid w-56 shrink-0 sm:w-64', PHONE_SHADOW, className)}>
+      <Iphone src={`/guide/${name}-light.webp`} className={cn(layer, 'dark:invisible')} />
+      <Iphone src={`/guide/${name}-dark.webp`} className={cn(layer, 'invisible dark:visible')} />
+    </figure>
+  )
+}
+
+/**
+ * A section's facts with a screenshot of their screen beside them from 768px, so the column has no empty half; the
+ * phone stays clear of the page header when it comes back. On phones the phone comes first, above the facts.
+ */
+export function WithShot({ name, alt, children }: { name: DemoScreenName; alt: string; children: ReactNode }) {
+  return (
+    <div className="md:grid md:grid-cols-[minmax(0,1fr)_13rem] md:items-start md:gap-8">
+      <Shot name={name} alt={alt} className={PHONE_BESIDE} />
+      <div className="min-w-0 md:col-start-1 md:row-start-1">{children}</div>
     </div>
   )
 }

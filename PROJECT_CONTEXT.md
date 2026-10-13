@@ -315,12 +315,76 @@ no Inter/Geist. Checked.
       (`DocPage`, `sectionsFrom`: jump links, a sticky contents list from 1280px grouped by part, the section being read
       highlighted by `src/lib/use-active-section.ts`) and `src/components/content/mdx.tsx` (`mdxComponents`: markdown
       styling plus Lead, Facts/Fact, Steps/Step, More, Tip, usable in any .mdx without an import). Guide-only visuals
-      (Ladder, Methods, DayKinds, TrendShapes, WithPicture) are in `src/components/app/guide-blocks.tsx`. A route asks
-      the layout for room beside its text with `staticData: { wide: true }` (`src/lib/route-static-data.ts`). Build:
+      (Ladder, Methods, DayKinds, TrendShapes, WithPicture, Shot) are in `src/components/app/guide-blocks.tsx`. A doc
+      page sits in `DOC_COLUMN` (doc-page.tsx), which makes room for the contents list from 1280px. (2026-10-13: the
+      guide went public as How it works, `/how-it-works`, the signed-out home page; see below.) Build:
       `@mdx-js/rollup` as a 'pre' plugin in `vite.config.ts`, `@vitejs/plugin-react` includes `.mdx`, `"mdx"` in
       tsconfig types. Regenerate the route tree with a build or the dev server, not the standalone `tsr generate`,
       which drops the Start `Register` block. Reader-tested twice with fresh agents; e2e "the guide lists every
       section" passes on mobile and desktop. The full e2e run is still to do.
+- [x] 52. Session and data safeguards (2026-10-13, user request).
+      - Plan edits while a session runs: a session starts from a copy of its plan day, so the day being trained
+        wears an "In progress" badge on Plan, and saving an exercise edit or a reorder on it asks "Change today's
+        session too?" (Plan only / Plan and today; `TodaySyncDialog` in plan.tsx, `activeDayId` from getPlanFn).
+      - "Plan and today" runs `syncSessionFn` → `repo.syncSession`: the day's order and lifts win, logged sets are
+        never touched, new lifts come in with targets from `sessionEntries` (shared with `startWorkout`), started
+        lifts the plan dropped stay and are named (`syncEntries` in lib/logic/session-sync.ts, unit-tested).
+      - Finish: the check-in says "N of M sets are not ticked. They won't count." with Keep going in place of Skip;
+        with nothing ticked Finish asks "Discard this workout?" (`DiscardDialog`, shared with the session menu and
+        the demo).
+      - Download all my data (.zip), in Settings and in the delete-account dialog (`DownloadAllButton`,
+        export-buttons.tsx, `fflate`), named `plates-data-<username or email>-<date>.zip`. It holds:
+        README.md (`dataReadme`, columns from the same lists the files use), sessions.csv, weigh-ins.csv, tape.csv,
+        plan.xlsx (`planWorkbook` in src/lib/plan-workbook.ts, shared with Download template; Excel, not CSV, so
+        rep ranges like 6-10 stay text instead of turning into dates), settings.json, feedback.json and
+        everything.json. `getExportData` now also returns the plan, the feedback and the account.
+      - Every Plates wordmark on a real page links home: the sidebar, the phone header, the How it works footer, and
+        the sign-in pages' `AuthFrame`.
+- [x] 51. How it works (2026-10-13): the guide went public at `/how-it-works` (`src/routes/how-it-works.tsx`, out
+      of the app layout) and is the home page for anyone signed out (`_app` beforeLoad sends a signed-out `/` there;
+      every other screen still goes to /login). Its own header (wordmark, Look menu, Sign in / Open app) hides on
+      scroll down and returns on scroll up (`src/lib/use-hide-on-scroll.ts`); a footer links Privacy. Signed out it
+      opens with a welcome (one line, Get started, two phones). `src/server/public-fns.ts` holds the functions
+      anyone may call: `getGuideFn` (signed in or not, the library's pictures) and `getSiteFn` (the origin for the
+      share card). The root head carries the og/twitter tags; `public/og.png` is a picture of the welcome's two phones
+      (`scripts/guide-pictures.spec.ts`, `playwright.pictures.config.ts`, which also take the sections' screenshots
+      from the demo screens). The Look list is shared (`LookRadioGroup` in
+      look-menu.tsx) by the account menu and the header; the theme script also follows a look saved in another window.
+      `staticData.wide` and `src/lib/route-static-data.ts` were removed with the guide's move.
+      Live phones, not screenshots: the welcome (session, stats) and the Zen, Plan and Body sections (`WithDemo`,
+      beside the facts from 768px; Facts rows use a container query) each show `/demo/<screen>`
+      (`src/routes/demo.$screen.tsx`, public, noindex) in a 393x852 window under Magic UI's iPhone frame
+      (`demo-phone.tsx`: `DemoPhone` outside, `PhoneScreen` inside with status bar and home bar). A window of its
+      own because the app's breakpoints read the window width. `DemoScreen` (`guide-demos.tsx`) runs the app's own
+      pieces on made-up numbers (`src/content/guide/demo-data.ts`: a Pull A, half a year of the default split worked
+      out from today, weigh-ins, fifteen months of tape), so the demos follow any change to them. For that the screens
+      were split into shared pieces: `useSessionSets` (the set logic, out of `ActiveWorkout`), `session-view.tsx`,
+      `ZenScreen` (out of `ZenMode`'s dialog), `plan-view.tsx` (`PlanTitle`, `DaySection`, out of plan.tsx, whose
+      private copy of `targetOf` went), `stats-view.tsx`, `stats-lifts.tsx` (`LiftsTab`, `liftsFrom`) and
+      `stats-body.tsx` (`BodyTab`, logging passed in), out of stats.tsx (1227 lines to 492); `noon` and `keyTime`
+      moved to lib/logic/stats.ts. `ExerciseThumb` reads its pictures from an `ExercisePictures` provider (the app
+      layout's library, the guide's loader) and is told where a tap opens.
+      Later the same day: one live phone, in the welcome, runs the whole app (`app`: Today, Plan, Stats behind the
+      shared `TabBar` from tab-bar.tsx, which the app layout uses too), with a hand-drawn "It's live. Tap around."
+      arrow; the Zen, Plan, Stats and Body sections show screenshots of the other demo screens (`WithShot`,
+      `scripts/guide-pictures.spec.ts`). The welcome has its own wider column from 1024px so it fits a laptop's first
+      screen. More shared pieces for it: `stats-sessions.tsx` (`SessionsTab`; stats.tsx is now 204 lines),
+      `exercise-editor.tsx` (`ExerciseEditor`, its server calls passed in as `actions`; out of plan.tsx),
+      `session-finish.tsx` (`FinishCheckIn`, `SummaryDialog`; out of index.tsx), `lib/logic/day-edit.ts` (update,
+      add, remove, swap an exercise: pure, used by the repo and the demo), `finishSummary` in lib/logic/summary.ts
+      (used by repo.finishWorkout and the demo). `useContent()` reads a `ContentProvider` (src/lib/use-content.tsx)
+      that the app layout and the demo page fill; `getPublicContentFn` serves the reference content to the demo. The
+      demo session is built from the made-up history (`demoSession`), so finishing it shows real-looking bests and
+      joins Stats. Zen shows the exercise's picture beside its name (long names wrap). e2e walks the phone: tick, Zen,
+      Plan, Stats > Sessions and back. On the dev server a demo window loads the app's unbundled files, so it can take
+      seconds there; the production build is quick.
+- [x] 50. 2026-10-12 session (commits f972f2f, bf8bfb3, ac586fc, 903b5b5): the phone drawer sits above the
+      keyboard (`editor-panel.tsx`, `use-visible-viewport.ts`, vaul `repositionInputs={false}`); ten exercises a
+      day; drag-to-reorder exercises with dnd-kit (`sortable-list.tsx`) and Restore default order
+      (`logic/default-order.ts`, `repo.reorderExercises`); library name suggestions on the exercise name
+      (`exercise-name-field.tsx`, own input inside cmdk's root for dip/cmdk#368 and #370); 16px reading text;
+      a full-width Stats calendar on phones; an installable PWA (manifest, icons, offline-only `public/sw.js`,
+      Install app in the account menu, `install-app.ts`, `install-dialog.tsx`).
 - [x] 49. Biome (user request, 2026-10-12): `biome.json` (2.5.15, single quotes, no semicolons, 120 cols, trailing
       commas, import sorting, `preset: recommended`; skips the route tree, `src/components/ui`, `.claude`, `.mcp.json`, `vercel.json` (Vercel rewrites it onto one line during its build, which failed the first deploy),
       `.cta.json`). `bun run check` = `tsc --noEmit && biome ci .` (fails on errors, not warnings); `bun run check:fix`

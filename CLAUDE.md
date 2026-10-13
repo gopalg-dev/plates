@@ -13,6 +13,13 @@ Never `@`-import those files here: an import loads them into every session.
 - Wherever a shadcn component is used and needs adjusting, reach for its props (`variant`, `size`
   and the like) first, and add classes through `className` only when no prop does it.
 
+## Tidy code
+
+- About to write a piece of logic a second time? Extract it once and reuse it in both places.
+- Keep concerns apart: data and state, server code and UI each live in their own module.
+- A change to an existing feature or logic also removes what it leaves unused: functions, props,
+  flags, styles, and docs that describe the old shape.
+
 ## Stuck on a bug
 
 When a fix does not hold after a first honest attempt, in our logic or in a component's behaviour,

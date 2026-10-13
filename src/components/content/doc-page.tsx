@@ -11,9 +11,14 @@ import { mdxComponents } from './mdx'
  * section, named `NN-id.mdx`: the number orders the sections, the id becomes the anchor. Each file exports a
  * `title`, and may export an `icon` (a lucide component) and a `part` (a group name for the contents list).
  * The route loads the folder with `import.meta.glob(..., { eager: true })`, turns it into sections with
- * `sectionsFrom`, renders `DocPage`, and sets `staticData: { wide: true }` so the app layout makes room for the
- * contents list. See `src/content/README.md`.
+ * `sectionsFrom`, and renders `DocPage` inside `DOC_COLUMN`. See `src/content/README.md`.
  */
+
+/**
+ * The column a doc page sits in: the app's text width, widened from 1280px to fit the contents list beside the
+ * text (its 38rem text, 3rem gap and 12rem list). Give it to the block that holds the `DocPage`.
+ */
+export const DOC_COLUMN = 'mx-auto w-full max-w-2xl px-4 md:px-8 xl:max-w-[57rem]'
 
 export interface DocSectionModule {
   default: MDXContent

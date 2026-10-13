@@ -178,8 +178,21 @@ export const createCustomPlanFn = createServerFn({ method: 'POST' })
 export const getPlanFn = createServerFn({ method: 'GET' })
   .middleware([authed])
   .handler(async ({ context }) => {
-    const [plan, settings] = await Promise.all([repo.getPlan(context.userId), repo.getSettings(context.userId)])
-    return { plan, settings }
+    const [plan, settings, active] = await Promise.all([
+      repo.getPlan(context.userId),
+      repo.getSettings(context.userId),
+      repo.getActiveWorkout(context.userId),
+    ])
+    // The day of a session in progress: editing it asks whether today's session should follow.
+    return { plan, settings, activeDayId: active?.dayId ?? null }
+  })
+
+/** Brings the session in progress up to its plan day, keeping what is logged (see repo.syncSession). */
+export const syncSessionFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .handler(async ({ context }) => {
+    const { kept } = await repo.syncSession(context.userId)
+    return { kept }
   })
 
 export const updateExerciseFn = createServerFn({ method: 'POST' })

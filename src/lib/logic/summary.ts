@@ -1,5 +1,5 @@
-import type { Plan, Settings, Units, Workout } from '../types'
-import { bestSet, effectiveSets, finished, setScore } from './stats'
+import type { BodyweightLog, Plan, Settings, Units, Workout } from '../types'
+import { attachBodyweight, bestSet, effectiveSets, finished, sessionsInWeek, setScore } from './stats'
 import { fmtWeight } from './units'
 
 /** One line per exercise in the finish summary: the best set, and whether it moved. */
@@ -33,6 +33,25 @@ function describe(loadType: string, s: { weight?: number; reps?: number; seconds
   if (loadType === 'weight') return `${fmtWeight(s.weight, units)} × ${s.reps ?? 0}`
   if (loadType === 'bodyweight') return `${s.reps ?? 0} reps`
   return `${s.seconds ?? 0} s`
+}
+
+/**
+ * What finishing a session says, from what is known when it finishes: `done` (marked done, with its finish time),
+ * the finished sessions before it and the weigh-ins (so bodyweight lifts score), the plan and its schedule for the
+ * week's count. The server says it to the lifter; the demo on How it works says it on the page.
+ */
+export function finishSummary(
+  done: Workout,
+  past: Workout[],
+  weighIns: BodyweightLog[],
+  plan: Plan,
+  settings: Pick<Settings, 'units' | 'schedule'>,
+  now: Date,
+): SessionSummary {
+  const earlier = attachBodyweight(past, weighIns)
+  const [scored] = attachBodyweight([done], weighIns)
+  const week = { done: sessionsInWeek(earlier, now) + 1, planned: plannedPerWeek(plan, settings) }
+  return summarize(scored, earlier, settings.units, week)
 }
 
 /**

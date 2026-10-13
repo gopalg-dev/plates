@@ -1,0 +1,109 @@
+import { Focus } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Accordion } from '#/components/ui/accordion'
+import { Button } from '#/components/ui/button'
+import { timeOfDay } from '#/lib/format'
+import type { Units, Workout } from '#/lib/types'
+import { cn } from '#/lib/utils'
+import { DayIcon } from './day-mark'
+import { ExerciseRow } from './exercise-row'
+import type { SessionSets } from './use-session-sets'
+
+/*
+ * The pieces of a running session, shared by Today and the demo on How it works: the title, the exercises with
+ * their set loggers, and the bar that counts the sets and finishes. Change them here and both follow.
+ */
+
+/** When it started and which day it is, with the session's buttons beside. */
+export function SessionTitle({
+  workout,
+  actions,
+}: {
+  workout: Pick<Workout, 'startedAt' | 'dayName' | 'dayType'>
+  actions: ReactNode
+}) {
+  return (
+    <header className="flex items-start justify-between gap-4">
+      <div>
+        <p className="text-muted-foreground">Started {timeOfDay(workout.startedAt)}</p>
+        <h1 className="mt-1 flex items-center gap-3 font-condensed text-4xl font-semibold leading-none sm:text-5xl">
+          <DayIcon type={workout.dayType} className="size-11 rounded-xl" />
+          {workout.dayName}
+        </h1>
+      </div>
+      <div className="flex shrink-0 items-center gap-2">{actions}</div>
+    </header>
+  )
+}
+
+/** The button that turns the session into Zen mode. */
+export function ZenButton({ onClick }: { onClick: () => void }) {
+  return (
+    <Button variant="outline" size="icon-sm" aria-label="Zen mode" onClick={onClick}>
+      <Focus aria-hidden />
+    </Button>
+  )
+}
+
+/** Every exercise of the session, one open at a time, each with its set logger. */
+export function SessionExercises({
+  sets,
+  units,
+  plate,
+  onRamp,
+}: {
+  sets: SessionSets
+  units: Units
+  plate?: number
+  onRamp?: (exerciseId: string) => void
+}) {
+  return (
+    <Accordion
+      type="single"
+      collapsible
+      value={sets.openId ?? ''}
+      onValueChange={(v) => sets.setOpenId(v || null)}
+      className="mt-6 border-t"
+    >
+      {sets.entries.map((entry) => (
+        <ExerciseRow
+          key={entry.exerciseId}
+          entry={entry}
+          units={units}
+          plate={plate}
+          onChangeSet={(i, patch) => sets.changeSet(entry.exerciseId, i, patch)}
+          onToggleDone={(i) => sets.toggleDone(entry.exerciseId, i)}
+          onAddSet={() => sets.addSet(entry.exerciseId)}
+          onRemoveSet={() => sets.removeSet(entry.exerciseId)}
+          onRamp={onRamp && (() => onRamp(entry.exerciseId))}
+        />
+      ))}
+    </Accordion>
+  )
+}
+
+/** The bar under the exercises: sets done so far, and Finish. Where it sticks is the page's call. */
+export function SessionFooter({
+  sets,
+  busy,
+  onFinish,
+  className,
+}: {
+  sets: Pick<SessionSets, 'doneSets' | 'totalSets'>
+  busy: boolean
+  onFinish: () => void
+  className?: string
+}) {
+  return (
+    <div className={cn('z-30 border-t bg-background/95 py-3 backdrop-blur', className)}>
+      <div className="flex items-center gap-3">
+        <p className="min-w-0 flex-1 tabular-nums text-muted-foreground">
+          {sets.doneSets} of {sets.totalSets} sets done
+        </p>
+        <Button onClick={onFinish} disabled={busy} className="shrink-0">
+          Finish workout
+        </Button>
+      </div>
+    </div>
+  )
+}

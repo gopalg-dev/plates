@@ -21,21 +21,78 @@ export type SetRow = {
   Note: string
 }
 
-export function setHeaders(units: Units): string[] {
+/** The sets sheet's columns, in order, each with what it holds: the headers, and the zip's README, read them. */
+export function setColumns(units: Units): { name: string; about: string }[] {
   return [
-    'Date',
-    'Time',
-    'Day',
-    'Type',
-    'Exercise',
-    'Muscle',
-    'Set',
-    `Weight (${units})`,
-    'Reps',
-    'Seconds',
-    'Effort',
-    'Note',
+    { name: 'Date', about: 'the day the session was finished, YYYY-MM-DD' },
+    { name: 'Time', about: 'when the session was started, 24-hour, your time' },
+    { name: 'Day', about: 'the plan day it was, like Pull A' },
+    { name: 'Type', about: "the day's kind, like push, pull or legs" },
+    { name: 'Exercise', about: 'the lift' },
+    { name: 'Muscle', about: 'the muscle the lift counts under' },
+    { name: 'Set', about: 'which set of the lift, from 1' },
+    { name: `Weight (${units})`, about: 'the weight lifted; blank for bodyweight lifts and timed holds' },
+    { name: 'Reps', about: 'the reps done; blank for timed holds' },
+    { name: 'Seconds', about: 'how long a timed hold lasted' },
+    { name: 'Effort', about: 'how the whole session felt, picked at Finish' },
+    { name: 'Note', about: 'the note written at Finish' },
   ]
+}
+
+export function setHeaders(units: Units): string[] {
+  return setColumns(units).map((c) => c.name)
+}
+
+/**
+ * The README.md inside the zip of everything (see `DownloadAllButton`): what each file is and what its columns
+ * hold, in the account's units. Column names come from the same lists the files are written with.
+ */
+export function dataReadme(input: {
+  units: Units
+  today: string
+  sessions: number
+  sets: number
+  weighIns: number
+  tapeDays: number
+  feedback: number
+  planGuide: string[]
+}): string {
+  const length = input.units === 'kg' ? 'cm' : 'in'
+  const columns = setColumns(input.units)
+    .map((c) => `- **${c.name}**: ${c.about}.`)
+    .join('\n')
+  const guide = input.planGuide.map((line) => `- ${line}`).join('\n')
+  return `# Your Plates data
+
+Everything your account held on ${input.today}: ${input.sessions} finished sessions (${input.sets} sets),
+${input.weighIns} weigh-ins, ${input.tapeDays} tape days and ${input.feedback} pieces of feedback. Weights are in
+${input.units}, tape in ${length}. The files were built in your browser; nothing was sent anywhere to make them.
+
+| File | What it holds |
+| --- | --- |
+| sessions.csv | One row per set ticked in a finished session, oldest first. |
+| weigh-ins.csv | One row per bodyweight log: Date, Weight (${input.units}). |
+| tape.csv | One row per tape day: Date, Arm, Chest and Waist (${length}). Blank where a site was skipped. |
+| plan.xlsx | Your plan, as the Excel file Plates reads back. Excel, not CSV: a CSV would let Excel turn rep ranges like 6-10 into dates. |
+| settings.json | Units, split, goal, schedule and the rest of Settings. |
+| feedback.json | The feedback you sent from the app, with when and where. |
+| everything.json | All of the above in one file with your username and email, as the app holds it: for a program, or another app. |
+
+The CSV files and plan.xlsx open in Excel, Numbers or Google Sheets. Session details (day, effort, note) repeat on every row of
+sessions.csv, so a filter or a pivot table works on its own.
+
+## sessions.csv
+
+${columns}
+
+Sets left unticked are not in the file: they were never logged.
+
+## plan.xlsx
+
+To use it again: in Plates, Plan > Bring your own plan, then pick this file. Its Guide sheet says the same as below.
+
+${guide}
+`
 }
 
 function localTime(iso: string): string {

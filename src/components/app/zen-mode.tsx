@@ -8,6 +8,7 @@ import type { LoggedSet, Units, Workout, WorkoutEntry } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { DayIcon } from './day-mark'
 import { canComplete, LEFT_OPTIONS, targetFor, targetOf } from './exercise-row'
+import { ExerciseThumb } from './exercise-thumb'
 import { NumberField } from './number-field'
 
 /*
@@ -35,8 +36,29 @@ export interface ZenProps {
   onExit: () => void
 }
 
-/** One exercise filling the screen, over the whole app. Ticking the last set moves to the next exercise. */
-export function ZenMode({
+/** One exercise filling the screen, over the whole app: `ZenScreen` in a full-screen dialog. */
+export function ZenMode(props: ZenProps) {
+  return (
+    <Dialog open onOpenChange={(o) => !o && props.onExit()}>
+      {/* The whole screen, over the app. The dialog locks the page scroll behind it. */}
+      <DialogContent
+        showCloseButton={false}
+        aria-label="Zen mode"
+        className="inset-0 flex h-auto w-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 p-0 sm:max-w-none"
+      >
+        <DialogTitle className="sr-only">Zen mode</DialogTitle>
+        <DialogDescription className="sr-only">One exercise at a time.</DialogDescription>
+        <ZenScreen {...props} />
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/**
+ * The Zen pad itself, filling whatever holds it: the dialog above in the app, a phone frame in the demo on How it
+ * works. Ticking the last set moves to the next exercise.
+ */
+export function ZenScreen({
   workout,
   entries,
   current,
@@ -100,224 +122,222 @@ export function ZenMode({
   }
 
   return (
-    <Dialog open onOpenChange={(o) => !o && onExit()}>
-      {/* The whole screen, over the app. The dialog locks the page scroll behind it. */}
-      <DialogContent
-        showCloseButton={false}
-        aria-label="Zen mode"
-        className="inset-0 flex h-auto w-auto max-w-none translate-x-0 translate-y-0 flex-col gap-0 overflow-hidden rounded-none border-0 p-0 sm:max-w-none"
-      >
-        <DialogTitle className="sr-only">Zen mode</DialogTitle>
-        <DialogDescription className="sr-only">One exercise at a time.</DialogDescription>
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex shrink-0 items-center justify-between gap-3 px-4 pt-safe">
+        <p className="mt-3 flex items-center gap-2 text-muted-foreground">
+          <DayIcon type={workout.dayType} className="size-6 rounded-md" />
+          {workout.dayName}
+        </p>
+        <Button variant="ghost" size="sm" className="mt-3 -mr-2" onClick={onExit}>
+          <X aria-hidden />
+          Exit zen
+        </Button>
+      </div>
 
-        <div className="flex shrink-0 items-center justify-between gap-3 px-4 pt-safe">
-          <p className="mt-3 flex items-center gap-2 text-muted-foreground">
-            <DayIcon type={workout.dayType} className="size-6 rounded-md" />
-            {workout.dayName}
-          </p>
-          <Button variant="ghost" size="sm" className="mt-3 -mr-2" onClick={onExit}>
-            <X aria-hidden />
-            Exit zen
-          </Button>
-        </div>
-
-        <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col overflow-y-auto scrollbar-none px-4">
-          {/* Centred when the screen is tall enough, scrolling when it is not. */}
-          <div className="my-auto py-5">
-            <p className="text-sm tabular-nums text-muted-foreground">
-              {at + 1} of {entries.length}
-            </p>
-            <h2 className="mt-1 font-condensed text-4xl font-semibold leading-none sm:text-5xl">{entry.name}</h2>
-            <p className="mt-2 text-base tabular-nums text-muted-foreground">
-              {entry.sets.length} × {targetOf(entry)}
-            </p>
-            {entry.hint && <p className="mt-1 text-base text-muted-foreground">{entry.hint}</p>}
-
-            {/* Every set with its numbers: logged ones as they were, the rest as their targets. A tap brings a set to the pad. */}
-            <div className={cn('mt-6 grid gap-2 px-3 text-sm text-muted-foreground', cols)}>
-              <span>Set</span>
-              {weighted && <span className="text-center">Weight, {units}</span>}
-              <span className="text-center">{timed ? 'Seconds' : 'Reps'}</span>
-              <span />
+      <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col overflow-y-auto scrollbar-none px-4">
+        {/* Centred when the screen is tall enough, scrolling when it is not. */}
+        <div className="my-auto py-5">
+          {/* The name beside its picture: a long name wraps (a long word breaks), and the picture keeps its size. */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-sm tabular-nums text-muted-foreground">
+                {at + 1} of {entries.length}
+              </p>
+              <h2 className="mt-1 font-condensed text-4xl font-semibold leading-none [overflow-wrap:anywhere] sm:text-5xl">
+                {entry.name}
+              </h2>
+              <p className="mt-2 text-base tabular-nums text-muted-foreground">
+                {entry.sets.length} × {targetOf(entry)}
+              </p>
             </div>
-            <ol className="mt-1 flex flex-col gap-1" aria-label="Sets">
-              {entry.sets.map((s, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: a set is its position (set 1, set 2) and has no id
-                <li key={i}>
-                  <button
-                    type="button"
-                    aria-label={`Set ${i + 1}${s.done ? ', done' : ''}`}
-                    aria-current={i === index ? 'true' : undefined}
-                    onClick={() => setPick({ id: entry.exerciseId, index: i })}
-                    className={cn(
-                      'block h-12 w-full rounded-lg px-3 text-left text-lg tabular-nums outline-none transition-colors',
-                      'focus-visible:ring-[3px] focus-visible:ring-ring/50',
-                      i === index ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-accent/50',
-                    )}
-                  >
-                    {/* The grid sits on a span: a button does not lay its children out as a grid. */}
-                    <span className={cn('grid h-full items-center gap-2', cols)}>
-                      <span className={cn('text-base', i === index ? 'font-semibold' : 'text-muted-foreground')}>
-                        {i + 1}
-                      </span>
-                      {weighted && <span className="text-center">{cell(i, 'weight')}</span>}
-                      <span className="text-center">{cell(i, timed ? 'seconds' : 'reps')}</span>
-                      <span className="flex justify-end">
-                        {s.done && <Check className="size-5 text-success" aria-hidden />}
-                      </span>
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ol>
+            <ExerciseThumb name={entry.name} className="size-20 rounded-xl sm:size-24" />
+          </div>
+          {entry.hint && <p className="mt-2 text-base text-muted-foreground">{entry.hint}</p>}
 
-            <div className={cn('mt-5 grid gap-3', weighted ? 'grid-cols-2' : 'grid-cols-1')}>
-              {weighted && (
-                <NumberField
-                  size="lg"
-                  label={`Set ${index + 1} weight`}
-                  value={set.weight}
-                  base={prevWeight}
-                  onChange={(v) => onChangeSet(entry.exerciseId, index, { weight: v })}
-                  step={incrementFor(entry.muscle, units, entry.equipment, plate)}
-                  inputMode="decimal"
-                  placeholder={prevWeight !== undefined ? String(prevWeight) : '0'}
-                />
-              )}
-              {timed ? (
-                <NumberField
-                  size="lg"
-                  label={`Set ${index + 1} seconds`}
-                  value={set.seconds}
-                  base={prevSeconds}
-                  onChange={(v) => onChangeSet(entry.exerciseId, index, { seconds: v })}
-                  step={5}
-                  inputMode="numeric"
-                  placeholder={String(prevSeconds)}
-                />
-              ) : (
-                <NumberField
-                  size="lg"
-                  label={`Set ${index + 1} reps`}
-                  value={set.reps}
-                  base={prevReps}
-                  onChange={(v) => onChangeSet(entry.exerciseId, index, { reps: v })}
-                  step={1}
-                  inputMode="numeric"
-                  placeholder={String(prevReps)}
-                />
-              )}
-            </div>
-
-            {askLeft && (
-              <div className="mt-5">
-                <p className="text-center text-muted-foreground">Reps left on set {entry.sets.length}</p>
-                <ToggleGroup
-                  type="single"
-                  variant="outline"
-                  value={String(lastSet.left ?? '')}
-                  onValueChange={(v) => v && onChangeSet(entry.exerciseId, entry.sets.length - 1, { left: Number(v) })}
-                  className="mt-2 w-full"
-                  aria-label={`Reps left on set ${entry.sets.length}`}
+          {/* Every set with its numbers: logged ones as they were, the rest as their targets. A tap brings a set to the pad. */}
+          <div className={cn('mt-6 grid gap-2 px-3 text-sm text-muted-foreground', cols)}>
+            <span>Set</span>
+            {weighted && <span className="text-center">Weight, {units}</span>}
+            <span className="text-center">{timed ? 'Seconds' : 'Reps'}</span>
+            <span />
+          </div>
+          <ol className="mt-1 flex flex-col gap-1" aria-label="Sets">
+            {entry.sets.map((s, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: a set is its position (set 1, set 2) and has no id
+              <li key={i}>
+                <button
+                  type="button"
+                  aria-label={`Set ${i + 1}${s.done ? ', done' : ''}`}
+                  aria-current={i === index ? 'true' : undefined}
+                  onClick={() => setPick({ id: entry.exerciseId, index: i })}
+                  className={cn(
+                    'block h-12 w-full rounded-lg px-3 text-left text-lg tabular-nums outline-none transition-colors',
+                    'focus-visible:ring-[3px] focus-visible:ring-ring/50',
+                    i === index ? 'bg-accent text-accent-foreground' : 'text-foreground hover:bg-accent/50',
+                  )}
                 >
-                  {LEFT_OPTIONS.map((o) => (
-                    <ToggleGroupItem key={o.value} value={o.value} className="h-14 flex-1 text-lg">
-                      {o.label}
-                    </ToggleGroupItem>
-                  ))}
-                </ToggleGroup>
-              </div>
-            )}
+                  {/* The grid sits on a span: a button does not lay its children out as a grid. */}
+                  <span className={cn('grid h-full items-center gap-2', cols)}>
+                    <span className={cn('text-base', i === index ? 'font-semibold' : 'text-muted-foreground')}>
+                      {i + 1}
+                    </span>
+                    {weighted && <span className="text-center">{cell(i, 'weight')}</span>}
+                    <span className="text-center">{cell(i, timed ? 'seconds' : 'reps')}</span>
+                    <span className="flex justify-end">
+                      {s.done && <Check className="size-5 text-success" aria-hidden />}
+                    </span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ol>
 
-            {showPill && (
-              <Button
+          <div className={cn('mt-5 grid gap-3', weighted ? 'grid-cols-2' : 'grid-cols-1')}>
+            {weighted && (
+              <NumberField
                 size="lg"
-                variant={set.done ? 'outline' : 'default'}
-                disabled={!set.done && !canComplete(entry, entry.sets, index)}
-                aria-label={`Mark set ${index + 1} ${set.done ? 'not done' : 'done'}`}
-                onClick={toggle}
-                className="mt-3 h-14 w-full text-lg"
+                label={`Set ${index + 1} weight`}
+                value={set.weight}
+                base={prevWeight}
+                onChange={(v) => onChangeSet(entry.exerciseId, index, { weight: v })}
+                step={incrementFor(entry.muscle, units, entry.equipment, plate)}
+                inputMode="decimal"
+                placeholder={prevWeight !== undefined ? String(prevWeight) : '0'}
+              />
+            )}
+            {timed ? (
+              <NumberField
+                size="lg"
+                label={`Set ${index + 1} seconds`}
+                value={set.seconds}
+                base={prevSeconds}
+                onChange={(v) => onChangeSet(entry.exerciseId, index, { seconds: v })}
+                step={5}
+                inputMode="numeric"
+                placeholder={String(prevSeconds)}
+              />
+            ) : (
+              <NumberField
+                size="lg"
+                label={`Set ${index + 1} reps`}
+                value={set.reps}
+                base={prevReps}
+                onChange={(v) => onChangeSet(entry.exerciseId, index, { reps: v })}
+                step={1}
+                inputMode="numeric"
+                placeholder={String(prevReps)}
+              />
+            )}
+          </div>
+
+          {askLeft && (
+            <div className="mt-5">
+              <p className="text-center text-muted-foreground">Reps left on set {entry.sets.length}</p>
+              <ToggleGroup
+                type="single"
+                variant="outline"
+                value={String(lastSet.left ?? '')}
+                onValueChange={(v) => v && onChangeSet(entry.exerciseId, entry.sets.length - 1, { left: Number(v) })}
+                className="mt-2 w-full"
+                aria-label={`Reps left on set ${entry.sets.length}`}
               >
-                {set.done ? (
-                  <>Undo set {index + 1}</>
-                ) : (
-                  <>
-                    <Check className="size-6" aria-hidden />
-                    Set {index + 1} done
-                  </>
-                )}
+                {LEFT_OPTIONS.map((o) => (
+                  <ToggleGroupItem key={o.value} value={o.value} className="h-14 flex-1 text-lg">
+                    {o.label}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </div>
+          )}
+
+          {showPill && (
+            <Button
+              size="lg"
+              variant={set.done ? 'outline' : 'default'}
+              disabled={!set.done && !canComplete(entry, entry.sets, index)}
+              aria-label={`Mark set ${index + 1} ${set.done ? 'not done' : 'done'}`}
+              onClick={toggle}
+              className="mt-3 h-14 w-full text-lg"
+            >
+              {set.done ? (
+                <>Undo set {index + 1}</>
+              ) : (
+                <>
+                  <Check className="size-6" aria-hidden />
+                  Set {index + 1} done
+                </>
+              )}
+            </Button>
+          )}
+
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-1">
+            {entry.rampOffer && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onRamp(entry.exerciseId)}
+                aria-label={`Add set ${entry.sets.length + 1} to the plan`}
+              >
+                +1 set to plan
               </Button>
             )}
-
-            <div className="mt-2 flex flex-wrap items-center justify-center gap-1">
-              {entry.rampOffer && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onRamp(entry.exerciseId)}
-                  aria-label={`Add set ${entry.sets.length + 1} to the plan`}
-                >
-                  +1 set to plan
-                </Button>
-              )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground"
+              onClick={() => onAddSet(entry.exerciseId)}
+            >
+              Add a set
+            </Button>
+            {canRemove && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-muted-foreground"
-                onClick={() => onAddSet(entry.exerciseId)}
+                onClick={() => onRemoveSet(entry.exerciseId)}
+                aria-label={`Remove set ${entry.sets.length}`}
               >
-                Add a set
-              </Button>
-              {canRemove && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground"
-                  onClick={() => onRemoveSet(entry.exerciseId)}
-                  aria-label={`Remove set ${entry.sets.length}`}
-                >
-                  Remove the last set
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="shrink-0 border-t px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
-          <div className="mx-auto flex w-full max-w-md items-center gap-2">
-            <Button
-              variant="outline"
-              size="lg"
-              className="h-12"
-              disabled={at === 0}
-              onClick={() => onCurrent(entries[at - 1].exerciseId)}
-              aria-label="Previous exercise"
-            >
-              <ChevronLeft aria-hidden />
-              Previous
-            </Button>
-            <p className="flex-1 text-center tabular-nums text-muted-foreground">
-              {doneSets} of {totalSets} sets done
-            </p>
-            {last ? (
-              <Button size="lg" className="h-12" onClick={onFinish} disabled={busy}>
-                Finish workout
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="lg"
-                className="h-12"
-                onClick={() => onCurrent(entries[at + 1].exerciseId)}
-                aria-label="Next exercise"
-              >
-                Next
-                <ChevronRight aria-hidden />
+                Remove the last set
               </Button>
             )}
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+
+      <div className="shrink-0 border-t px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
+        <div className="mx-auto flex w-full max-w-md items-center gap-2">
+          <Button
+            variant="outline"
+            size="lg"
+            className="h-12"
+            disabled={at === 0}
+            onClick={() => onCurrent(entries[at - 1].exerciseId)}
+            aria-label="Previous exercise"
+          >
+            <ChevronLeft aria-hidden />
+            Previous
+          </Button>
+          <p className="flex-1 text-center tabular-nums text-muted-foreground">
+            {doneSets} of {totalSets} sets done
+          </p>
+          {last ? (
+            <Button size="lg" className="h-12" onClick={onFinish} disabled={busy}>
+              Finish workout
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-12"
+              onClick={() => onCurrent(entries[at + 1].exerciseId)}
+              aria-label="Next exercise"
+            >
+              Next
+              <ChevronRight aria-hidden />
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
   )
 }

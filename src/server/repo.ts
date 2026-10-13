@@ -4,12 +4,19 @@ import { DEFAULT_SPLIT } from '#/lib/content'
 import { buildCustomDays, buildDay } from '#/lib/day-blocks'
 import { findLibraryByName } from '#/lib/library'
 import { type Alert, bodyweightAlert, stallAlerts, weekAlert } from '#/lib/logic/alerts'
+import {
+  addExerciseTo,
+  type ExercisePatch,
+  removeExerciseFrom,
+  swapExerciseIn,
+  updateExerciseIn,
+} from '#/lib/logic/day-edit'
 import { type FeedbackTrigger, feedbackDue, type Mood } from '#/lib/logic/feedback'
 import { nextDayId } from '#/lib/logic/next-day'
-import { guessLoad } from '#/lib/logic/plan-sheet'
 import { type PastEntry, progressionOf, STALL_SESSIONS, suggestNext } from '#/lib/logic/progression'
 import { rampOffer } from '#/lib/logic/ramp'
 import { assignWeekdays, type Finished } from '#/lib/logic/schedule'
+import { missingFrom, syncEntries } from '#/lib/logic/session-sync'
 import {
   attachBodyweight,
   dayKey,
@@ -18,16 +25,14 @@ import {
   sessionsInWeek,
   startOfWeek,
 } from '#/lib/logic/stats'
-import { plannedPerWeek, type SessionSummary, summarize } from '#/lib/logic/summary'
+import { finishSummary, plannedPerWeek, type SessionSummary } from '#/lib/logic/summary'
 import { must } from '#/lib/must'
-import { slug } from '#/lib/seed-plan'
 import {
   type BodyweightLog,
   type DayType,
   type Exercise,
   type LoggedSet,
   MAX_DAYS,
-  MAX_EXERCISES_PER_DAY,
   type MeasurementLog,
   type NudgeKind,
   type Plan,
@@ -260,77 +265,35 @@ export async function replacePlan(userId: string, days: PlanDay[], split?: Split
   return savePlanFor(userId, source, days)
 }
 
-export type ExercisePatch = Partial<Omit<Exercise, 'id'>>
+export type { ExercisePatch }
 
-export async function updateExercise(
-  userId: string,
-  dayId: string,
-  exerciseId: string,
-  patch: ExercisePatch,
-): Promise<Plan> {
+/** Saves a plan with one day replaced by `edit` of it (see lib/logic/day-edit.ts). */
+async function editDay(userId: string, dayId: string, edit: (day: PlanDay) => PlanDay): Promise<Plan> {
   const plan = await getPlan(userId)
-  const day = plan.days.find((d) => d.id === dayId)
-  const ex = day?.exercises.find((e) => e.id === exerciseId)
-  if (!day || !ex) throw new Error('Exercise not found')
-  // A number typed by hand is the plan's number again: the ramp's memory of the old one goes.
-  if (patch.sets !== undefined) delete ex.ramp
-  Object.assign(ex, patch)
+  const i = plan.days.findIndex((d) => d.id === dayId)
+  if (i < 0) throw new Error('Day not found')
+  plan.days[i] = edit(plan.days[i])
   return savePlan(userId, plan)
+}
+
+export function updateExercise(userId: string, dayId: string, exerciseId: string, patch: ExercisePatch): Promise<Plan> {
+  return editDay(userId, dayId, (day) => updateExerciseIn(day, exerciseId, patch))
 }
 
 /** Replace an exercise with one of its alternates. The old one becomes an alternate so you can swap back. */
 export async function swapExercise(userId: string, dayId: string, exerciseId: string, newName: string): Promise<Plan> {
-  const plan = await getPlan(userId)
-  const day = plan.days.find((d) => d.id === dayId)
-  const ex = day?.exercises.find((e) => e.id === exerciseId)
-  if (!day || !ex) throw new Error('Exercise not found')
-  const name = newName.trim()
-  if (!name) throw new Error('Name is empty')
-  const others = (ex.alternates ?? []).filter((a) => a !== name)
-  ex.alternates = [ex.name, ...others]
-  ex.name = name
-  // The alternate's own shape: Pull-ups are bodyweight, Lat Pulldown takes a weight. Unknown names are guessed.
-  const known = findLibraryByName((await readContent()).library, name)
-  ex.loadType = known?.loadType ?? guessLoad(name, '')
-  if (known) ex.muscle = known.muscle
-  ex.id = uniqueId(
-    slug(name),
-    day.exercises.filter((e) => e !== ex).map((e) => e.id),
-  )
-  return savePlan(userId, plan)
-}
-
-function uniqueId(base: string, taken: string[]): string {
-  let id = base
-  let n = 2
-  while (taken.includes(id)) id = `${base}-${n++}`
-  return id
+  const { library } = await readContent()
+  return editDay(userId, dayId, (day) => swapExerciseIn(day, exerciseId, newName, library))
 }
 
 /** Adds an exercise to the end of a day. A day holds `MAX_EXERCISES_PER_DAY` at most. */
-export async function addExercise(userId: string, dayId: string, input: Omit<Exercise, 'id'>): Promise<Plan> {
-  const plan = await getPlan(userId)
-  const day = plan.days.find((d) => d.id === dayId)
-  if (!day) throw new Error('Day not found')
-  if (day.exercises.length >= MAX_EXERCISES_PER_DAY) {
-    throw new Error(`A day holds up to ${MAX_EXERCISES_PER_DAY} exercises`)
-  }
-  const id = uniqueId(
-    slug(input.name),
-    day.exercises.map((e) => e.id),
-  )
-  day.exercises.push({ ...input, id })
-  return savePlan(userId, plan)
+export function addExercise(userId: string, dayId: string, input: Omit<Exercise, 'id'>): Promise<Plan> {
+  return editDay(userId, dayId, (day) => addExerciseTo(day, input))
 }
 
 /** Takes an exercise off a day. Logged sessions keep their copy. A day keeps at least one exercise. */
-export async function removeExercise(userId: string, dayId: string, exerciseId: string): Promise<Plan> {
-  const plan = await getPlan(userId)
-  const day = plan.days.find((d) => d.id === dayId)
-  if (!day?.exercises.some((e) => e.id === exerciseId)) throw new Error('Exercise not found')
-  if (day.exercises.length <= 1) throw new Error('A day needs at least one exercise')
-  day.exercises = day.exercises.filter((e) => e.id !== exerciseId)
-  return savePlan(userId, plan)
+export function removeExercise(userId: string, dayId: string, exerciseId: string): Promise<Plan> {
+  return editDay(userId, dayId, (day) => removeExerciseFrom(day, exerciseId))
 }
 
 /** Puts a day's exercises in the given order. `order` names every exercise on the day, once. */
@@ -443,25 +406,27 @@ export async function lastFinishedEntry(userId: string, exerciseId: string): Pro
   return doc?.entries.find((e) => e.exerciseId === exerciseId)
 }
 
-export async function startWorkout(userId: string, dayId: string): Promise<Workout> {
-  const [plan, settings, past, bodyweights] = await Promise.all([
-    getPlan(userId),
-    getSettings(userId),
-    listWorkouts(userId, { sinceDays: 90 }),
-    listBodyweights(userId, 60),
-  ])
-  const day = plan.days.find((d) => d.id === dayId)
-  if (!day) throw new Error('Day not found')
-  const { workouts } = await cols()
-  await workouts.deleteMany({ userId, status: 'in_progress' })
-
+/**
+ * A session's entries for these lifts of a plan day: blank sets to the plan's number, the targets and hint the
+ * coach works out from the lift's history, and the ramp's offer. What a new session starts with, and what a lift
+ * added to the day mid-session comes in as.
+ */
+async function sessionEntries(
+  userId: string,
+  plan: Plan,
+  settings: Settings,
+  dayId: string,
+  exercises: Exercise[],
+): Promise<WorkoutEntry[]> {
+  if (exercises.length === 0) return []
+  const [past, bodyweights] = await Promise.all([listWorkouts(userId, { sinceDays: 90 }), listBodyweights(userId, 60)])
   // The set ramp reads the last weeks of every lift: trained often, completed, felt fine, still moving.
   const now = new Date()
   const scored = attachBodyweight(past, bodyweights)
   const weekly = plannedVolumeByMuscle(plan, settings.trainingAge)
   const { library } = await readContent()
   const entries: WorkoutEntry[] = []
-  for (const ex of day.exercises) {
+  for (const ex of exercises) {
     const targetSets = plannedSetsFor(ex.sets, settings.trainingAge)
     const history = await recentEntries(userId, ex.id, dayId)
     // The library knows what the lift is done on; with the gym's smallest plate that sets the step.
@@ -484,6 +449,16 @@ export async function startWorkout(userId: string, dayId: string): Promise<Worko
       sets: s.sets,
     })
   }
+  return entries
+}
+
+export async function startWorkout(userId: string, dayId: string): Promise<Workout> {
+  const [plan, settings] = await Promise.all([getPlan(userId), getSettings(userId)])
+  const day = plan.days.find((d) => d.id === dayId)
+  if (!day) throw new Error('Day not found')
+  const { workouts } = await cols()
+  await workouts.deleteMany({ userId, status: 'in_progress' })
+  const entries = await sessionEntries(userId, plan, settings, day.id, day.exercises)
 
   const doc: WorkoutDoc = {
     _id: new ObjectId(),
@@ -497,6 +472,24 @@ export async function startWorkout(userId: string, dayId: string): Promise<Worko
   }
   await workouts.insertOne(doc)
   return toWorkout(doc)
+}
+
+/**
+ * The session in progress brought up to its plan day, after the plan changed and the lifter asked for today too.
+ * Logged sets are never touched (see `syncEntries`). `kept` names the started lifts the plan no longer has, which
+ * stay for today.
+ */
+export async function syncSession(userId: string): Promise<{ workout: Workout; kept: string[] }> {
+  const { workouts } = await cols()
+  const doc = await workouts.findOne({ userId, status: 'in_progress' }, { sort: { startedAt: -1 } })
+  if (!doc) throw new Error('No session is in progress')
+  const [plan, settings] = await Promise.all([getPlan(userId), getSettings(userId)])
+  const day = plan.days.find((d) => d.id === doc.dayId)
+  if (!day) throw new Error("Today's day is no longer in the plan")
+  const fresh = await sessionEntries(userId, plan, settings, day.id, missingFrom(doc.entries, day.exercises))
+  const { entries, kept } = syncEntries(doc.entries, day.exercises, fresh, settings.trainingAge)
+  await workouts.updateOne({ _id: doc._id, userId }, { $set: { entries, dayName: day.name, dayType: day.type } })
+  return { workout: toWorkout({ ...doc, entries, dayName: day.name, dayType: day.type }), kept }
 }
 
 /**
@@ -591,13 +584,11 @@ export async function finishWorkout(
     listBodyweights(userId),
   ])
   await workouts.updateOne({ _id, userId }, { $set: patch })
-  const earlier = attachBodyweight(past, weighIns)
-  const [done] = attachBodyweight([{ ...toWorkout(doc), ...patch } as Workout], weighIns)
-  const week = { done: sessionsInWeek(earlier, now) + 1, planned: plannedPerWeek(plan, settings) }
+  const done = { ...toWorkout(doc), ...patch } as Workout
   return {
     finished: true,
-    summary: summarize(done, earlier, settings.units, week),
-    askFeedback: feedbackDue(earlier.length + 1, settings.feedbackAt, now),
+    summary: finishSummary(done, past, weighIns, plan, settings, now),
+    askFeedback: feedbackDue(past.length + 1, settings.feedbackAt, now),
   }
 }
 
@@ -816,6 +807,11 @@ interface DeletionDoc {
   daysActive?: number
 }
 
+/** The ways a Better Auth user id can be stored: as the string, or as the ObjectId it spells. */
+function userIdsOf(userId: string): (string | ObjectId)[] {
+  return [userId, ...(ObjectId.isValid(userId) ? [new ObjectId(userId)] : [])]
+}
+
 /**
  * Removes the account and every trace of its data: the Better Auth documents (user, sessions,
  * sign-in accounts, pending verifications), settings, plans, logs, and any sign-in mail still in
@@ -823,7 +819,7 @@ interface DeletionDoc {
  */
 export async function deleteAccount(userId: string): Promise<void> {
   const { db, settings, plan, plans, workouts, bodyweights, measurements } = await cols()
-  const ids = [userId, ...(ObjectId.isValid(userId) ? [new ObjectId(userId)] : [])]
+  const ids = userIdsOf(userId)
   const user = await db.collection('user').findOne({ _id: { $in: ids } as never })
   const email = typeof user?.email === 'string' ? user.email.toLowerCase() : ''
   const [sessions, joined] = await Promise.all([
@@ -945,22 +941,49 @@ export async function getHistoryData(userId: string): Promise<HistoryData> {
   return { settings, workouts }
 }
 
+/** One piece of feedback as the account sent it, without the ids it is stored under. */
+export type FeedbackRecord = FeedbackInput & { at: string }
+
+/** Who the account is, as it signed up: for the export's file name and its full copy. */
+export interface ExportAccount {
+  username: string | null
+  email: string
+}
+
 export interface ExportData {
+  account: ExportAccount
   settings: Settings
+  plan: Plan
   workouts: Workout[]
   bodyweights: BodyweightLog[]
   measurements: MeasurementLog[]
+  feedback: FeedbackRecord[]
 }
 
-/** Everything the spreadsheet export needs: every finished session and every body log. */
+/**
+ * Everything the account holds, for the exports: the spreadsheet of logs, and the zip of all of it (settings, plan,
+ * every finished session and body log, the feedback sent).
+ */
 export async function getExportData(userId: string): Promise<ExportData> {
-  const [settings, workouts, bodyweights, measurements] = await Promise.all([
+  const db = await getDb()
+  const [user, settings, plan, workouts, bodyweights, measurements, feedback] = await Promise.all([
+    db.collection('user').findOne({ _id: { $in: userIdsOf(userId) } as never }),
     getSettings(userId),
+    getPlan(userId),
     listWorkouts(userId, { limit: 5000 }),
     listBodyweights(userId, 5000),
     listMeasurements(userId, 5000),
+    db
+      .collection<FeedbackRecord>('feedback')
+      .find({ userId }, { projection: { _id: 0, userId: 0 } })
+      .sort({ at: 1 })
+      .toArray(),
   ])
-  return { settings, workouts, bodyweights, measurements }
+  const account = {
+    username: typeof user?.username === 'string' ? user.username : null,
+    email: typeof user?.email === 'string' ? user.email : '',
+  }
+  return { account, settings, plan, workouts, bodyweights, measurements, feedback }
 }
 
 export interface StatsData {

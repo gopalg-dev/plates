@@ -1,4 +1,5 @@
 import { Ruler } from 'lucide-react'
+import { WithShot } from '#/components/app/guide-blocks'
 
 export const title = 'Weigh-ins and tape'
 export const part = 'Around the app'
@@ -6,9 +7,11 @@ export const icon = Ruler
 
 <Lead>A check-in for the scale and the tape, without the nagging.</Lead>
 
+<WithShot name="body" alt="Stats, Body tab: bodyweight with its chart, then arm, chest and waist">
 <Facts>
   <Fact term="Weigh-in">Today asks every 7 days.</Fact>
   <Fact term="Tape">Today asks every 28 days: arm, chest and waist.</Fact>
   <Fact term="Where to log">From Today, or from Stats under Body. Missed a day? Pick an earlier date.</Fact>
   <Fact term="Not now">Quiets a reminder. It waits longer each time you wave it away, but always comes back.</Fact>
 </Facts>
+</WithShot>

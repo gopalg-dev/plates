@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { ExportButtons } from '#/components/app/export-buttons'
+import { DownloadAllButton, ExportButtons } from '#/components/app/export-buttons'
 import { ProgressionPicker } from '#/components/app/progression-picker'
 import { SectionHeading } from '#/components/app/section-heading'
 import { DEFAULT_OWN_DAYS, OWN_SPLIT, SplitPicker } from '#/components/app/split-picker'
@@ -393,13 +393,14 @@ function SettingsPage() {
           </SectionHeading>
           <p className="mt-3 text-muted-foreground">
             Removes your account and every trace of your data from the database: sessions, weigh-ins, measurements,
-            plans and settings. There is no recovery. Download your logs first if you want to keep them.{' '}
+            plans and settings. There is no recovery. Download your data first if you want to keep it.{' '}
             <Link to="/privacy" className="text-foreground underline-offset-4 hover:underline">
               What is kept and what is not
             </Link>
             .
           </p>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap gap-2">
+            <DownloadAllButton />
             <ExportButtons />
           </div>
           <DeleteAccountButton />
@@ -465,6 +466,8 @@ function DeleteAccountButton() {
               Your account and every log go for good. Type <strong>{DELETE_CONFIRM}</strong> to confirm.
             </DialogDescription>
           </DialogHeader>
+          {/* The last chance to keep a copy, where the decision is made. */}
+          <DownloadAllButton className="mt-4 self-start" />
           <Field className="py-4">
             <FieldLabel htmlFor="delete-confirm">Confirmation</FieldLabel>
             <Input

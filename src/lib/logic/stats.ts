@@ -410,3 +410,13 @@ export function bodyweightTrend(logs: BodyweightLog[], now: Date): BodyweightTre
     changePct,
   }
 }
+
+/** Noon on a local calendar day, so formatting never slips to the day before in western time zones. */
+export function noon(key: string): string {
+  return `${key}T12:00:00`
+}
+
+/** Local midnight of a YYYY-MM-DD key as a timestamp, the chart's time axis. */
+export function keyTime(key: string): number {
+  return new Date(noon(key)).setHours(0, 0, 0, 0)
+}

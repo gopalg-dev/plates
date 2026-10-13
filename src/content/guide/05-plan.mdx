@@ -1,5 +1,5 @@
 import { ListChecks } from 'lucide-react'
-import { DayKinds } from '#/components/app/guide-blocks'
+import { DayKinds, WithShot } from '#/components/app/guide-blocks'
 
 export const title = 'Your plan'
 export const part = 'Around the app'
@@ -11,6 +11,7 @@ Each day wears a plate colour and a symbol. Red days push, blue days pull, yello
 
 <DayKinds />
 
+<WithShot name="plan" alt="Plan: Push / Pull / Legs, with Pull A open on its exercises and sets">
 <Facts>
   <Fact term="Edit an exercise">Tap it to change its name, sets, reps or type, or swap in one of its alternates.</Fact>
   <Fact term="Add and arrange">**Add exercise** adds one, up to ten a day. Drag a lift by its grip to reorder the day; **Restore default order** in the day's menu puts it back. **Add a day** adds a day, and each day's menu renames, moves or removes it.</Fact>
@@ -18,3 +19,4 @@ Each day wears a plate colour and a symbol. Red days push, blue days pull, yello
   <Fact term="Start over">**Reset to the original plan** undoes your edits to a built-in split.</Fact>
   <Fact term="Change split">In Settings. Each split keeps its own plan, so going back brings your edits back.</Fact>
 </Facts>
+</WithShot>

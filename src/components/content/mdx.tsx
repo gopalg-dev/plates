@@ -22,12 +22,13 @@ export function Lead({ children }: { children: ReactNode }) {
 
 /** Short rows: a term on the left, the answer beside it. Hairlines between, as the app's lists have. */
 export function Facts({ children }: { children: ReactNode }) {
-  return <dl className="mt-5 divide-y border-y">{children}</dl>
+  return <dl className="@container mt-5 divide-y border-y">{children}</dl>
 }
 
+/** The term sits beside its answer when the list has room for both (28rem), and above it in a narrow column. */
 export function Fact({ term, children }: { term: string; children: ReactNode }) {
   return (
-    <div className="grid gap-1 py-3 sm:grid-cols-[9.5rem_minmax(0,1fr)] sm:gap-4">
+    <div className="grid gap-1 py-3 @md:grid-cols-[9.5rem_minmax(0,1fr)] @md:gap-4">
       <dt className="font-medium text-foreground">{term}</dt>
       <dd className="text-muted-foreground">{children}</dd>
     </div>

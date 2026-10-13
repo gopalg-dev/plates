@@ -10,21 +10,27 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as AppGuideRouteImport } from './routes/_app/guide'
 import { Route as AppLibraryRouteImport } from './routes/_app/library'
 import { Route as AppPlanRouteImport } from './routes/_app/plan'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppStatsRouteImport } from './routes/_app/stats'
+import { Route as DemoScreenRouteImport } from './routes/demo.$screen'
 import { Route as AppPlanImportRouteImport } from './routes/_app/plan_.import'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HowItWorksRoute = HowItWorksRouteImport.update({
+  id: '/how-it-works',
+  path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -52,11 +58,6 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppGuideRoute = AppGuideRouteImport.update({
-  id: '/guide',
-  path: '/guide',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppLibraryRoute = AppLibraryRouteImport.update({
   id: '/library',
   path: '/library',
@@ -77,6 +78,11 @@ const AppStatsRoute = AppStatsRouteImport.update({
   path: '/stats',
   getParentRoute: () => AppRoute,
 } as any)
+const DemoScreenRoute = DemoScreenRouteImport.update({
+  id: '/demo/$screen',
+  path: '/demo/$screen',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppPlanImportRoute = AppPlanImportRouteImport.update({
   id: '/plan_/import',
   path: '/plan/import',
@@ -90,28 +96,30 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
-  '/guide': typeof AppGuideRoute
   '/library': typeof AppLibraryRoute
   '/plan': typeof AppPlanRoute
   '/settings': typeof AppSettingsRoute
   '/stats': typeof AppStatsRoute
+  '/demo/$screen': typeof DemoScreenRoute
   '/plan/import': typeof AppPlanImportRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
+  '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
-  '/guide': typeof AppGuideRoute
   '/library': typeof AppLibraryRoute
   '/plan': typeof AppPlanRoute
   '/settings': typeof AppSettingsRoute
   '/stats': typeof AppStatsRoute
+  '/demo/$screen': typeof DemoScreenRoute
   '/': typeof AppIndexRoute
   '/plan/import': typeof AppPlanImportRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -119,15 +127,16 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
-  '/_app/guide': typeof AppGuideRoute
   '/_app/library': typeof AppLibraryRoute
   '/_app/plan': typeof AppPlanRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/stats': typeof AppStatsRoute
+  '/demo/$screen': typeof DemoScreenRoute
   '/_app/': typeof AppIndexRoute
   '/_app/plan_/import': typeof AppPlanImportRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -136,43 +145,46 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/how-it-works'
     | '/login'
     | '/privacy'
     | '/setup'
     | '/signup'
-    | '/guide'
     | '/library'
     | '/plan'
     | '/settings'
     | '/stats'
+    | '/demo/$screen'
     | '/plan/import'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/how-it-works'
     | '/login'
     | '/privacy'
     | '/setup'
     | '/signup'
-    | '/guide'
     | '/library'
     | '/plan'
     | '/settings'
     | '/stats'
+    | '/demo/$screen'
     | '/'
     | '/plan/import'
     | '/api/auth/$'
   id:
     | '__root__'
     | '/_app'
+    | '/how-it-works'
     | '/login'
     | '/privacy'
     | '/setup'
     | '/signup'
-    | '/_app/guide'
     | '/_app/library'
     | '/_app/plan'
     | '/_app/settings'
     | '/_app/stats'
+    | '/demo/$screen'
     | '/_app/'
     | '/_app/plan_/import'
     | '/api/auth/$'
@@ -180,10 +192,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
   SetupRoute: typeof SetupRoute
   SignupRoute: typeof SignupRoute
+  DemoScreenRoute: typeof DemoScreenRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -194,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/how-it-works': {
+      id: '/how-it-works'
+      path: '/how-it-works'
+      fullPath: '/how-it-works'
+      preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -231,13 +252,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/guide': {
-      id: '/_app/guide'
-      path: '/guide'
-      fullPath: '/guide'
-      preLoaderRoute: typeof AppGuideRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/library': {
       id: '/_app/library'
       path: '/library'
@@ -266,6 +280,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppStatsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/demo/$screen': {
+      id: '/demo/$screen'
+      path: '/demo/$screen'
+      fullPath: '/demo/$screen'
+      preLoaderRoute: typeof DemoScreenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app/plan_/import': {
       id: '/_app/plan_/import'
       path: '/plan/import'
@@ -284,7 +305,6 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
-  AppGuideRoute: typeof AppGuideRoute
   AppLibraryRoute: typeof AppLibraryRoute
   AppPlanRoute: typeof AppPlanRoute
   AppSettingsRoute: typeof AppSettingsRoute
@@ -294,7 +314,6 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppGuideRoute: AppGuideRoute,
   AppLibraryRoute: AppLibraryRoute,
   AppPlanRoute: AppPlanRoute,
   AppSettingsRoute: AppSettingsRoute,
@@ -307,10 +326,12 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
   SetupRoute: SetupRoute,
   SignupRoute: SignupRoute,
+  DemoScreenRoute: DemoScreenRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

@@ -21,11 +21,12 @@ export const THEME_OPTIONS: ThemeOption[] = [
 
 /**
  * Runs before paint so the first frame already has the right look. Reads the saved theme, sets it on
- * `<html data-theme>`, and adds `.dark` for a dark theme, or for the slate default on a dark device.
+ * `<html data-theme>`, and adds `.dark` for a dark theme, or for the slate default on a dark device. It runs again
+ * when another window of the site saves a look (another tab, a demo phone on How it works).
  * `window.__applyTheme` lets the account menu re-run it after a change.
  */
 export const THEME_SCRIPT =
-  "(function(){try{var light={chalk:1,pocket:1,latte:1};var dark={dracula:1};var m=window.matchMedia('(prefers-color-scheme: dark)');var apply=function(){var t='system';try{t=localStorage.getItem('theme')||'system'}catch(e){};if(!light[t]&&!dark[t])t='system';var h=document.documentElement;h.dataset.theme=t;h.classList.toggle('dark',!!dark[t]||(t==='system'&&m.matches))};apply();m.addEventListener('change',apply);window.__applyTheme=apply}catch(e){}})();"
+  "(function(){try{var light={chalk:1,pocket:1,latte:1};var dark={dracula:1};var m=window.matchMedia('(prefers-color-scheme: dark)');var apply=function(){var t='system';try{t=localStorage.getItem('theme')||'system'}catch(e){};if(!light[t]&&!dark[t])t='system';var h=document.documentElement;h.dataset.theme=t;h.classList.toggle('dark',!!dark[t]||(t==='system'&&m.matches))};apply();m.addEventListener('change',apply);window.addEventListener('storage',function(e){if(e.key==='theme'||e.key===null)apply()});window.__applyTheme=apply}catch(e){}})();"
 
 declare global {
   interface Window {

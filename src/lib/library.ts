@@ -63,16 +63,17 @@ export function findLibrary(items: LibraryExercise[], id: string): LibraryExerci
   return items.find((ex) => ex.id === id)
 }
 
-const loose = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '')
+/** An exercise name as the library matches it: case, spaces and punctuation ignored ("Pullups" is "Pull-ups"). */
+export const nameKey = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '')
 /** One name index per list, built the first time a list is searched by name. */
 const indexes = new WeakMap<LibraryExercise[], Map<string, LibraryExercise>>()
 
-/** The library entry for an exercise name, ignoring case, spaces and punctuation ("Pullups" finds "Pull-ups"). */
+/** The library entry for an exercise name, matched by `nameKey`. */
 export function findLibraryByName(items: LibraryExercise[], name: string): LibraryExercise | undefined {
   let index = indexes.get(items)
   if (!index) {
-    index = new Map(items.map((ex) => [loose(ex.name), ex]))
+    index = new Map(items.map((ex) => [nameKey(ex.name), ex]))
     indexes.set(items, index)
   }
-  return index.get(loose(name))
+  return index.get(nameKey(name))
 }

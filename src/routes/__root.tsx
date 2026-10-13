@@ -5,16 +5,37 @@ import { Button } from '#/components/ui/button'
 import { Toaster } from '#/components/ui/sonner'
 import { registerServiceWorker } from '#/lib/install-app'
 import { THEME_SCRIPT } from '#/lib/theme'
+import { getSiteFn } from '#/server/public-fns'
 import appCss from '../styles.css?url'
 
+const DESCRIPTION = 'A free gym logbook: pick a split, log sets fast between rests, and watch every lift climb.'
+
 export const Route = createRootRoute({
-  head: () => ({
+  // The share preview's picture needs an absolute URL, and only the request knows the host (production or a preview).
+  loader: () => getSiteFn(),
+  staleTime: Number.POSITIVE_INFINITY,
+  head: ({ loaderData }) => ({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
       { title: 'Plates' },
+      { name: 'description', content: DESCRIPTION },
       { name: 'theme-color', content: 'hsl(200 16% 96%)', media: '(prefers-color-scheme: light)' },
       { name: 'theme-color', content: 'hsl(210 23% 14%)', media: '(prefers-color-scheme: dark)' },
+      // The card a shared link unfurls into (LinkedIn, WhatsApp, Slack). public/og.png is made by scripts/guide-pictures.spec.ts.
+      { property: 'og:type', content: 'website' },
+      { property: 'og:site_name', content: 'Plates' },
+      { property: 'og:title', content: 'Plates' },
+      { property: 'og:description', content: DESCRIPTION },
+      ...(loaderData
+        ? [
+            { property: 'og:image', content: `${loaderData.origin}/og.png` },
+            { property: 'og:image:width', content: '1200' },
+            { property: 'og:image:height', content: '630' },
+            { property: 'og:image:alt', content: 'Plates on a phone: a session being logged and a lift chart' },
+          ]
+        : []),
+      { name: 'twitter:card', content: 'summary_large_image' },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },

@@ -18,19 +18,10 @@ import { Input } from '#/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import { buildSplitFrom, planSourceInfo, splitInfoOf, splitInfos } from '#/lib/content'
 import { errorMessage } from '#/lib/format'
-import {
-  GUIDE_LINES,
-  type ParsedPlan,
-  parseRows,
-  planToRows,
-  type SheetRow,
-  splitFromMarker,
-  TEMPLATE_HEADERS,
-  templateMarker,
-  templateTitle,
-} from '#/lib/logic/plan-sheet'
+import { type ParsedPlan, parseRows, type SheetRow, splitFromMarker } from '#/lib/logic/plan-sheet'
 import { MUSCLE_LABEL, MUSCLES } from '#/lib/logic/stats'
 import { pageTitle } from '#/lib/page-title'
+import { planWorkbook } from '#/lib/plan-workbook'
 import {
   DAY_TYPES,
   type DayType,
@@ -69,34 +60,11 @@ function ImportPage() {
     setBusy(true)
     try {
       const XLSX = await import('xlsx')
-      const wb = XLSX.utils.book_new()
       const chosen = template === 'current' ? null : splitInfoOf(splits, template)
       const days = chosen ? buildSplitFrom(splits, chosen.id) : plan.days
       // The current plan carries its own template's marker, unless it is custom.
       const marker = chosen ?? (currentSource.custom ? null : currentSource)
-      const ws = XLSX.utils.json_to_sheet(planToRows({ days }), { header: [...TEMPLATE_HEADERS] })
-      // Keep the Reps column as text, so Excel leaves "6-10" alone instead of making it a date.
-      const range = XLSX.utils.decode_range(ws['!ref'] ?? 'A1')
-      const repsCol = TEMPLATE_HEADERS.indexOf('Reps')
-      const lastRow = range.e.r + 40
-      for (let r = 1; r <= lastRow; r++) {
-        const addr = XLSX.utils.encode_cell({ r, c: repsCol })
-        const cell = ws[addr] ?? { t: 's', v: '' }
-        cell.t = 's'
-        cell.z = '@'
-        ws[addr] = cell
-      }
-      ws['!ref'] = XLSX.utils.encode_range({ s: range.s, e: { r: lastRow, c: range.e.c } })
-      ws['!cols'] = [10, 7, 30, 6, 9, 11, 11, 40, 40].map((wch) => ({ wch }))
-      XLSX.utils.book_append_sheet(wb, ws, 'Plan')
-      const guide = XLSX.utils.aoa_to_sheet(marker ? [[templateTitle(marker)], ...GUIDE_LINES] : GUIDE_LINES)
-      guide['!cols'] = [{ wch: 100 }]
-      XLSX.utils.book_append_sheet(wb, guide, 'Guide')
-      if (marker) {
-        const tag = XLSX.utils.aoa_to_sheet(templateMarker(marker))
-        tag['!cols'] = [{ wch: 8 }, { wch: 30 }]
-        XLSX.utils.book_append_sheet(wb, tag, 'Template')
-      }
+      const wb = planWorkbook(XLSX, days, marker)
       XLSX.writeFile(wb, marker ? `plates-template-${marker.id}.xlsx` : 'plates-template.xlsx')
     } catch (err) {
       toast.error(errorMessage(err, 'Could not build the template.'))

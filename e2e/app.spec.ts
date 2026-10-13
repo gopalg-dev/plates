@@ -1,5 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { expect, type Page, test } from '@playwright/test'
+import { strFromU8, unzipSync } from 'fflate'
+import * as XLSX from 'xlsx'
 import { backdateJoin, resetDatabase, traceOf } from './db'
 
 test.describe.configure({ mode: 'serial' })
@@ -42,14 +44,63 @@ async function hydrated(page: Page) {
   await page.locator('html[data-page-hydrated="true"]').waitFor({ state: 'attached' })
 }
 
+/**
+ * A live phone on How it works: its window, once loaded (they load as they near the view) and hydrated. Inside is
+ * the app's own screen on made-up numbers, so the checks read like the ones on the real screens.
+ */
+async function demoWindow(page: Page, title: string) {
+  const frame = page.locator(`iframe[title="${title}"]`)
+  await frame.scrollIntoViewIfNeeded()
+  const inside = page.frameLocator(`iframe[title="${title}"]`)
+  await inside.locator('html[data-page-hydrated="true"]').waitFor({ state: 'attached' })
+  return inside
+}
+
 async function snap(page: Page, name: string) {
   const project = test.info().project.name
   await page.screenshot({ path: `${shots}/${project}-${name}.png`, fullPage: true })
 }
 
+test('signed out, the home page is How it works, with the way in', async () => {
+  await open(page, '/')
+  await expect(page).toHaveURL(/\/how-it-works$/)
+  await expect(page.getByText('A gym logbook for the time between sets.')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Get started' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'How it works', exact: true })).toBeVisible()
+  // The exercise picture is just a picture until there is an app to open it in.
+  await expect(page.getByRole('link', { name: 'About Barbell Bench Press' })).toHaveCount(0)
+  // A shared link unfurls into the card, from an absolute URL.
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', /^http.*\/og\.png$/)
+  await expect(page.getByRole('contentinfo').getByRole('link', { name: 'Privacy' })).toBeVisible()
+  // The live phone runs the app's own screens on made-up numbers: a tick counts, Zen covers the tab bar, and the
+  // tab bar walks to Plan and Stats with the ticked set still there on the way back.
+  const demo = await demoWindow(page, 'Try it: Plates on made-up numbers')
+  await expect(demo.getByText(/^0 of \d+ sets done$/)).toBeVisible()
+  await demo.getByRole('button', { name: 'Mark set 1 done' }).click()
+  await expect(demo.getByText(/^1 of \d+ sets done$/)).toBeVisible()
+  await demo.getByRole('button', { name: 'Zen mode' }).click()
+  await expect(demo.getByRole('button', { name: 'Mark set 2 done' })).toBeVisible()
+  await expect(demo.getByRole('navigation', { name: 'Main' })).toHaveCount(0)
+  await demo.getByRole('button', { name: 'Exit zen' }).click()
+  await demo.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Plan' }).click()
+  await expect(demo.getByText('Push / Pull / Legs, 6 days')).toBeVisible()
+  await demo.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Stats' }).click()
+  await demo.getByRole('tab', { name: 'Sessions' }).click()
+  await expect(demo.getByText(/of 6 sessions/)).toBeVisible()
+  await demo.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Today' }).click()
+  await expect(demo.getByText(/^1 of \d+ sets done$/)).toBeVisible()
+  await snap(page, '00a-home')
+  // Any other screen still asks to sign in first.
+  await open(page, '/stats')
+  await expect(page).toHaveURL(/\/login$/)
+})
+
 test('first run: create an account, then setup one question at a time', async () => {
   await open(page, '/')
+  await page.getByRole('link', { name: 'Get started' }).click()
   await expect(page).toHaveURL(/\/login$/)
+  await hydrated(page)
   await page.getByRole('link', { name: 'Create an account' }).click()
   await expect(page).toHaveURL(/\/signup$/)
   await hydrated(page)
@@ -153,6 +204,9 @@ test('logs a workout with the set logger', async () => {
 
   await page.getByRole('button', { name: 'Finish workout' }).click()
   await expect(page.getByRole('heading', { name: 'How did it go?' })).toBeVisible()
+  // Sets are left unticked: the check-in says they will not count, and offers to keep going instead.
+  await expect(page.getByText("17 of 20 sets are not ticked. They won't count.")).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Keep going' })).toBeVisible()
   await page.getByRole('radio', { name: 'Hard' }).click()
   await page.getByLabel('Session note').fill('Grip gave out on rows')
   await snap(page, '05b-finish-check-in')
@@ -405,6 +459,27 @@ test('stats reflect the logged workout and bodyweight', async () => {
   await snap(page, '11b-change-session')
   await page.keyboard.press('Escape')
   await expect(page.getByText('Nothing is logged yet, so nothing is lost.')).not.toBeVisible()
+  // Changing the day being trained asks whether today follows: Plan and today brings the session up to date.
+  await open(page, '/plan')
+  await page.getByRole('button', { name: /^Push A/ }).click()
+  await expect(page.getByText('In progress', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Edit Barbell Bench Press' }).click()
+  await page.getByLabel('High reps', { exact: true }).fill('9')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+  await expect(page.getByRole('heading', { name: 'Push A is in progress' })).toBeVisible()
+  await page.getByRole('button', { name: 'Plan and today' }).click()
+  await expect(page.getByText("Today's session updated")).toBeVisible()
+  await open(page, '/')
+  await expect(page.getByText(/ × 5-9$/)).toBeVisible()
+  // Plan only leaves today as it is: the change back waits for the next session.
+  await open(page, '/plan')
+  await page.getByRole('button', { name: /^Push A/ }).click()
+  await page.getByRole('button', { name: 'Edit Barbell Bench Press' }).click()
+  await page.getByLabel('High reps', { exact: true }).fill('8')
+  await page.getByRole('button', { name: 'Save changes' }).click()
+  await page.getByRole('button', { name: 'Plan only' }).click()
+  await open(page, '/')
+  await expect(page.getByText(/ × 5-9$/)).toBeVisible()
   // Discard lives in the same menu and asks first.
   await page.getByRole('button', { name: 'Session options' }).click()
   await page.getByRole('menuitem', { name: 'Discard workout' }).click()
@@ -609,11 +684,14 @@ test('the library is searchable and shows a picture and cues', async () => {
   await expect(page.getByRole('heading', { name: 'Barbell Row', exact: true })).not.toBeVisible()
 })
 
-test('the guide lists every section and its links jump to them', async () => {
-  await open(page, '/guide')
-  await expect(page.getByRole('heading', { name: 'Guide', exact: true })).toBeVisible()
+test('How it works lists every section and its links jump to them', async () => {
+  await open(page, '/how-it-works')
+  await expect(page.getByRole('heading', { name: 'How it works', exact: true })).toBeVisible()
+  // Signed in: the way back into the app, and no welcome.
+  await expect(page.getByRole('link', { name: 'Open app' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Get started' })).toHaveCount(0)
   // Ten sections from src/content/guide, each with a jump link of the same name.
-  const links = page.getByRole('navigation', { name: 'Guide sections' }).getByRole('link')
+  const links = page.getByRole('navigation', { name: 'How it works sections' }).getByRole('link')
   await expect(links).toHaveCount(10)
   await expect(page.getByRole('heading', { level: 2 })).toHaveCount(10)
   // MDX bold becomes an on-screen label, and a list item carries the text.
@@ -635,6 +713,15 @@ test('the guide lists every section and its links jump to them', async () => {
     )
   }
   await snap(page, '18b-guide')
+  // Signed in there is no welcome and no live phone; the sections show screenshots of the screens.
+  await expect(page.locator('iframe')).toHaveCount(0)
+  await expect(page.getByRole('img', { name: /^Zen mode:/ })).toBeVisible()
+  // The picture opens the exercise in the library, and closing it comes back here.
+  await page.getByRole('link', { name: 'About Barbell Bench Press' }).click()
+  await expect(page).toHaveURL(/\/library\?exercise=barbell-bench-press/)
+  await expect(page.getByRole('dialog', { name: 'Barbell Bench Press' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page).toHaveURL(/\/how-it-works/)
 })
 
 test('settings change units, and start fresh wipes the data', async () => {
@@ -739,6 +826,28 @@ test('delete account removes the user and every log, and says so on the sign-in 
   await page.goBack()
   await page.getByRole('button', { name: 'Delete account' }).click()
   await expect(page.getByRole('button', { name: 'Delete everything' })).toBeDisabled()
+  // The last chance to keep a copy: the zip of everything, with a README that says what each file is.
+  const downloading = page.waitForEvent('download')
+  await page.getByRole('dialog').getByRole('button', { name: 'Download all my data (.zip)' }).click()
+  const download = await downloading
+  expect(download.suggestedFilename()).toMatch(/^plates-data-alex-\d{4}-\d{2}-\d{2}\.zip$/)
+  const files = unzipSync(readFileSync(await download.path()))
+  expect(Object.keys(files).sort()).toEqual([
+    'README.md',
+    'everything.json',
+    'feedback.json',
+    'plan.xlsx',
+    'sessions.csv',
+    'settings.json',
+    'tape.csv',
+    'weigh-ins.csv',
+  ])
+  expect(strFromU8(files['README.md'])).toContain('# Your Plates data')
+  // The plan comes as the workbook Bring your own plan reads back, its rep ranges kept as text, not dates.
+  const plan = XLSX.utils.sheet_to_json<(string | number)[]>(XLSX.read(files['plan.xlsx']).Sheets.Plan, { header: 1 })
+  expect(plan[0]).toEqual(['Day', 'Type', 'Exercise', 'Sets', 'Reps', 'Load', 'Muscle', 'Note', 'Alternates'])
+  expect(plan[1][4]).toMatch(/^\d+-\d+$/)
+  expect(JSON.parse(strFromU8(files['settings.json'])).units).toBe('kg')
   await page.getByLabel('Confirmation').fill('delete my account')
   await snap(page, '17-delete-account')
   await page.getByRole('button', { name: 'Delete everything' }).click()

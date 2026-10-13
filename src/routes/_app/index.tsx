@@ -4,34 +4,25 @@ import {
   CalendarClock,
   CalendarX,
   Flame,
-  Focus,
   MoreHorizontal,
   Ruler,
   Scale,
   Trash2,
   TrendingDown,
-  Trophy,
   X,
 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { LogBodyweightDialog, LogMeasurementsDialog } from '#/components/app/body-dialogs'
 import { DayIcon } from '#/components/app/day-mark'
-import { completeSet, ExerciseRow, targetOf } from '#/components/app/exercise-row'
+import { targetOf } from '#/components/app/exercise-row'
 import { ExerciseThumb } from '#/components/app/exercise-thumb'
-import { FeedbackFields, useSendFeedback } from '#/components/app/feedback-form'
 import { SectionHeading } from '#/components/app/section-heading'
+import { DiscardDialog, FinishCheckIn, SummaryDialog } from '#/components/app/session-finish'
+import { SessionExercises, SessionFooter, SessionTitle, ZenButton } from '#/components/app/session-view'
+import { useSessionSets } from '#/components/app/use-session-sets'
 import { ZenMode } from '#/components/app/zen-mode'
-import { Accordion } from '#/components/ui/accordion'
 import { Button } from '#/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '#/components/ui/dialog'
 import {
   Drawer,
   DrawerContent,
@@ -41,7 +32,6 @@ import {
   DrawerTrigger,
 } from '#/components/ui/drawer'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '#/components/ui/dropdown-menu'
-import { Input } from '#/components/ui/input'
 import {
   Item,
   ItemActions,
@@ -52,10 +42,7 @@ import {
   ItemSeparator,
   ItemTitle,
 } from '#/components/ui/item'
-import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
-import { errorMessage, timeOfDay } from '#/lib/format'
-import { EFFORT_LABEL, EFFORTS, type Effort } from '#/lib/logic/effort'
-import type { Mood } from '#/lib/logic/feedback'
+import { errorMessage } from '#/lib/format'
 import { nudgeFor } from '#/lib/logic/nudges'
 import { plateOf } from '#/lib/logic/progression'
 import { WEEKDAY_SHORT, weekdayOf, weekdayView } from '#/lib/logic/schedule'
@@ -63,13 +50,12 @@ import { plannedSetsFor, weeklyStreakOf } from '#/lib/logic/stats'
 import type { SessionSummary } from '#/lib/logic/summary'
 import { pageTitle } from '#/lib/page-title'
 import { rowTap } from '#/lib/row-tap'
-import type { LoggedSet, NudgeKind, Plan, PlanDay, Settings, Workout, WorkoutEntry } from '#/lib/types'
+import type { LoggedSet, NudgeKind, Plan, PlanDay, Settings, Workout } from '#/lib/types'
 import { useWakeLock } from '#/lib/use-wake-lock'
 import { cn } from '#/lib/utils'
 import {
   acceptRampFn,
   discardWorkoutFn,
-  dismissFeedbackFn,
   dismissNudgeFn,
   finishWorkoutFn,
   getTodayFn,
@@ -114,91 +100,6 @@ function TodayPage() {
         onClose={() => setSummary(null)}
       />
     </>
-  )
-}
-
-// ---------------------------------------------------------------- finish summary
-
-/** What the session did, shown once at Finish: every lift's best set, new bests marked, the week's count. */
-function SummaryDialog({
-  summary,
-  askFeedback,
-  onClose,
-}: {
-  summary: SessionSummary | null
-  askFeedback: boolean
-  onClose: () => void
-}) {
-  const [mood, setMood] = useState<Mood | null>(null)
-  const [text, setText] = useState('')
-  const [sent, setSent] = useState(false)
-  const { send, busy } = useSendFeedback('summary')
-  const asking = askFeedback && !sent
-
-  async function close() {
-    // Waving the prompt away counts: the next one waits a month.
-    if (asking) void dismissFeedbackFn().catch(() => undefined)
-    onClose()
-    setMood(null)
-    setText('')
-    setSent(false)
-  }
-
-  async function sendNow() {
-    if (await send(mood, text)) setSent(true)
-  }
-
-  return (
-    <Dialog open={summary !== null} onOpenChange={(open) => !open && void close()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Workout saved</DialogTitle>
-          <DialogDescription>
-            {summary ? `${summary.week.done} of ${summary.week.planned} sessions this week.` : ''}
-          </DialogDescription>
-        </DialogHeader>
-        {summary && (
-          <ul className="divide-y">
-            {summary.lines.map((l) => (
-              <li key={l.exerciseId} className="flex items-center gap-3 py-2.5">
-                <span className="min-w-0 flex-1 truncate">{l.name}</span>
-                <span className="shrink-0 tabular-nums">{l.best}</span>
-                {l.pr ? (
-                  <span className="flex shrink-0 items-center gap-1 text-sm text-success">
-                    <Trophy className="size-4" aria-hidden />
-                    <span className="sr-only">New</span>
-                    best
-                  </span>
-                ) : l.change ? (
-                  <span
-                    className={cn(
-                      'shrink-0 text-sm tabular-nums',
-                      l.change.startsWith('+') ? 'text-success' : 'text-muted-foreground',
-                    )}
-                  >
-                    {l.change}
-                  </span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
-        {asking && (
-          <div className="border-t pt-4">
-            <p className="mb-2 font-medium">How is Plates for you?</p>
-            <FeedbackFields mood={mood} text={text} onMood={setMood} onText={setText} compact />
-          </div>
-        )}
-        <DialogFooter>
-          {asking && (
-            <Button variant="outline" onClick={sendNow} disabled={busy || (mood === null && !text.trim())}>
-              Send
-            </Button>
-          )}
-          <Button onClick={close}>Done</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   )
 }
 
@@ -453,10 +354,9 @@ interface ActiveProps {
 function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: ActiveProps) {
   // The phone stays awake between sets, unless Settings says to let it sleep.
   useWakeLock(settings.keepAwake !== false)
-  const [entries, setEntries] = useState<WorkoutEntry[]>(workout.entries)
-  const [openId, setOpenId] = useState<string | null>(
-    () => workout.entries.find((e) => e.sets.some((s) => !s.done))?.exerciseId ?? null,
-  )
+  /** The sets as they are worked: every change is saved, a tick at once and a stepped number soon after. */
+  const sets = useSessionSets(workout.entries, persist)
+  const { entries, doneSets } = sets
   const [busy, setBusy] = useState(false)
   const [changeOpen, setChangeOpen] = useState(false)
   const [discardOpen, setDiscardOpen] = useState(false)
@@ -495,62 +395,17 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
     }
   }
 
-  function updateSets(exerciseId: string, mutate: (sets: LoggedSet[]) => LoggedSet[], immediate = false) {
-    const next = entries.map((e) => (e.exerciseId === exerciseId ? { ...e, sets: mutate(e.sets) } : e))
-    setEntries(next)
-    const entry = next.find((e) => e.exerciseId === exerciseId)
-    if (entry) persist(exerciseId, entry.sets, immediate)
-  }
-
-  /** Opens the next exercise with something left to do, once this one is finished with. */
-  function advanceFrom(exerciseId: string) {
-    const following = entries.find((e) => e.exerciseId !== exerciseId && e.sets.some((s) => !s.done))
-    setOpenId(following?.exerciseId ?? null)
-  }
-
-  function changeSet(exerciseId: string, index: number, patch: Partial<LoggedSet>) {
-    updateSets(exerciseId, (sets) => sets.map((s, i) => (i === index ? { ...s, ...patch } : s)))
-    // The reps-left answer on the last set is the last thing to do on a weight exercise.
-    const entry = entries.find((e) => e.exerciseId === exerciseId)
-    if (patch.left !== undefined && entry?.sets.every((s) => s.done)) advanceFrom(exerciseId)
-  }
-
-  function toggleDone(exerciseId: string, index: number) {
-    const entry = entries.find((e) => e.exerciseId === exerciseId)
-    if (!entry) return
-    const nowDone = !entry.sets[index].done
-    updateSets(exerciseId, (sets) => completeSet(entry, sets, index), true)
-    if (!nowDone) return
-    const allDone = entry.sets.every((s, i) => i === index || s.done)
-    // A weight exercise stays open after its last set so the reps-left question can be answered.
-    if (allDone && entry.loadType !== 'weight') advanceFrom(exerciseId)
-  }
-
-  function addSet(exerciseId: string) {
-    updateSets(exerciseId, (sets) => {
-      const last = sets[sets.length - 1]
-      return [...sets, { ...last, done: false }]
-    })
-  }
-
   /** Takes the set the ramp offered: the server adds it to the plan and the session; the row shows it at once. */
   async function rampUp(exerciseId: string) {
     try {
       await flush()
       const updated = await acceptRampFn({ data: { workoutId: workout.id, exerciseId } })
-      setEntries((es) => es.map((e) => (e.exerciseId === exerciseId ? updated : e)))
+      sets.setEntries((es) => es.map((e) => (e.exerciseId === exerciseId ? updated : e)))
       toast.success(`${updated.name}: ${updated.sets.length} sets from now on`)
     } catch (err) {
       toast.error(errorMessage(err, 'Could not add the set.'))
     }
   }
-
-  function removeSet(exerciseId: string) {
-    updateSets(exerciseId, (sets) => (sets.length > 1 && !sets[sets.length - 1].done ? sets.slice(0, -1) : sets), true)
-  }
-
-  const totalSets = entries.reduce((n, e) => n + e.sets.length, 0)
-  const doneSets = entries.reduce((n, e) => n + e.sets.filter((s) => s.done).length, 0)
 
   async function finishNow(extra: { effort?: number; note?: string }) {
     setBusy(true)
@@ -569,8 +424,9 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
     }
   }
 
+  /** Finish with nothing ticked would only throw the session away, so it asks that instead. */
   function onFinishClick() {
-    if (doneSets === 0) void finishNow({})
+    if (doneSets === 0) setDiscardOpen(true)
     else setCheckInOpen(true)
   }
 
@@ -602,39 +458,38 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
 
   return (
     <div>
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-muted-foreground">Started {timeOfDay(workout.startedAt)}</p>
-          <h1 className="mt-1 flex items-center gap-3 font-condensed text-4xl font-semibold leading-none sm:text-5xl">
-            <DayIcon type={workout.dayType} className="size-11 rounded-xl" />
-            {workout.dayName}
-          </h1>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Button variant="outline" size="icon-sm" aria-label="Zen mode" onClick={() => setZen(true)}>
-            <Focus aria-hidden />
-          </Button>
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              {/* The trigger swaps the button's data-slot, so the touch-size rule in styles.css misses it:
+      <SessionTitle
+        workout={workout}
+        actions={
+          <>
+            <ZenButton onClick={() => setZen(true)} />
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                {/* The trigger swaps the button's data-slot, so the touch-size rule in styles.css misses it:
                   size it here to match the Zen button beside it. */}
-              <Button variant="outline" size="icon-sm" className="pointer-coarse:size-11" aria-label="Session options">
-                <MoreHorizontal aria-hidden />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-48">
-              <DropdownMenuItem onSelect={() => setChangeOpen(true)}>
-                <ArrowLeftRight aria-hidden />
-                Change session
-              </DropdownMenuItem>
-              <DropdownMenuItem variant="destructive" onSelect={() => setDiscardOpen(true)}>
-                <Trash2 aria-hidden />
-                Discard workout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+                <Button
+                  variant="outline"
+                  size="icon-sm"
+                  className="pointer-coarse:size-11"
+                  aria-label="Session options"
+                >
+                  <MoreHorizontal aria-hidden />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-48">
+                <DropdownMenuItem onSelect={() => setChangeOpen(true)}>
+                  <ArrowLeftRight aria-hidden />
+                  Change session
+                </DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onSelect={() => setDiscardOpen(true)}>
+                  <Trash2 aria-hidden />
+                  Discard workout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        }
+      />
 
       <Drawer open={changeOpen} onOpenChange={setChangeOpen}>
         <DrawerContent className="max-h-[92dvh]">
@@ -679,135 +534,53 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
           </ItemGroup>
         </DrawerContent>
       </Drawer>
-      <Dialog open={discardOpen} onOpenChange={setDiscardOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Discard this workout?</DialogTitle>
-            <DialogDescription>
-              {doneSets > 0
-                ? `The ${doneSets} ${doneSets === 1 ? 'set' : 'sets'} logged so far will be lost.`
-                : 'Nothing is logged yet, so nothing is lost.'}
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setDiscardOpen(false)}>
-              Keep going
-            </Button>
-            <Button variant="destructive" onClick={discard} disabled={busy}>
-              Discard workout
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <DiscardDialog
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        doneSets={doneSets}
+        busy={busy}
+        onDiscard={discard}
+      />
 
-      <Accordion
-        type="single"
-        collapsible
-        value={openId ?? ''}
-        onValueChange={(v) => setOpenId(v || null)}
-        className="mt-6 border-t"
-      >
-        {entries.map((entry) => (
-          <ExerciseRow
-            key={entry.exerciseId}
-            entry={entry}
-            units={settings.units}
-            plate={plateOf(settings)}
-            onChangeSet={(i, patch) => changeSet(entry.exerciseId, i, patch)}
-            onToggleDone={(i) => toggleDone(entry.exerciseId, i)}
-            onAddSet={() => addSet(entry.exerciseId)}
-            onRemoveSet={() => removeSet(entry.exerciseId)}
-            onRamp={() => rampUp(entry.exerciseId)}
-          />
-        ))}
-      </Accordion>
+      <SessionExercises sets={sets} units={settings.units} plate={plateOf(settings)} onRamp={rampUp} />
 
-      <div className="sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] z-30 -mx-4 mt-6 border-t bg-background/95 px-4 py-3 backdrop-blur md:bottom-0 md:-mx-8 md:px-8">
-        <div className="flex items-center gap-3">
-          <p className="min-w-0 flex-1 tabular-nums text-muted-foreground">
-            {doneSets} of {totalSets} sets done
-          </p>
-          <Button onClick={onFinishClick} disabled={busy} className="shrink-0">
-            Finish workout
-          </Button>
-        </div>
-      </div>
+      {/* Above the tab bar on phones, at the foot of the window from 768px. */}
+      <SessionFooter
+        sets={sets}
+        busy={busy}
+        onFinish={onFinishClick}
+        className="sticky bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))] -mx-4 mt-6 px-4 md:bottom-0 md:-mx-8 md:px-8"
+      />
 
-      <FinishCheckIn open={checkInOpen} onOpenChange={setCheckInOpen} busy={busy} onFinish={finishNow} />
+      <FinishCheckIn
+        open={checkInOpen}
+        onOpenChange={setCheckInOpen}
+        busy={busy}
+        total={sets.totalSets}
+        unticked={sets.totalSets - doneSets}
+        onFinish={finishNow}
+      />
 
       {zen && (
         <ZenMode
           workout={workout}
           entries={entries}
-          current={openId}
+          current={sets.openId}
           units={settings.units}
           plate={plateOf(settings)}
           doneSets={doneSets}
-          totalSets={totalSets}
+          totalSets={sets.totalSets}
           busy={busy}
-          onCurrent={setOpenId}
-          onChangeSet={changeSet}
-          onToggleDone={toggleDone}
-          onAddSet={addSet}
-          onRemoveSet={removeSet}
+          onCurrent={sets.setOpenId}
+          onChangeSet={sets.changeSet}
+          onToggleDone={sets.toggleDone}
+          onAddSet={sets.addSet}
+          onRemoveSet={sets.removeSet}
           onRamp={rampUp}
           onFinish={onFinishClick}
           onExit={() => setZen(false)}
         />
       )}
     </div>
-  )
-}
-
-// ---------------------------------------------------------------- finish check-in
-
-interface CheckInProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  busy: boolean
-  onFinish: (extra: { effort?: number; note?: string }) => void
-}
-
-function FinishCheckIn({ open, onOpenChange, busy, onFinish }: CheckInProps) {
-  const [effort, setEffort] = useState<Effort | undefined>(undefined)
-  const [note, setNote] = useState('')
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>How did it go?</DialogTitle>
-          <DialogDescription className="sr-only">Pick how hard it felt.</DialogDescription>
-        </DialogHeader>
-        <ToggleGroup
-          type="single"
-          variant="outline"
-          value={effort ? String(effort) : ''}
-          onValueChange={(v) => setEffort(v ? (Number(v) as Effort) : undefined)}
-          className="w-full"
-          aria-label="Effort"
-        >
-          {EFFORTS.map((e) => (
-            <ToggleGroupItem key={e} value={String(e)} className="h-12 flex-1">
-              {EFFORT_LABEL[e]}
-            </ToggleGroupItem>
-          ))}
-        </ToggleGroup>
-        <Input
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Anything to remember? Optional"
-          aria-label="Session note"
-          maxLength={200}
-        />
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onFinish({})} disabled={busy}>
-            Skip
-          </Button>
-          <Button onClick={() => onFinish({ effort, note: note.trim() || undefined })} disabled={busy}>
-            Save and finish
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   )
 }
