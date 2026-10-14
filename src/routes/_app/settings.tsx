@@ -110,27 +110,37 @@ function SettingsPage() {
   const currentSplit: SplitId = split.custom ? OWN_SPLIT : split.id
   const [pickedSplit, setPickedSplit] = useState<SplitId | null>(null)
   const [ownDays, setOwnDays] = useState<DayType[]>(DEFAULT_OWN_DAYS)
+  /** Start the picked split as its days with no lifts, in place of the plan it has. */
+  const [empty, setEmpty] = useState(false)
   const [splitOpen, setSplitOpen] = useState(false)
   const [switching, setSwitching] = useState(false)
   const schedule: Schedule = settings.schedule ?? 'rolling'
   const steps = stepsOf(settings)
 
+  const keeping = pickedSplit === OWN_SPLIT && ownPlan !== undefined && ownMode === 'keep'
+  /** The footer offers the switch: another split, a fresh plan of your own, or the same split started empty. */
+  const canSwitch =
+    pickedSplit !== null && (pickedSplit !== currentSplit || (pickedSplit === OWN_SPLIT ? !keeping : empty))
+
   async function switchSplit() {
-    const keeping = pickedSplit === OWN_SPLIT && ownPlan !== undefined && ownMode === 'keep'
-    if (!pickedSplit || (pickedSplit === currentSplit && (pickedSplit !== OWN_SPLIT || keeping))) return
+    if (!pickedSplit || !canSwitch) return
     setSwitching(true)
     try {
+      const picked = pickedSplit === OWN_SPLIT ? 'your own plan' : splitInfoOf(splits, pickedSplit).name
       if (keeping) {
         await applySplitFn({ data: { split: OWN_SPLIT } })
         toast.success('Back on your own plan')
       } else if (pickedSplit === OWN_SPLIT) {
-        await createCustomPlanFn({ data: { types: ownDays } })
-        toast.success(`Now on your own plan, ${ownDays.length} days`)
+        await createCustomPlanFn({ data: { types: ownDays, empty } })
+        toast.success(
+          empty ? `Now on your own plan, ${ownDays.length} empty days` : `Now on ${picked}, ${ownDays.length} days`,
+        )
       } else {
-        await applySplitFn({ data: { split: pickedSplit } })
-        toast.success(`Now on ${splitInfoOf(splits, pickedSplit).name}`)
+        await applySplitFn({ data: { split: pickedSplit, empty } })
+        toast.success(empty ? `Now on ${picked}, with empty days` : `Now on ${picked}`)
       }
       setPickedSplit(null)
+      setEmpty(false)
       setSplitOpen(false)
       await router.invalidate()
     } catch (err) {
@@ -365,7 +375,10 @@ function SettingsPage() {
           <Dialog
             open={splitOpen}
             onOpenChange={(open) => {
-              if (!open) setPickedSplit(null)
+              if (!open) {
+                setPickedSplit(null)
+                setEmpty(false)
+              }
               setSplitOpen(open)
             }}
           >
@@ -373,9 +386,12 @@ function SettingsPage() {
             <DialogContent className="flex max-h-[90dvh] flex-col gap-0 p-0 sm:max-w-lg">
               <DialogHeader className="p-6 pb-4">
                 <DialogTitle>Change split</DialogTitle>
-                <DialogDescription>
-                  Each split keeps its own plan. Coming back to one finds it as you left it.
+                <DialogDescription className="font-medium text-foreground">
+                  Each template's lifts follow a well-known program, named under it.
                 </DialogDescription>
+                <p className="text-sm text-muted-foreground">
+                  Each split keeps its own plan, so coming back to one finds it as you left it.
+                </p>
               </DialogHeader>
               <div className="min-h-0 overflow-y-auto scrollbar-none px-6 pb-4">
                 <SplitPicker
@@ -387,6 +403,12 @@ function SettingsPage() {
                   ownPlan={ownPlan ? { days: ownPlan.days } : undefined}
                   ownMode={ownMode}
                   onOwnModeChange={setOwnMode}
+                  empty={empty}
+                  onEmptyChange={(on) => {
+                    setEmpty(on)
+                    // Ticked with nothing picked, the split on now is the one to start empty.
+                    if (on && pickedSplit === null) setPickedSplit(currentSplit)
+                  }}
                 />
               </div>
               <DialogFooter className="border-t p-4">
@@ -394,22 +416,24 @@ function SettingsPage() {
                   variant="ghost"
                   onClick={() => {
                     setPickedSplit(null)
+                    setEmpty(false)
                     setSplitOpen(false)
                   }}
                   disabled={switching}
                 >
                   Keep {split.name}
                 </Button>
-                {pickedSplit !== null &&
-                  (pickedSplit !== currentSplit || (pickedSplit === OWN_SPLIT && !(ownPlan && ownMode === 'keep'))) && (
-                    <Button onClick={switchSplit} disabled={switching}>
-                      {pickedSplit === OWN_SPLIT
-                        ? ownPlan && ownMode === 'keep'
-                          ? 'Back to my plan'
-                          : 'Build my plan'
+                {pickedSplit !== null && canSwitch && (
+                  <Button onClick={switchSplit} disabled={switching}>
+                    {pickedSplit === OWN_SPLIT
+                      ? keeping
+                        ? 'Back to my plan'
+                        : 'Build my plan'
+                      : pickedSplit === currentSplit
+                        ? 'Start with empty days'
                         : `Switch to ${splitInfoOf(splits, pickedSplit).name}`}
-                    </Button>
-                  )}
+                  </Button>
+                )}
               </DialogFooter>
             </DialogContent>
           </Dialog>

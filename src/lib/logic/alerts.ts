@@ -1,17 +1,19 @@
 import type { BodyweightLog, Goal, Units, Workout } from '../types'
 import { PERIOD_KINDS, type ReportData, reviewCard } from './report'
-import { addDays, bestSet, finished, setScore } from './stats'
+import { addDays, bestSet, dayKey, finished, setScore, startOfWeek } from './stats'
 
 /**
  * Something on Today that asks for a look: a lift that stopped moving, a week slipping, a scale not moving, or the
  * report on a week or month just finished.
  */
 export interface Alert {
-  kind: 'stall' | 'week' | 'weight' | 'review'
+  kind: 'stall' | 'weight' | 'review'
+  /** Stable id for this exact alert (the lift, the period), so dismissing one hides only that one. */
+  key: string
   title: string
   detail: string
-  /** Where the alert leads, when it is about something on another screen. */
-  to?: string
+  /** Where the alert's action leads. */
+  to: string
 }
 
 /** The report on a week or month just finished, for its first two days. The week's first, when both fall on one day. */
@@ -22,6 +24,7 @@ export function reviewAlerts(now: Date, data: ReportData): Alert[] {
       ? [
           {
             kind: 'review' as const,
+            key: `review:${kind}:${card.at}`,
             title: card.title,
             detail: card.detail,
             to: `/report?period=${kind}&at=${card.at}`,
@@ -29,6 +32,11 @@ export function reviewAlerts(now: Date, data: ReportData): Alert[] {
         ]
       : []
   })
+}
+
+/** The alerts the user has not dismissed: an alert stays hidden while its key is in the dismissed record. */
+export function shownAlerts(alerts: Alert[], dismissed: Record<string, string> | undefined): Alert[] {
+  return dismissed ? alerts.filter((a) => !dismissed[a.key]) : alerts
 }
 
 /** Weeks without a new best before a lift counts as stuck. */
@@ -83,22 +91,11 @@ export function stallAlerts(workouts: Workout[], now: Date): Alert[] {
     .slice(0, 2)
     .map((s) => ({
       kind: 'stall' as const,
+      key: `stall:${s.id}`,
       title: `${s.name} has not moved in ${STALL_WEEKS} weeks.`,
       detail: 'Swap it for an alternate on Plan, or take a lighter week on it.',
+      to: '/plan',
     }))
-}
-
-/** When the sessions left this week are more than, or as many as, the days left in it. */
-export function weekAlert(done: number, planned: number, now: Date): Alert | null {
-  const left = planned - done
-  if (left <= 0) return null
-  const daysLeft = 7 - ((now.getDay() + 6) % 7) // today included, Monday to Sunday
-  if (left < daysLeft) return null
-  return {
-    kind: 'week',
-    title: `${left} ${left === 1 ? 'session' : 'sessions'} left this week.`,
-    detail: daysLeft === 1 ? 'Today is the last day.' : `${daysLeft} days to go.`,
-  }
 }
 
 function avg(xs: number[]): number | undefined {
@@ -130,18 +127,23 @@ function flatScale(logs: BodyweightLog[], goal: Goal | undefined, units: Units, 
   if (latest === undefined || middle === undefined || oldest === undefined) return null
   const perWeek = (latest - oldest) / 2
   const flat = units === 'kg' ? 0.1 : 0.2
+  const key = `weight:${dayKey(startOfWeek(now))}`
   if (goal === 'gain' && perWeek < flat) {
     return {
       kind: 'weight',
+      key,
       title: 'Weight flat for 3 weeks.',
       detail: `Eat more: aim for +${units === 'kg' ? '0.25 kg' : '0.5 lb'} a week.`,
+      to: '/stats?tab=body',
     }
   }
   if (goal === 'cut' && perWeek > -flat) {
     return {
       kind: 'weight',
+      key,
       title: 'Weight flat for 3 weeks.',
       detail: `Eat less: aim for −${units === 'kg' ? '0.25 kg' : '0.5 lb'} a week.`,
+      to: '/stats?tab=body',
     }
   }
   return null

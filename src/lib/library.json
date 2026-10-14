@@ -6,6 +6,9 @@
     "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 4,
+    "repMin": 5,
+    "repMax": 8,
     "level": "beginner",
     "cues": [
       "Lie back on a flat bench. Using a medium width grip (a grip that creates a 90-degree angle in the middle of the movement between the forearms and the upper arms),…",
@@ -21,6 +24,9 @@
     "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 6,
+    "repMax": 10,
     "level": "beginner",
     "cues": [
       "Lie back on an incline bench. Using a medium-width grip (a grip that creates a 90-degree angle in the middle of the movement between the forearms and the upper arms),…",
@@ -36,6 +42,9 @@
     "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 6,
+    "repMax": 10,
     "level": "beginner",
     "cues": [
       "Secure your legs at the end of the decline bench and slowly lay down on the bench.",
@@ -51,6 +60,9 @@
     "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Lie down on a flat bench with a dumbbell in each hand resting on top of your thighs. The palms of your hands will be facing each other.",
@@ -66,6 +78,9 @@
     "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Lie back on an incline bench with a dumbbell in each hand atop your thighs. The palms of your hands will be facing each other.",
@@ -81,6 +96,9 @@
     "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Secure your legs at the end of the decline bench and lie down with a dumbbell on each hand on top of your thighs. The palms of your hand will be facing each other.",
@@ -96,6 +114,9 @@
     "muscles": ["chest"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Lie down on a flat bench with a dumbbell on each hand resting on top of your thighs. The palms of your hand will be facing each other.",
@@ -111,6 +132,9 @@
     "muscles": ["chest", "shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Hold a dumbbell on each hand and lie on an incline bench that is set to an incline angle of no more than 30 degrees.",
@@ -126,6 +150,9 @@
     "muscles": ["chest", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "To get yourself into the starting position, place the pulleys on a high position (above your head), select the resistance to be used and hold the pulleys in each hand.",
@@ -141,6 +168,9 @@
     "muscles": ["chest", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "To move into the starting position, place the pulleys at the low position, select the resistance to be used and grasp a handle in each hand.",
@@ -156,6 +186,9 @@
     "muscles": ["chest"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "intermediate",
     "cues": [
       "Position a flat bench between two low pulleys so that when you are laying on it, your chest will be lined up with the cable pulleys.",
@@ -171,6 +204,9 @@
     "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Sit down on the Chest Press Machine and select the weight.",
@@ -186,6 +222,9 @@
     "muscles": ["chest"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Sit on the machine with your back flat on the pad.",
@@ -201,6 +240,9 @@
     "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Lie on the floor face down and place your hands about 36 inches apart while holding your torso up at arms length.",
@@ -216,6 +258,9 @@
     "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Lie on the floor face down and place your hands about 36 inches apart from each other holding your torso up at arms length.",
@@ -231,6 +276,9 @@
     "muscles": ["chest", "shoulders", "triceps"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Stand facing bench or sturdy elevated platform. Place hands on edge of bench or platform, slightly wider than shoulder width.",
@@ -246,6 +294,9 @@
     "muscles": ["chest", "lats", "shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "intermediate",
     "cues": [
       "Place a dumbbell standing up on a flat bench.",
@@ -261,6 +312,9 @@
     "muscles": ["lats", "biceps", "middle back"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 6,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Grab the pull-up bar with the palms facing forward using the prescribed grip. Note on grips: For a wide grip, your hands need to be spaced out at a distance wider…",
@@ -276,6 +330,9 @@
     "muscles": ["lats", "biceps", "forearms", "middle back"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 6,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Grab the pull-up bar with the palms facing your torso and a grip closer than the shoulder width.",
@@ -291,6 +348,9 @@
     "muscles": ["lats", "biceps", "middle back", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Sit down on a pull-down machine with a wide bar attached to the top pulley. Make sure that you adjust the knee pad of the machine to fit your height. These pads will…",
@@ -306,6 +366,9 @@
     "muscles": ["lats", "biceps", "middle back", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Sit down on a pull-down machine with a wide bar attached to the top pulley. Make sure that you adjust the knee pad of the machine to fit your height. These pads will…",
@@ -321,6 +384,9 @@
     "muscles": ["lats", "biceps", "middle back", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "intermediate",
     "cues": [
       "Sit down on a pull-down machine with a V-Bar attached to the top pulley.",
@@ -336,6 +402,9 @@
     "muscles": ["lats", "biceps", "middle back", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Sit down on a pull-down machine with a wide bar attached to the top pulley. Adjust the knee pad of the machine to fit your height. These pads will prevent your body…",
@@ -351,6 +420,9 @@
     "muscles": ["lats", "biceps", "middle back"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Select an appropriate weight and adjust the knee pad to help keep you down. Grasp the handle with a pronated grip. This will be your starting position.",
@@ -366,6 +438,9 @@
     "muscles": ["lats"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "You will start by grabbing the wide bar from the top pulley of a pulldown machine and using a wider than shoulder-width pronated (palms down) grip. Step backwards two…",
@@ -381,6 +456,9 @@
     "muscles": ["lats"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Attach a rope to a high pulley and make your weight selection. Stand a couple feet back from the pulley with your feet staggered and take the rope with both hands.…",
@@ -396,6 +474,9 @@
     "muscles": ["middle back", "biceps", "lats", "shoulders"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 4,
+    "repMin": 6,
+    "repMax": 10,
     "level": "beginner",
     "cues": [
       "Holding a barbell with a pronated grip (palms facing down), bend your knees slightly and bring your torso forward, by bending at the waist, while keeping the back…",
@@ -411,6 +492,9 @@
     "muscles": ["middle back", "biceps", "lats", "shoulders"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 6,
+    "repMax": 10,
     "level": "intermediate",
     "cues": [
       "Stand erect while holding a barbell with a supinated grip (palms facing up).",
@@ -426,6 +510,9 @@
     "muscles": ["middle back", "biceps", "lats", "shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Choose a flat bench and place a dumbbell on each side of it.",
@@ -441,6 +528,9 @@
     "muscles": ["middle back", "biceps", "lats", "shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "With a dumbbell in each hand (palms facing your torso), bend your knees slightly and bring your torso forward by bending at the waist; as you bend make sure to keep…",
@@ -456,6 +546,9 @@
     "muscles": ["middle back", "biceps", "forearms", "lats", "shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Using a neutral grip, lean into an incline bench.",
@@ -471,6 +564,9 @@
     "muscles": ["middle back", "lats", "shoulders"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Grab a dumbbell in each hand and lie face down on an incline bench that is set to an incline that is approximately 30 degrees.",
@@ -486,6 +582,9 @@
     "muscles": ["middle back", "biceps", "lats", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "For this exercise you will need access to a low pulley row machine with a V-bar. Note: The V-bar will enable you to have a neutral grip where the palms of your hands…",
@@ -501,6 +600,9 @@
     "muscles": ["middle back", "biceps", "lats"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Position a bar into a landmine or in a corner to keep it from moving. Load an appropriate weight onto your end.",
@@ -517,6 +619,9 @@
     "equipment": "machine",
     "plateLoaded": true,
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "intermediate",
     "cues": [
       "Load up the T-bar Row Machine with the desired weight and adjust the leg height so that your upper chest is at the top of the pad. Tip: In some machines all you can…",
@@ -532,6 +637,9 @@
     "muscles": ["lats", "biceps", "middle back"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Load an appropriate weight onto the pins and adjust the seat height so that the handles are at chest level. Grasp the handles with either a neutral or pronated grip.…",
@@ -547,6 +655,9 @@
     "muscles": ["middle back", "lats"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Load an appropriate weight onto the pins and adjust the seat height so that you can just reach the handles above you. Adjust the knee pad to help keep you down. Grasp…",
@@ -572,6 +683,9 @@
     ],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 4,
+    "repMax": 6,
     "level": "intermediate",
     "cues": [
       "Stand in front of a loaded barbell.",
@@ -587,6 +701,9 @@
     "muscles": ["traps"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Stand up straight with your feet at shoulder width as you hold a barbell with both hands in front of you using a pronated grip (palms facing the thighs). Tip: Your…",
@@ -602,6 +719,9 @@
     "muscles": ["traps"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Stand erect with a dumbbell on each hand (palms facing your torso), arms extended on the sides.",
@@ -617,6 +737,9 @@
     "muscles": ["shoulders", "triceps"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 6,
+    "repMax": 10,
     "level": "beginner",
     "cues": [
       "Start by placing a barbell that is about chest high on a squat rack. Once you have selected the weights, grab the barbell using a pronated (palms facing forward)…",
@@ -632,6 +755,9 @@
     "muscles": ["shoulders", "triceps"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 6,
+    "repMax": 10,
     "level": "intermediate",
     "cues": [
       "Sit on a Military Press Bench with a bar behind your head and either have a spotter give you the bar (better on the rotator cuff this way) or pick it up yourself…",
@@ -647,6 +773,9 @@
     "muscles": ["shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "intermediate",
     "cues": [
       "While holding a dumbbell in each hand, sit on a military press bench or utility bench that has back support. Place the dumbbells upright on top of your thighs.",
@@ -662,6 +791,9 @@
     "muscles": ["shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Standing with your feet shoulder width apart, take a dumbbell in each hand. Raise the dumbbells to head height, the elbows out and about 90 degrees. This will be your…",
@@ -677,6 +809,9 @@
     "muscles": ["shoulders", "triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "intermediate",
     "cues": [
       "Sit on an exercise bench with back support and hold two dumbbells in front of you at about upper chest level with your palms facing your body and your elbows bent.…",
@@ -692,6 +827,9 @@
     "muscles": ["shoulders", "triceps"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Sit down on the Shoulder Press Machine and select the weight.",
@@ -707,6 +845,9 @@
     "muscles": ["shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Pick a couple of dumbbells and stand with a straight torso and the dumbbells by your side at arms length with the palms of the hand facing you. This will be your…",
@@ -722,6 +863,9 @@
     "muscles": ["shoulders", "middle back", "traps"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Stand in the middle of two low pulleys that are opposite to each other and place a flat bench right behind you (in perpendicular fashion to you; the narrow edge of…",
@@ -737,6 +881,9 @@
     "muscles": ["shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Pick a couple of dumbbells and stand with a straight torso and the dumbbells on front of your thighs at arms length with the palms of the hand facing your thighs.…",
@@ -752,6 +899,9 @@
     "muscles": ["shoulders", "middle back"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "intermediate",
     "cues": [
       "Facing a high pulley with a rope or dual handles attached, pull the weight directly towards your face, separating your hands as you do so. Keep your upper arms…"
@@ -765,6 +915,9 @@
     "muscles": ["shoulders"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Adjust the pulleys to the appropriate height and adjust the weight. The pulleys should be above your head.",
@@ -780,6 +933,9 @@
     "muscles": ["shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "To begin, lie down on an incline bench with the chest and stomach pressing against the incline. Have the dumbbells in each hand with the palms facing each other…",
@@ -795,6 +951,9 @@
     "muscles": ["shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Stand up straight while holding a dumbbell in each hand and with an incline bench in front of you.",
@@ -810,6 +969,9 @@
     "muscles": ["shoulders"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Adjust the handles so that they are fully to the rear. Make an appropriate weight selection and adjust the seat height so the handles are at shoulder level. Grasp the…",
@@ -825,6 +987,9 @@
     "muscles": ["shoulders", "traps"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Grasp a barbell with an overhand grip that is slightly less than shoulder width. The bar should be resting on the top of your thighs with your arms extended and a…",
@@ -840,6 +1005,9 @@
     "muscles": ["shoulders", "triceps"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 5,
+    "repMax": 10,
     "level": "expert",
     "cues": [
       "With your back to the wall bend at the waist and place both hands on the floor at shoulder width.",
@@ -855,6 +1023,9 @@
     "muscles": ["biceps", "forearms"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Stand up with your torso upright while holding a barbell at a shoulder-width grip. The palm of your hands should be facing forward and the elbows should be close to…",
@@ -870,6 +1041,9 @@
     "muscles": ["biceps"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Stand up straight while holding an EZ curl bar at the wide outer handle. The palms of your hands should be facing forward and slightly tilted inward due to the shape…",
@@ -885,6 +1059,9 @@
     "muscles": ["biceps", "forearms"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Stand up straight with a dumbbell in each hand at arm's length. Keep your elbows close to your torso and rotate the palms of your hands until they are facing forward.…",
@@ -900,6 +1077,9 @@
     "muscles": ["biceps", "forearms"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Stand (torso upright) with a dumbbell in each hand held at arms length. The elbows should be close to the torso and the palms of your hand should be facing your thighs.",
@@ -915,6 +1095,9 @@
     "muscles": ["biceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Stand up with your torso upright and a dumbbell on each hand being held at arms length. The elbows should be close to the torso.",
@@ -930,6 +1113,9 @@
     "muscles": ["biceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Sit back on an incline bench with a dumbbell in each hand held at arms length. Keep your elbows close to your torso and rotate the palms of your hands until they are…",
@@ -945,6 +1131,9 @@
     "muscles": ["biceps"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "To perform this movement you will need a preacher bench and an E-Z bar. Grab the E-Z curl bar at the close inner handle (either have someone hand you the bar which is…",
@@ -960,6 +1149,9 @@
     "muscles": ["biceps"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Sit down on the Preacher Curl Machine and select the weight.",
@@ -975,6 +1167,9 @@
     "muscles": ["biceps", "forearms"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Sit down on a flat bench with one dumbbell in front of you between your legs. Your legs should be spread with your knees bent and feet on the floor.",
@@ -990,6 +1185,9 @@
     "muscles": ["biceps"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Attach a rope attachment to a low pulley and stand facing the machine about 12 inches away from it.",
@@ -1005,6 +1203,9 @@
     "muscles": ["biceps"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Stand up with your torso upright while holding a cable curl bar that is attached to a low pulley. Grab the cable bar at shoulder width and keep the elbows close to…",
@@ -1020,6 +1221,9 @@
     "muscles": ["biceps"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Start out by setting the bar on the part of the preacher bench that you would normally sit on. Make sure to align the barbell properly so that it is balanced and will…",
@@ -1035,6 +1239,9 @@
     "muscles": ["biceps", "forearms"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "intermediate",
     "cues": [
       "Stand up with your torso upright and a dumbbell in each hand being held at arms length. The elbows should be close to the torso.",
@@ -1050,6 +1257,9 @@
     "muscles": ["biceps", "forearms"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Stand up with your torso upright while holding a barbell at shoulder width with the elbows close to the torso. The palm of your hands should be facing down (pronated…",
@@ -1065,6 +1275,9 @@
     "muscles": ["forearms"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 20,
     "level": "beginner",
     "cues": [
       "Start out by placing a barbell on one side of a flat bench.",
@@ -1080,6 +1293,9 @@
     "muscles": ["forearms"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 20,
     "level": "beginner",
     "cues": [
       "Start out by placing a barbell on one side of a flat bench.",
@@ -1095,6 +1311,9 @@
     "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Lie back on a flat bench. Using a close grip (around shoulder width), lift the bar from the rack and hold it straight over you with your arms locked. This will be…",
@@ -1110,6 +1329,9 @@
     "muscles": ["triceps", "forearms"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Using a close grip, lift the EZ bar and hold it with your elbows in as you lie on the bench. Your arms should be perpendicular to the floor. This will be your…",
@@ -1125,6 +1347,9 @@
     "muscles": ["triceps"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Attach a straight or angled bar to a high pulley and grab with an overhand grip (palms facing down) at shoulder width.",
@@ -1140,6 +1365,9 @@
     "muscles": ["triceps"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Attach a rope attachment to a high pulley and grab with a neutral grip (palms facing each other).",
@@ -1155,6 +1383,9 @@
     "muscles": ["triceps"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Attach a V-Bar to a high pulley and grab with an overhand grip (palms facing down) at shoulder width.",
@@ -1170,6 +1401,9 @@
     "muscles": ["triceps"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Attach a rope to the bottom pulley of the pulley machine.",
@@ -1185,6 +1419,9 @@
     "muscles": ["triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "To begin, stand up with a dumbbell held by both hands. Your feet should be about shoulder width apart from each other. Slowly use both hands to grab the dumbbell and…",
@@ -1200,6 +1437,9 @@
     "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "intermediate",
     "cues": [
       "Lie on a flat bench while holding two dumbbells directly in front of you. Your arms should be fully extended at a 90-degree angle from your torso and the floor. The…",
@@ -1215,6 +1455,9 @@
     "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 6,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "To get into the starting position, hold your body at arm's length with your arms nearly locked above the bars.",
@@ -1230,6 +1473,9 @@
     "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "For this exercise you will need to place a bench behind your back. With the bench perpendicular to your body, and while looking away from it, hold on to the bench on…",
@@ -1245,6 +1491,9 @@
     "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Sit securely in a dip machine, select the weight and firmly grasp the handles.",
@@ -1260,6 +1509,9 @@
     "muscles": ["triceps"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Start with a dumbbell in each hand and your palms facing your torso. Keep your back straight with a slight bend in the knees and bend forward at the waist. Your torso…",
@@ -1275,6 +1527,9 @@
     "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Start the exercise the same way you would a close grip bench press. You will lie on a flat bench while holding a barbell at arms length (fully extended) with the…",
@@ -1290,6 +1545,9 @@
     "muscles": ["triceps"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Adjust the seat to the appropriate height and make your weight selection. Place your upper arms against the pads and grasp the handles. This will be your starting…",
@@ -1305,6 +1563,9 @@
     "muscles": ["triceps", "chest", "shoulders"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 15,
     "level": "intermediate",
     "cues": [
       "Lie on the floor face down and place your hands closer than shoulder width for a close hand position. Make sure that you are holding your torso up at arms' length.",
@@ -1320,6 +1581,9 @@
     "muscles": ["quadriceps", "calves", "glutes", "hamstrings", "lower back"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 4,
+    "repMin": 5,
+    "repMax": 8,
     "level": "beginner",
     "cues": [
       "This exercise is best performed inside a squat rack for safety purposes. To begin, first set the bar on a rack to just below shoulder level. Once the correct height…",
@@ -1335,6 +1599,9 @@
     "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 5,
+    "repMax": 8,
     "level": "expert",
     "cues": [
       "This exercise is best performed inside a squat rack for safety purposes. To begin, first set the bar on a rack that best matches your height. Once the correct height…",
@@ -1350,6 +1617,9 @@
     "muscles": ["quadriceps", "calves", "forearms", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "intermediate",
     "cues": [
       "Stand up straight while holding a barbell behind you at arms length and your feet at shoulder width. Tip: A shoulder width grip is best with the palms of your hands…",
@@ -1366,6 +1636,9 @@
     "equipment": "machine",
     "plateLoaded": true,
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Place the back of your torso against the back pad of the machine and hook your shoulders under the shoulder pads provided.",
@@ -1382,6 +1655,9 @@
     "equipment": "machine",
     "plateLoaded": true,
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Using a leg press machine, sit down on the machine and place your legs on the platform directly in front of you at a medium (shoulder width) foot stance. (Note: For…",
@@ -1397,6 +1673,9 @@
     "muscles": ["quadriceps"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "For this exercise you will need to use a leg extension machine. First choose your weight and sit on the machine with your legs under the pad (feet pointed forward)…",
@@ -1412,6 +1691,9 @@
     "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "intermediate",
     "cues": [
       "This exercise is best performed inside a squat rack for safety purposes. To begin, first set the bar on a rack just below shoulder level. Once the correct height is…",
@@ -1427,6 +1709,9 @@
     "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Stand with your torso upright holding two dumbbells in your hands by your sides. This will be your starting position.",
@@ -1442,6 +1727,9 @@
     "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Begin standing with your feet shoulder width apart and a barbell across your upper back.",
@@ -1457,6 +1745,9 @@
     "muscles": ["quadriceps", "glutes", "hamstrings"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Position yourself into a staggered stance with the rear foot elevated and front foot forward.",
@@ -1472,6 +1763,9 @@
     "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "expert",
     "cues": [
       "Start by standing about 2 to 3 feet in front of a flat bench with your back facing the bench. Have a barbell in front of you on the floor. Tip: Your feet should be…",
@@ -1487,6 +1781,9 @@
     "muscles": ["quadriceps", "glutes", "hamstrings"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 20,
     "level": "beginner",
     "cues": [
       "Stand with your feet shoulder width apart. You can place your hands behind your head. This will be your starting position.",
@@ -1502,6 +1799,9 @@
     "muscles": ["quadriceps", "calves", "glutes", "hamstrings", "lower back"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Stand up straight while holding a dumbbell on each hand (palms facing the side of your legs).",
@@ -1517,6 +1817,9 @@
     "muscles": ["quadriceps", "calves", "glutes", "hamstrings", "quadriceps"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "intermediate",
     "cues": [
       "Stand up straight while holding a barbell placed on the back of your shoulders (slightly below the neck) and stand upright behind an elevated platform (such as the…",
@@ -1532,6 +1835,9 @@
     "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "intermediate",
     "cues": [
       "Stand up straight while holding a dumbbell on each hand (palms facing the side of your legs).",
@@ -1548,6 +1854,9 @@
     "equipment": "machine",
     "plateLoaded": true,
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "To begin, first set the bar on the height that best matches your height. Once the correct height is chosen and the bar is loaded, step under the bar and place the…",
@@ -1563,6 +1872,9 @@
     "muscles": ["quadriceps", "calves", "glutes", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "expert",
     "cues": [
       "Standing upright, with feet at shoulder width and toes raised, use one hand to hold onto the beams of a squat rack and the opposite arm to hold a plate on top of your…",
@@ -1578,6 +1890,9 @@
     "muscles": ["hamstrings", "calves", "glutes", "lower back"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "intermediate",
     "cues": [
       "Put a barbell in front of you on the ground and grab it using a pronated (palms facing down) grip that a little wider than shoulder width. Tip: Depending on the…",
@@ -1593,6 +1908,9 @@
     "muscles": ["hamstrings", "glutes", "lower back"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "intermediate",
     "cues": [
       "Grasp a bar using an overhand grip (palms facing down). You may need some wrist wraps if using a significant amount of weight.",
@@ -1608,6 +1926,9 @@
     "muscles": ["hamstrings", "glutes", "lower back"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "Grasp a couple of dumbbells holding them by your side at arm's length.",
@@ -1623,6 +1944,9 @@
     "muscles": ["hamstrings"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Adjust the machine lever to fit your height and lie face down on the leg curl machine with the pad of the lever on the back of your legs (just a few inches under the…",
@@ -1638,6 +1962,9 @@
     "muscles": ["hamstrings"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Adjust the machine lever to fit your height and sit on the machine with your back against the back support pad.",
@@ -1653,6 +1980,9 @@
     "muscles": ["hamstrings"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Adjust the machine lever to fit your height and lie with your torso bent at the waist facing forward around 30-45 degrees (since an angled position is more favorable…",
@@ -1668,6 +1998,9 @@
     "muscles": ["hamstrings", "calves", "glutes", "lower back"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 5,
+    "repMax": 8,
     "level": "intermediate",
     "cues": [
       "Using the leg pad of a lat pulldown machine or a preacher bench, position yourself so that your ankles are under the pads, knees on the seat, and you are facing away…",
@@ -1683,6 +2016,9 @@
     "muscles": ["lower back", "glutes", "hamstrings"],
     "equipment": "barbell",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "beginner",
     "cues": [
       "This exercise is best performed inside a squat rack for safety purposes. To begin, first set the bar on a rack that best matches your height. Once the correct height…",
@@ -1698,6 +2034,9 @@
     "muscles": ["hamstrings", "calves", "glutes"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "intermediate",
     "cues": [
       "Place your feet between the pads after loading an appropriate weight. Lay on the top pad, allowing your hips to hang off the back, while grasping the handles to hold…",
@@ -1713,6 +2052,9 @@
     "muscles": ["glutes", "hamstrings"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 20,
     "level": "beginner",
     "cues": [
       "Lie flat on the floor on your back with the hands by your side and your knees bent. Your feet should be placed around shoulder width. This will be your starting position.",
@@ -1728,6 +2070,9 @@
     "muscles": ["glutes", "hamstrings"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 20,
     "level": "beginner",
     "cues": [
       "Lay on the floor with your feet flat and knees bent.",
@@ -1743,6 +2088,9 @@
     "muscles": ["glutes", "hamstrings", "lower back"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Begin standing a few feet in front of a low pulley with a rope or handle attached. Face away from the machine, straddling the cable, with your feet set wide apart.",
@@ -1757,6 +2105,9 @@
     "muscles": ["calves"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 4,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Adjust the padded lever of the calf raise machine to fit your height.",
@@ -1772,6 +2123,9 @@
     "muscles": ["calves"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 4,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Sit on the machine and place your toes on the lower portion of the platform provided with the heels extending off. Choose the toe positioning of your choice (forward,…",
@@ -1788,6 +2142,9 @@
     "equipment": "machine",
     "plateLoaded": true,
     "loadType": "weight",
+    "sets": 4,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Using a leg press machine, sit down on the machine and place your legs on the platform directly in front of you at a medium (shoulder width) foot stance.",
@@ -1803,6 +2160,9 @@
     "muscles": ["calves"],
     "equipment": "dumbbell",
     "loadType": "weight",
+    "sets": 4,
+    "repMin": 12,
+    "repMax": 15,
     "level": "intermediate",
     "cues": [
       "Stand with your torso upright holding two dumbbells in your hands by your sides. Place the ball of the foot on a sturdy and stable wooden board (that is around 2-3…",
@@ -1819,6 +2179,9 @@
     "equipment": "machine",
     "plateLoaded": true,
     "loadType": "weight",
+    "sets": 4,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Place a block or weight plate below the bar on the Smith machine. Set the bar to a position that best matches your height. Once the correct height is chosen and the…",
@@ -1834,6 +2197,9 @@
     "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "time",
+    "sets": 3,
+    "repMin": 30,
+    "repMax": 45,
     "level": "beginner",
     "cues": [
       "Get into a prone position on the floor, supporting your weight on your toes and your forearms. Your arms are bent and directly below the shoulder.",
@@ -1848,6 +2214,9 @@
     "muscles": ["abdominals", "shoulders"],
     "equipment": "bodyweight",
     "loadType": "time",
+    "sets": 3,
+    "repMin": 30,
+    "repMax": 45,
     "level": "beginner",
     "cues": [
       "Lie on your side with your forearm under your shoulder and your feet stacked.",
@@ -1863,6 +2232,9 @@
     "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "expert",
     "cues": [
       "Hang from a chin-up bar with both arms extended at arms length in top of you using either a wide grip or a medium grip. The legs should be straight down with the…",
@@ -1878,6 +2250,9 @@
     "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Lie with your back flat on a bench and your legs extended in front of you off the end.",
@@ -1893,6 +2268,9 @@
     "muscles": ["abdominals"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Kneel below a high pulley that contains a rope attachment.",
@@ -1908,6 +2286,9 @@
     "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 20,
     "level": "beginner",
     "cues": [
       "Lie flat on your back with your feet flat on the ground, or resting on a bench with your knees bent at a 90 degree angle. If you are resting your feet on a bench,…",
@@ -1923,6 +2304,9 @@
     "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 20,
     "level": "beginner",
     "cues": [
       "Lie down on the floor with your legs fully extended and arms to the side of your torso with the palms on the floor. Your arms should be stationary for the entire…",
@@ -1938,6 +2322,9 @@
     "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "intermediate",
     "cues": [
       "Secure your legs at the end of the decline bench and lie down.",
@@ -1953,6 +2340,9 @@
     "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 20,
     "level": "beginner",
     "cues": [
       "Lie flat on the floor with your lower back pressed to the ground. For this exercise, you will need to put your hands beside your head. Be careful however to not…",
@@ -1968,6 +2358,9 @@
     "muscles": ["abdominals", "lower back"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 20,
     "level": "intermediate",
     "cues": [
       "Lie down on the floor placing your feet either under something that will not move or by having a partner hold them. Your legs should be bent at the knees.",
@@ -1983,6 +2376,9 @@
     "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Begin lying on your back with your hands extended above you toward the ceiling.",
@@ -1998,6 +2394,9 @@
     "muscles": ["abdominals"],
     "equipment": "bodyweight",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 20,
     "level": "beginner",
     "cues": [
       "Lie down on the floor placing your feet either under something that will not move or by having a partner hold them. Your legs should be bent at the knees.",
@@ -2013,6 +2412,9 @@
     "muscles": ["abdominals", "lower back", "shoulders"],
     "equipment": "barbell",
     "loadType": "bodyweight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
     "level": "intermediate",
     "cues": [
       "For this exercise you will need to get into a pushup position, but instead of having your hands of the floor, you will be grabbing on to an Olympic barbell (loaded…",
@@ -2028,6 +2430,9 @@
     "muscles": ["abdominals", "chest", "shoulders", "triceps"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Connect a standard handle to a tower, and—if possible—position the cable to shoulder height. If not, a low pulley will suffice.",
@@ -2043,6 +2448,9 @@
     "muscles": ["abdominals", "shoulders"],
     "equipment": "cable",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
     "level": "beginner",
     "cues": [
       "Connect a standard handle to a tower, and move the cable to the highest pulley position.",
@@ -2058,6 +2466,9 @@
     "muscles": ["abdominals"],
     "equipment": "machine",
     "loadType": "weight",
+    "sets": 3,
+    "repMin": 12,
+    "repMax": 15,
     "level": "intermediate",
     "cues": [
       "Select a light resistance and sit down on the ab machine placing your feet under the pads provided and grabbing the top handles. Your arms should be bent at a 90…",

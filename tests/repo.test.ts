@@ -182,7 +182,27 @@ suite('plan', () => {
     for (const { id } of full.days[0].exercises) {
       if (id !== 'barbell-shrug') await repo.removeExercise(U, 'pull-a', id)
     }
-    await expect(repo.removeExercise(U, 'pull-a', 'barbell-shrug')).rejects.toThrow(/at least one/)
+    // The last one can go too: the day then waits to be filled, and cannot be started.
+    const bare = await repo.removeExercise(U, 'pull-a', 'barbell-shrug')
+    expect(bare.days[0].exercises).toEqual([])
+    await expect(repo.startWorkout(U, 'pull-a')).rejects.toThrow(/no lifts yet/)
+  })
+
+  it('starts a split with empty days on request, in place of the plan it had, and the template stays whole', async () => {
+    await repo.applySplit(U, 'ul4')
+    await repo.updateExercise(U, 'upper-a', 'barbell-bench-press', { sets: 5 })
+    const empty = await repo.applySplit(U, 'ul4', { empty: true })
+    expect(empty.days.map((d) => d.id)).toEqual(['upper-a', 'lower-a', 'upper-b', 'lower-b'])
+    expect(empty.days.every((d) => d.exercises.length === 0)).toBe(true)
+    expect((await repo.getPlan(U)).days[0].exercises).toEqual([])
+    // Reset brings the template's lifts back; the template itself was never touched.
+    expect((await repo.resetPlan(U)).days[0].exercises[0].sets).toBe(4)
+    // A plan of your own can start empty too.
+    const own = await repo.createCustomPlan(U, ['push', 'pull'], { empty: true })
+    expect(own.days.map((d) => [d.name, d.exercises.length])).toEqual([
+      ['Push', 0],
+      ['Pull', 0],
+    ])
   })
 
   it('reorders a day and refuses an order that drops or repeats an exercise', async () => {
@@ -422,6 +442,110 @@ suite('workouts', () => {
     const w = await repo.startWorkout(U, 'legs-a')
     await repo.discardWorkout(U, w.id)
     expect(await repo.getActiveWorkout(U)).toBeNull()
+  })
+
+  it('swaps a lift for today only, in its place, with the new lift’s own range', async () => {
+    const w = await repo.startWorkout(U, 'legs-a')
+    const swapped = await repo.swapSessionExercise(U, w.id, 'leg-press', 'Hack Squat', false)
+    expect(swapped.entries.map((e) => e.exerciseId)).toEqual([
+      'barbell-squat',
+      'romanian-deadlift',
+      'hack-squat',
+      'leg-curl',
+      'seated-calf-raise',
+      'hanging-leg-raise',
+    ])
+    expect(swapped.entries[2]).toMatchObject({ name: 'Hack Squat', repMin: 8, repMax: 12, plateLoaded: true })
+    expect(swapped.entries[2].sets).toHaveLength(3)
+    // Today only: the plan still has the leg press.
+    const plan = await repo.getPlan(U)
+    expect(plan.days[2].exercises.map((e) => e.id)).toContain('leg-press')
+    expect((await repo.getActiveWorkout(U))?.entries[2].name).toBe('Hack Squat')
+  })
+
+  it('keeps the ticked sets of a swapped lift, and can put the swap on the plan too', async () => {
+    const w = await repo.startWorkout(U, 'legs-a')
+    await repo.saveEntrySets(U, w.id, 'leg-press', [
+      { weight: 100, reps: 12, done: true },
+      { done: false },
+      { done: false },
+    ])
+    const swapped = await repo.swapSessionExercise(U, w.id, 'leg-press', 'Hack Squat', true)
+    const names = swapped.entries.map((e) => e.name)
+    expect(names.slice(2, 4)).toEqual(['Leg Press', 'Hack Squat'])
+    expect(swapped.entries[2].sets).toEqual([{ weight: 100, reps: 12, done: true }])
+    expect(swapped.entries[3].sets).toHaveLength(2)
+    const plan = await repo.getPlan(U)
+    const legs = plan.days[2].exercises
+    expect(legs.map((e) => e.id)).not.toContain('leg-press')
+    expect(legs.find((e) => e.id === 'hack-squat')).toMatchObject({ sets: 3, repMin: 8, repMax: 12 })
+    expect(legs.find((e) => e.id === 'hack-squat')?.alternates).toContain('Leg Press')
+  })
+
+  it('never leaves two lifts with one id after a swap, and refuses a swap to the same lift', async () => {
+    const w = await repo.startWorkout(U, 'legs-a')
+    await repo.saveEntrySets(U, w.id, 'leg-press', [{ weight: 100, reps: 12, done: true }, { done: false }])
+    await expect(repo.swapSessionExercise(U, w.id, 'leg-press', 'Leg Press', false)).rejects.toThrow(
+      'Leg Press is the lift already',
+    )
+    // Hack Squat for the rest, then the hack squat is taken too: back to a leg press, beside the one kept.
+    await repo.swapSessionExercise(U, w.id, 'leg-press', 'Hack Squat', false)
+    const again = await repo.swapSessionExercise(U, w.id, 'hack-squat', 'Leg Press', false)
+    const ids = again.entries.map((e) => e.exerciseId)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(ids.filter((id) => id.startsWith('leg-press'))).toEqual(['leg-press', 'leg-press-2'])
+    // Each is its own line: sets saved on the new one never land on the kept one.
+    await repo.saveEntrySets(U, w.id, 'leg-press-2', [{ weight: 90, reps: 10, done: true }])
+    const active = must(await repo.getActiveWorkout(U), 'the session')
+    expect(active.entries.find((e) => e.exerciseId === 'leg-press')?.sets).toEqual([
+      { weight: 100, reps: 12, done: true },
+    ])
+    expect(active.entries.find((e) => e.exerciseId === 'leg-press-2')?.sets).toEqual([
+      { weight: 90, reps: 10, done: true },
+    ])
+  })
+
+  it('a session can lose every lift to "Plan and today" once its day is emptied, and cannot be started again', async () => {
+    const w = await repo.startWorkout(U, 'legs-a')
+    for (const e of w.entries) await repo.removeExercise(U, 'legs-a', e.exerciseId)
+    const { workout, kept } = await repo.syncSession(U)
+    expect(workout.entries).toEqual([])
+    expect(kept).toEqual([])
+    // Nothing ticked: finishing throws the empty session away; a new one cannot start on the empty day.
+    expect((await repo.finishWorkout(U, w.id)).finished).toBe(false)
+    await expect(repo.startWorkout(U, 'legs-a')).rejects.toThrow(/no lifts yet/)
+  })
+
+  it('pauses and resumes a session, and its minutes leave the pause out', async () => {
+    const w = await repo.startWorkout(U, 'pull-a')
+    const paused = await repo.pauseWorkout(U, w.id, true)
+    expect(paused.pausedAt).toBeDefined()
+    expect((await repo.getActiveWorkout(U))?.pausedAt).toBe(paused.pausedAt)
+    const resumed = await repo.pauseWorkout(U, w.id, false)
+    expect(resumed.pausedAt).toBeUndefined()
+    expect(resumed.pausedMs).toBeGreaterThanOrEqual(0)
+    expect((await repo.getActiveWorkout(U))?.pausedAt).toBeUndefined()
+    // Finished while paused: the pause closes with the session.
+    await repo.pauseWorkout(U, w.id, true)
+    await repo.saveEntrySets(U, w.id, 'pull-ups', [{ reps: 8, done: true }])
+    await repo.finishWorkout(U, w.id)
+    const [done] = await repo.listWorkouts(U)
+    expect(done.pausedAt).toBeUndefined()
+    expect(done.pausedMs).toBeGreaterThanOrEqual(0)
+  })
+
+  it('records a dismissed alert, keeps it out of Today, and prunes old dismissals', async () => {
+    // Pre-seed an old dismissal (over 90 days) alongside dismissing one now.
+    await repo.saveSettings(U, {
+      alertsDismissed: { 'week:ancient': new Date(Date.now() - 100 * 86_400_000).toISOString() },
+    })
+    await repo.dismissAlert(U, 'stall:barbell-row')
+    const settings = await repo.getSettings(U)
+    expect(settings.alertsDismissed?.['stall:barbell-row']).toBeDefined()
+    expect(settings.alertsDismissed?.['week:ancient']).toBeUndefined()
+    // A dismissed key never appears on Today; the dismissal survives in settings.
+    const today = await repo.getTodayData(U)
+    expect(today.alerts.some((a) => a.key === 'stall:barbell-row')).toBe(false)
   })
 
   it('stores the finish check-in', async () => {

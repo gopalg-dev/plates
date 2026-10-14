@@ -57,6 +57,31 @@ export function syncEntries(
   return { entries: [...synced, ...started], kept: started.map((e) => e.name) }
 }
 
+/**
+ * One lift of a session swapped for another, mid-session (the machine is taken): `fresh` is the new lift's entry,
+ * built as at the start of a session. With nothing ticked on the old lift, the new one takes its place. With sets
+ * ticked, those stay as the old lift, its unticked sets go, and the new lift follows it with the sets that were left
+ * (`fresh` is built with that many). Everything else stays where it was.
+ */
+export function swapEntries(entries: WorkoutEntry[], exerciseId: string, fresh: WorkoutEntry): WorkoutEntry[] {
+  const at = entries.findIndex((e) => e.exerciseId === exerciseId)
+  if (at < 0) throw new Error('Exercise not found')
+  const old = entries[at]
+  const ticked = old.sets.filter((s) => s.done).length
+  if (ticked === 0) return entries.map((e, i) => (i === at ? fresh : e))
+  const kept: WorkoutEntry = {
+    ...old,
+    sets: old.sets.filter((s) => s.done),
+    ...(old.suggested ? { suggested: old.suggested.filter((_, i) => old.sets[i]?.done) } : {}),
+  }
+  return [...entries.slice(0, at), kept, fresh, ...entries.slice(at + 1)]
+}
+
+/** The sets a swapped-in lift gets: what the old one had left, at least one. */
+export function setsLeft(entry: Pick<WorkoutEntry, 'sets'>): number {
+  return Math.max(1, entry.sets.filter((s) => !s.done).length)
+}
+
 /** The lifts of a day the session does not have yet: these need fresh entries built for them. */
 export function missingFrom(entries: WorkoutEntry[], day: Exercise[]): Exercise[] {
   const had = new Set(entries.map((e) => e.exerciseId))

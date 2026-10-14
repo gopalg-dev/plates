@@ -118,21 +118,23 @@ test('first run: create an account, then setup one question at a time', async ()
   await expect(page.getByText('1 of 5')).toBeVisible()
   await snap(page, '01-setup-units')
 
+  // Enter moves on from every step: on a toggle, a radio and a text field alike.
   await page.getByRole('radio', { name: 'Pounds' }).click()
   await page.getByRole('radio', { name: 'Kilograms' }).click()
-  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.keyboard.press('Enter')
 
   // The split: the default stays selected, the others are a tap away.
   await expect(page.getByRole('heading', { name: 'Which split?' })).toBeVisible()
   await expect(page.getByRole('radio', { name: /^Push \/ Pull \/ Legs 6 days/ })).toBeChecked()
   await expect(page.getByRole('radio', { name: /One muscle a day/ })).toBeVisible()
   await snap(page, '01b-setup-split')
-  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.getByRole('radio', { name: /^Push \/ Pull \/ Legs 6 days/ }).focus()
+  await page.keyboard.press('Enter')
 
   await expect(page.getByRole('heading', { name: 'What do you weigh today?' })).toBeVisible()
   await page.getByLabel('Bodyweight in kg', { exact: true }).fill('72')
   await snap(page, '02-setup-bodyweight')
-  await page.getByRole('button', { name: 'Continue' }).click()
+  await page.keyboard.press('Enter')
 
   await expect(page.getByRole('heading', { name: 'How long have you been lifting?' })).toBeVisible()
   await page.getByRole('radio', { name: /A year or more/ }).click()
@@ -165,6 +167,12 @@ test('logs a workout with the set logger', async () => {
   await page.getByRole('button', { name: 'Start Pull A' }).click()
   await expect(page.getByRole('heading', { name: 'Pull A' })).toBeVisible()
   await expect(page.getByText(/Started/)).toBeVisible()
+  // The clock counts from the start, and a pause stops it.
+  await expect(page.getByText(/^0 min/)).toBeVisible()
+  await page.getByRole('button', { name: 'Pause the session' }).click()
+  await expect(page.getByText(/^0 min, paused$/)).toBeVisible()
+  await page.getByRole('button', { name: 'Resume the session' }).click()
+  await expect(page.getByText(/^0 min$/)).toBeVisible()
 
   // Pull-ups open first. Log a set by reps only.
   await expect(page.getByRole('button', { name: /^Pull-ups/ })).toHaveAttribute('aria-expanded', 'true')
@@ -200,6 +208,19 @@ test('logs a workout with the set logger', async () => {
   await row.getByLabel('Set 2 reps', { exact: true }).fill('7')
   await row.getByRole('button', { name: 'Mark set 2 done' }).click()
   await expect(row.getByLabel('Set 2 weight', { exact: true })).toHaveValue('65')
+  await expect(page.getByText('3 of 20 sets done')).toBeVisible()
+
+  // The curl machine is taken: Hammer Curl swaps for a cable curl, today only, with the library's own range.
+  await page.getByRole('button', { name: /^Hammer Curl/ }).click()
+  await page.getByRole('button', { name: 'Swap Hammer Curl' }).click()
+  await expect(page.getByRole('dialog', { name: 'Swap Hammer Curl' })).toBeVisible()
+  await snap(page, '05d-swap-lift')
+  await page.getByLabel('Search the library').fill('cable curl')
+  await page.getByRole('button', { name: 'Use Cable Curl' }).click()
+  await expect(page.getByText('Cable Curl today')).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Cable Curl/ })).toHaveAttribute('aria-expanded', 'true')
+  await expect(page.getByRole('button', { name: /^Cable Curl/ })).toContainText('3 × 10-12')
+  await expect(page.getByRole('button', { name: /^Hammer Curl/ })).toHaveCount(0)
   await expect(page.getByText('3 of 20 sets done')).toBeVisible()
 
   await page.getByRole('button', { name: 'Finish workout' }).click()
@@ -814,6 +835,26 @@ test('settings change units, and start fresh wipes the data', async () => {
   await expect(page.getByText('Now on Upper / Lower')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Change split, on Upper / Lower' })).toBeVisible()
   await expect(page).toHaveURL(/\/settings$/)
+
+  // Each template names the program it follows. "Start with empty days" takes the split's days without its lifts:
+  // Today then offers the Plan instead of Start, and Reset on Plan brings the template's lifts back.
+  await page.getByRole('button', { name: 'Change split, on Upper / Lower' }).click()
+  await expect(page.getByText("Brandon Campbell's PHUL")).toBeVisible()
+  await page.getByRole('checkbox', { name: 'Start with empty days' }).click()
+  await snap(page, '17d-empty-days')
+  await page.getByRole('button', { name: 'Start with empty days' }).click()
+  await expect(page.getByText('Now on Upper / Lower, with empty days')).toBeVisible()
+  await open(page, '/')
+  await expect(page.getByText('No lifts yet.')).toBeVisible()
+  await expect(page.getByRole('button', { name: /^Start / })).toHaveCount(0)
+  await page.getByRole('link', { name: 'Add lifts on Plan' }).click()
+  await expect(page).toHaveURL(/\/plan$/)
+  await expect(page.getByText('0 exercises, 0 sets').first()).toBeVisible()
+  await page.getByRole('button', { name: 'Reset to the original plan' }).click()
+  await page.getByRole('button', { name: 'Reset', exact: true }).click()
+  await expect(page.getByText('Plan reset')).toBeVisible()
+  await expect(page.getByText('6 exercises, 20 sets').first()).toBeVisible()
+  await open(page, '/settings')
 
   // A plan of your own: pick the kind of each day, add one, build.
   await page.getByRole('button', { name: 'Change split, on Upper / Lower' }).click()

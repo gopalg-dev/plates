@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { missingFrom, syncEntries } from '#/lib/logic/session-sync'
+import { missingFrom, setsLeft, swapEntries, syncEntries } from '#/lib/logic/session-sync'
 import type { Exercise, LoggedSet, WorkoutEntry } from '#/lib/types'
 
 const ex = (id: string, sets = 3, extra: Partial<Exercise> = {}): Exercise => ({
@@ -61,6 +61,36 @@ describe('syncEntries', () => {
     const [row] = syncEntries(session, [ex('row', 2)], [], 'over1').entries
     expect(row.sets).toHaveLength(3)
     expect(row.sets[2]).toEqual(ticked)
+  })
+})
+
+describe('swapEntries', () => {
+  it('puts the new lift in the old one’s place when nothing of it is ticked', () => {
+    const session = [entry('row', blank(3)), entry('leg-press', blank(3)), entry('curl', blank(3))]
+    const fresh = entry('hack-squat', blank(3), { hint: 'new' })
+    const out = swapEntries(session, 'leg-press', fresh)
+    expect(out.map((e) => e.exerciseId)).toEqual(['row', 'hack-squat', 'curl'])
+    expect(out[1].hint).toBe('new')
+  })
+
+  it('keeps the ticked sets as the old lift and puts the new one right after it', () => {
+    const old = entry('leg-press', [ticked, ticked, ...blank(2)], {
+      suggested: [{ weight: 100 }, { weight: 100 }, { weight: 100 }, { weight: 100 }],
+    })
+    const out = swapEntries([entry('row', blank(3)), old], 'leg-press', entry('hack-squat', blank(2)))
+    expect(out.map((e) => e.exerciseId)).toEqual(['row', 'leg-press', 'hack-squat'])
+    expect(out[1].sets).toEqual([ticked, ticked])
+    expect(out[1].suggested).toHaveLength(2)
+    expect(out[2].sets).toHaveLength(2)
+  })
+
+  it('throws for a lift the session does not have', () => {
+    expect(() => swapEntries([entry('row', blank(3))], 'curl', entry('x', blank(1)))).toThrow('Exercise not found')
+  })
+
+  it('gives the new lift the sets that were left, at least one', () => {
+    expect(setsLeft(entry('leg-press', [ticked, ...blank(3)]))).toBe(3)
+    expect(setsLeft(entry('leg-press', [ticked, ticked]))).toBe(1)
   })
 })
 

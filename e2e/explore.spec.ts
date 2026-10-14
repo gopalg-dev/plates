@@ -323,10 +323,21 @@ test('Today warns about a flat scale and a lift that stopped moving', async () =
   await plantBenchSession(20, 60)
   await plantBenchSession(13, 60)
   await open('/')
-  await expect(page.getByText('Weight flat for 3 weeks.')).toBeVisible()
-  await expect(page.getByText('Eat less: aim for −0.25 kg a week.')).toBeVisible()
-  await expect(page.getByText('Barbell Bench Press has not moved in 4 weeks.')).toBeVisible()
+  // The alerts are a slideshow: every card is in the deck, with the stall leading and the rest a swipe away.
+  const deck = page.getByRole('region', { name: 'Needs a look' })
+  await expect(deck).toBeVisible()
+  const stall = 'Barbell Bench Press has not moved in 4 weeks.'
+  await expect(deck.getByText(stall)).toBeVisible()
+  await expect(deck.getByText('Weight flat for 3 weeks.')).toBeAttached()
+  await expect(deck.getByText('Eat less: aim for −0.25 kg a week.')).toBeAttached()
   await snap('10-alerts')
+  // The stall card leads; its action opens Plan. (More than one lift can be stuck, so take the first card's link.)
+  await expect(deck.getByRole('link', { name: 'Swap on Plan' }).first()).toHaveAttribute('href', /\/plan/)
+  // Dismissing it drops it, and it stays gone across a reload (the server remembers the key).
+  await deck.getByRole('button', { name: `Dismiss: ${stall}` }).click()
+  await expect(page.getByText(stall)).toHaveCount(0)
+  await open('/')
+  await expect(page.getByText(stall)).toHaveCount(0)
 })
 
 // ================================================================ the session editor and the calendar

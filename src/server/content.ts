@@ -1,4 +1,4 @@
-import { type Db, MongoBulkWriteError } from 'mongodb'
+import { type Collection, type Db, MongoBulkWriteError } from 'mongodb'
 import type { Content, SplitTemplate } from '#/lib/content'
 import { LIBRARY, type LibraryExercise } from '#/lib/library'
 import { BUNDLED_SPLITS } from '#/lib/splits'
@@ -19,9 +19,31 @@ type SplitDoc = Omit<SplitTemplate, 'id'> & { _id: string; updatedAt: string }
 export interface SeedReport {
   library: number
   splits: number
+  /** Library entries that were in the database without the fields a newer bundle added, now filled in. */
+  filled: number
 }
 
-/** Inserts the bundled content. With `reset`, replaces everything; otherwise only adds what is missing. */
+/**
+ * The usual sets and range came to the library after the first databases were seeded: an entry without them takes
+ * the bundle's. Only the missing fields are written, so edits made in the database stay.
+ */
+async function fillLibrary(library: Collection<LibraryDoc>): Promise<number> {
+  const res = await library.bulkWrite(
+    LIBRARY.map((ex) => ({
+      updateOne: {
+        filter: { _id: ex.id, sets: { $exists: false } },
+        update: { $set: { sets: ex.sets, repMin: ex.repMin, repMax: ex.repMax } },
+      },
+    })),
+    { ordered: false },
+  )
+  return res.modifiedCount
+}
+
+/**
+ * Inserts the bundled content. With `reset`, replaces everything; otherwise only adds what is missing, and fills in
+ * the fields a newer bundle added to entries already there.
+ */
 export async function seedContent(db: Db, { reset = false } = {}): Promise<SeedReport> {
   const library = db.collection<LibraryDoc>('library')
   const splits = db.collection<SplitDoc>('splits')
@@ -55,7 +77,8 @@ export async function seedContent(db: Db, { reset = false } = {}): Promise<SeedR
   }
   await insert(library, newLibrary)
   await insert(splits, newSplits)
-  return { library: newLibrary.length, splits: newSplits.length }
+  const filled = await fillLibrary(library)
+  return { library: newLibrary.length, splits: newSplits.length, filled }
 }
 
 const CACHE_MS = 60_000
@@ -72,11 +95,15 @@ export async function readContent(): Promise<Content> {
 
 async function readFresh(): Promise<Content> {
   const db = await getDb()
-  const [libraryCount, splitCount] = await Promise.all([
+  const [libraryCount, splitCount, unfilled] = await Promise.all([
     db.collection('library').countDocuments({}, { limit: 1 }),
     db.collection('splits').countDocuments({}, { limit: 1 }),
+    // Only the bundle's own entries can be filled in; one added to the database is its editor's to complete.
+    db
+      .collection<LibraryDoc>('library')
+      .countDocuments({ _id: { $in: LIBRARY.map((ex) => ex.id) }, sets: { $exists: false } }, { limit: 1 }),
   ])
-  if (libraryCount === 0 || splitCount === 0) await seedContent(db)
+  if (libraryCount === 0 || splitCount === 0 || unfilled > 0) await seedContent(db)
   const [libraryDocs, splitDocs] = await Promise.all([
     db.collection<LibraryDoc>('library').find().sort({ name: 1 }).toArray(),
     db.collection<SplitDoc>('splits').find().sort({ order: 1 }).toArray(),

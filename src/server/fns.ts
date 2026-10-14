@@ -114,6 +114,12 @@ export const dismissFeedbackFn = createServerFn({ method: 'POST' })
   .middleware([authed])
   .handler(({ context }) => repo.dismissFeedback(context.userId))
 
+/** Hides a Today alert by its key (see repo.dismissAlert). */
+export const dismissAlertFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(z.object({ key: z.string().min(1).max(120) }))
+  .handler(({ data, context }) => repo.dismissAlert(context.userId, data.key))
+
 const HTML_ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }
 
 function escapeHtml(s: string): string {
@@ -141,10 +147,11 @@ export const setDayWeekdayFn = createServerFn({ method: 'POST' })
   .handler(({ data, context }) => repo.setDayWeekday(context.userId, data.dayId, data.weekday))
 
 /** Starts the plan over from a split template and remembers the choice. Logged workouts stay. */
+/** `empty` starts the split as its days with no lifts, in place of whatever plan it had. */
 export const applySplitFn = createServerFn({ method: 'POST' })
   .middleware([authed])
-  .validator(z.object({ split: splitId }))
-  .handler(({ data, context }) => repo.applySplit(context.userId, data.split))
+  .validator(z.object({ split: splitId, empty: z.boolean().optional() }))
+  .handler(({ data, context }) => repo.applySplit(context.userId, data.split, { empty: data.empty }))
 
 // ---- plan ----
 
@@ -175,8 +182,8 @@ export const moveDayFn = createServerFn({ method: 'POST' })
 /** A plan of the user's own from a list of day types, in the custom slot. */
 export const createCustomPlanFn = createServerFn({ method: 'POST' })
   .middleware([authed])
-  .validator(z.object({ types: z.array(dayType).min(1).max(MAX_DAYS) }))
-  .handler(({ data, context }) => repo.createCustomPlan(context.userId, data.types))
+  .validator(z.object({ types: z.array(dayType).min(1).max(MAX_DAYS), empty: z.boolean().optional() }))
+  .handler(({ data, context }) => repo.createCustomPlan(context.userId, data.types, { empty: data.empty }))
 
 export const getPlanFn = createServerFn({ method: 'GET' })
   .middleware([authed])
@@ -293,6 +300,26 @@ export const acceptRampFn = createServerFn({ method: 'POST' })
   .middleware([authed])
   .validator(z.object({ workoutId: z.string().length(24), exerciseId: z.string().min(1) }))
   .handler(({ data, context }) => repo.acceptRamp(context.userId, data.workoutId, data.exerciseId))
+
+/** Swaps one lift of the session in progress for another, by name; `alsoPlan` swaps it on the plan day too. */
+export const swapSessionExerciseFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(
+    z.object({
+      workoutId: z.string().length(24),
+      exerciseId: z.string().min(1),
+      name: z.string().trim().min(1).max(80),
+      alsoPlan: z.boolean(),
+    }),
+  )
+  .handler(({ data, context }) =>
+    repo.swapSessionExercise(context.userId, data.workoutId, data.exerciseId, data.name, data.alsoPlan),
+  )
+
+export const pauseWorkoutFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(z.object({ workoutId: z.string().length(24), paused: z.boolean() }))
+  .handler(({ data, context }) => repo.pauseWorkout(context.userId, data.workoutId, data.paused))
 
 export const resetRampFn = createServerFn({ method: 'POST' })
   .middleware([authed])

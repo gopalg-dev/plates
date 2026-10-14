@@ -106,6 +106,8 @@ export interface Settings {
   keepAwake?: boolean
   /** Reminders waved away on Today: when, and how many times in a row since the thing was last logged. */
   nudges?: Partial<Record<NudgeKind, NudgeSnooze>>
+  /** Today alerts the user dismissed, by the alert's key to the moment it was waved away. Pruned after 90 days. */
+  alertsDismissed?: Record<string, string>
 }
 
 /** The two reminders on Today: the scale and the tape. */
@@ -159,6 +161,10 @@ export interface Workout {
   dayType: DayType
   startedAt: string
   finishedAt?: string
+  /** Set while the session is paused: when the pause began. See `lib/logic/session-time.ts`. */
+  pausedAt?: string
+  /** Time spent in earlier pauses, in milliseconds. */
+  pausedMs?: number
   status: WorkoutStatus
   entries: WorkoutEntry[]
   /** How it felt, picked at finish: 1 easy, 2 ok, 3 hard, 4 too much. */

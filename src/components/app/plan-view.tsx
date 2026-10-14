@@ -99,7 +99,8 @@ export function DaySection({
   const full = day.exercises.length >= MAX_EXERCISES_PER_DAY
   const sets = day.exercises.reduce((n, e) => n + plannedSetsFor(e.sets, settings.trainingAge), 0)
   const onWeekdays = schedule === 'weekday' && day.weekday !== undefined
-  const inDefault = defaultOrder.every((id, i) => day.exercises[i]?.id === id)
+  // Nothing to put in order on a day with no lifts.
+  const inDefault = day.exercises.length === 0 || defaultOrder.every((id, i) => day.exercises[i]?.id === id)
   return (
     <AccordionItem value={day.id}>
       <AccordionTrigger className="items-center gap-3 py-4 text-base font-normal hover:no-underline [&>svg]:size-5 [&>svg]:translate-y-0">

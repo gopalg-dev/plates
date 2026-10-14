@@ -47,7 +47,7 @@ const report = await seedContent(db, { reset: flag('reset') })
 console.log(
   flag('reset')
     ? `Reset content in "${dbName}" on ${host}: ${report.splits} splits, ${report.library} exercises`
-    : `Content in "${dbName}" on ${host}: added ${report.splits} splits and ${report.library} exercises the database lacked`,
+    : `Content in "${dbName}" on ${host}: added ${report.splits} splits and ${report.library} exercises the database lacked, filled in sets and range on ${report.filled}`,
 )
 
 // ---- demo account, only when asked, only into an empty database ----

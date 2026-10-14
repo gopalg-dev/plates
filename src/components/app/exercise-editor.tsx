@@ -16,11 +16,14 @@ import { Input } from '#/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import { Textarea } from '#/components/ui/textarea'
 import { errorMessage } from '#/lib/format'
+import { findLibraryByName, type LibraryExercise } from '#/lib/library'
 import { MUSCLE_BY_DAY } from '#/lib/logic/plan-sheet'
 import { MUSCLE_LABEL, MUSCLES, plannedSetsFor } from '#/lib/logic/stats'
 import type { Exercise, LoadType, Muscle, PlanDay, TrainingAge } from '#/lib/types'
+import { useContent } from '#/lib/use-content'
 import { EditorPanel, PanelFooter } from './editor-panel'
 import { ExerciseNameField } from './exercise-name-field'
+import { targetOf } from './exercise-row'
 import { LibraryPicker } from './library-list'
 import { NumberField } from './number-field'
 
@@ -93,6 +96,7 @@ interface FormProps {
 
 function EditorForm({ day, exercise, trainingAge, actions, onClose, onSaved }: FormProps) {
   const dayId = day.id
+  const { library } = useContent()
   const [name, setName] = useState(exercise?.name ?? '')
   const [sets, setSets] = useState<number | undefined>(exercise?.sets ?? 3)
   const [repMin, setRepMin] = useState<number | undefined>(exercise?.repMin ?? 8)
@@ -146,7 +150,8 @@ function EditorForm({ day, exercise, trainingAge, actions, onClose, onSaved }: F
     setBusy(true)
     try {
       await actions.swap(dayId, exercise.id, alt)
-      toast.success(`Switched to ${alt}`)
+      const known = findLibraryByName(library, alt)
+      toast.success(known ? `Switched to ${alt}, ${known.sets} × ${targetOf(known)}` : `Switched to ${alt}`)
       onSaved()
     } catch (err) {
       toast.error(errorMessage(err, 'Could not switch.'))
@@ -163,6 +168,15 @@ function EditorForm({ day, exercise, trainingAge, actions, onClose, onSaved }: F
 
   const unit = loadType === 'time' ? 'seconds' : 'reps'
 
+  /** A lift taken from the library brings its muscle, its type, and the sets and range it is usually done for. */
+  function takeFromLibrary(lib: LibraryExercise) {
+    setMuscle(lib.muscle)
+    setLoadType(lib.loadType)
+    setSets(lib.sets)
+    setRepMin(lib.repMin)
+    setRepMax(lib.repMax)
+  }
+
   return (
     <form id="exercise-form" onSubmit={save} className="flex flex-col pb-4 md:pb-0">
       <FieldGroup className="gap-6 px-4">
@@ -172,8 +186,7 @@ function EditorForm({ day, exercise, trainingAge, actions, onClose, onSaved }: F
             <LibraryPicker
               onPick={(lib) => {
                 setName(lib.name)
-                setMuscle(lib.muscle)
-                setLoadType(lib.loadType)
+                takeFromLibrary(lib)
               }}
             />
           </div>
@@ -181,10 +194,7 @@ function EditorForm({ day, exercise, trainingAge, actions, onClose, onSaved }: F
             id="ex-name"
             value={name}
             onChange={setName}
-            onPick={(lib) => {
-              setMuscle(lib.muscle)
-              setLoadType(lib.loadType)
-            }}
+            onPick={takeFromLibrary}
             placeholder="Barbell Bench Press"
             required
             maxLength={80}
@@ -338,19 +348,14 @@ function EditorForm({ day, exercise, trainingAge, actions, onClose, onSaved }: F
                 </DialogTitle>
                 <DialogDescription>
                   It leaves the plan from the next workout on. Sessions already logged keep it.
-                  {day.exercises.length <= 1 ? ' A day needs at least one exercise, so add another first.' : ''}
+                  {day.exercises.length <= 1 ? ` ${day.name} then has no lifts until you add one.` : ''}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>
                 <Button type="button" variant="ghost" onClick={() => setRemoveOpen(false)}>
                   Keep it
                 </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={remove}
-                  disabled={busy || day.exercises.length <= 1}
-                >
+                <Button type="button" variant="destructive" onClick={remove} disabled={busy}>
                   Remove
                 </Button>
               </DialogFooter>

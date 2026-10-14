@@ -17,13 +17,14 @@ import {
 import { errorMessage, shortDate } from '#/lib/format'
 import { EFFORT_LABEL, type Effort } from '#/lib/logic/effort'
 import type { Steps } from '#/lib/logic/progression'
+import { activeMinutes } from '#/lib/logic/session-time'
 import { effectiveSets } from '#/lib/logic/stats'
 import type { LoggedSet, Units, Workout, WorkoutEntry } from '#/lib/types'
 import { deleteWorkoutFn, updateWorkoutFn } from '#/server/fns'
 
 function minutesOf(w: Workout): number | null {
   if (!w.finishedAt) return null
-  const m = Math.round((new Date(w.finishedAt).getTime() - new Date(w.startedAt).getTime()) / 60_000)
+  const m = activeMinutes(w, new Date(w.finishedAt))
   return m > 0 && m < 300 ? m : null
 }
 

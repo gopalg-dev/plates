@@ -1,27 +1,15 @@
 import { createFileRoute, Link, useNavigate, useRouter } from '@tanstack/react-router'
-import {
-  ArrowLeftRight,
-  CalendarClock,
-  CalendarX,
-  ChevronRight,
-  FileChartColumn,
-  Flame,
-  MoreHorizontal,
-  Ruler,
-  Scale,
-  Trash2,
-  TrendingDown,
-  X,
-} from 'lucide-react'
+import { ArrowLeftRight, Flame, MoreHorizontal, Ruler, Scale, Trash2, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { AlertDeck } from '#/components/app/alert-deck'
 import { LogBodyweightDialog, LogMeasurementsDialog } from '#/components/app/body-dialogs'
 import { DayIcon } from '#/components/app/day-mark'
 import { targetOf } from '#/components/app/exercise-row'
 import { ExerciseThumb } from '#/components/app/exercise-thumb'
-import { SectionHeading } from '#/components/app/section-heading'
 import { DiscardDialog, FinishCheckIn, SummaryDialog } from '#/components/app/session-finish'
 import { SessionExercises, SessionFooter, SessionTitle, ZenButton } from '#/components/app/session-view'
+import { SwapLiftPanel } from '#/components/app/swap-lift'
 import { useSessionSets } from '#/components/app/use-session-sets'
 import { ZenMode } from '#/components/app/zen-mode'
 import { Button } from '#/components/ui/button'
@@ -48,6 +36,7 @@ import { errorMessage, relativeDay } from '#/lib/format'
 import { nudgeFor } from '#/lib/logic/nudges'
 import { stepsOf } from '#/lib/logic/progression'
 import { lastDoneAt, WEEKDAY_SHORT, weekdayOf, weekdayView } from '#/lib/logic/schedule'
+import type { Pause } from '#/lib/logic/session-time'
 import { plannedSetsFor, weeklyStreakOf } from '#/lib/logic/stats'
 import type { SessionSummary } from '#/lib/logic/summary'
 import { pageTitle } from '#/lib/page-title'
@@ -58,11 +47,14 @@ import { cn } from '#/lib/utils'
 import {
   acceptRampFn,
   discardWorkoutFn,
+  dismissAlertFn,
   dismissNudgeFn,
   finishWorkoutFn,
   getTodayFn,
+  pauseWorkoutFn,
   saveSetsFn,
   startWorkoutFn,
+  swapSessionExerciseFn,
 } from '#/server/fns'
 import type { TodayData } from '#/server/repo'
 
@@ -134,6 +126,13 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
   const nudge = nudgeFor(data.lastBodyweightAt, data.lastMeasurementAt, now, settings.nudges)
   // "Not now" hides the reminder at once; the server remembers it, and the next reload shows the next one, if any.
   const [waved, setWaved] = useState<NudgeKind | null>(null)
+  // Alerts dismissed this visit; the server hides them on the next load, this keeps them gone until then.
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
+  const shownAlerts = data.alerts.filter((a) => !dismissedAlerts.has(a.key))
+  const dismissAlert = (key: string) => {
+    setDismissedAlerts((prev) => new Set(prev).add(key))
+    dismissAlertFn({ data: { key } }).catch((err) => toast.error(errorMessage(err, 'Could not dismiss that.')))
+  }
   const wave = async (kind: NudgeKind) => {
     setWaved(kind)
     try {
@@ -195,7 +194,7 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
       </div>
       {day ? (
         <p className="mt-3 text-muted-foreground">
-          {day.exercises.length} exercises, {totalSets} sets
+          {day.exercises.length === 0 ? 'No lifts yet.' : `${day.exercises.length} exercises, ${totalSets} sets`}
         </p>
       ) : (
         <p className="mt-3 text-muted-foreground">
@@ -204,45 +203,7 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
         </p>
       )}
 
-      {data.alerts.length > 0 && (
-        <ul className="mt-5 flex flex-col gap-2">
-          {data.alerts.map((a) => {
-            const Icon =
-              a.kind === 'stall'
-                ? TrendingDown
-                : a.kind === 'week'
-                  ? CalendarClock
-                  : a.kind === 'review'
-                    ? FileChartColumn
-                    : Scale
-            const body = (
-              <>
-                <Icon className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
-                <p className="min-w-0 flex-1">
-                  <span className="font-medium">{a.title}</span>{' '}
-                  <span className="text-muted-foreground">{a.detail}</span>
-                </p>
-              </>
-            )
-            // An alert about another screen is a link to it, the whole row.
-            return (
-              <li key={a.kind + a.title}>
-                {a.to ? (
-                  <Link
-                    to={a.to}
-                    className="flex items-start gap-3 rounded-lg border px-3 py-2.5 hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {body}
-                    <ChevronRight className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden />
-                  </Link>
-                ) : (
-                  <div className="flex items-start gap-3 rounded-lg border px-3 py-2.5">{body}</div>
-                )}
-              </li>
-            )
-          })}
-        </ul>
-      )}
+      <AlertDeck alerts={shownAlerts} onDismiss={dismissAlert} />
 
       {nudge && nudge.kind !== waved && (
         <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border px-3 py-2.5">
@@ -268,29 +229,7 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
         </div>
       )}
 
-      {view && view.skipped.length > 0 && (
-        <section className="mt-7" aria-labelledby="skipped-h">
-          <SectionHeading id="skipped-h" icon={CalendarX}>
-            Skipped this week
-          </SectionHeading>
-          <ul className="mt-3 divide-y border-y">
-            {view.skipped.map((d) => (
-              <li key={d.id} className="flex items-center gap-3 py-2.5">
-                <DayIcon type={d.type} className="size-8 rounded-md" />
-                <span className="min-w-0 flex-1">
-                  <span className="block font-medium">{d.name}</span>
-                  <span className="block text-muted-foreground">{weekdayOf(d)}</span>
-                </span>
-                <Button variant="outline" size="sm" onClick={() => start(d.id)} disabled={starting !== null}>
-                  Do it now
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {day && (
+      {day && day.exercises.length > 0 && (
         <ItemGroup className="mt-8 border-y">
           {day.exercises.map((ex, i) => (
             <div key={ex.id}>
@@ -312,11 +251,17 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
       )}
 
       <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-center">
-        {day && (
-          <Button size="lg" className="h-12 text-base" onClick={() => start(day.id)} disabled={starting !== null}>
-            Start {day.name}
-          </Button>
-        )}
+        {/* A day with no lifts cannot start: it waits on Plan to be filled. */}
+        {day &&
+          (day.exercises.length === 0 ? (
+            <Button asChild variant="outline" size="lg" className="h-12 text-base">
+              <Link to="/plan">Add lifts on Plan</Link>
+            </Button>
+          ) : (
+            <Button size="lg" className="h-12 text-base" onClick={() => start(day.id)} disabled={starting !== null}>
+              Start {day.name}
+            </Button>
+          ))}
         <Drawer open={pickerOpen} onOpenChange={setPickerOpen}>
           <DrawerTrigger asChild>
             {day ? (
@@ -361,7 +306,7 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
                         size="sm"
                         aria-label={`Start ${d.name}`}
                         onClick={() => start(d.id)}
-                        disabled={starting !== null}
+                        disabled={starting !== null || d.exercises.length === 0}
                       >
                         Start
                       </Button>
@@ -397,6 +342,14 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
   const [changeOpen, setChangeOpen] = useState(false)
   const [discardOpen, setDiscardOpen] = useState(false)
   const [checkInOpen, setCheckInOpen] = useState(false)
+  /** The lift the swap panel is open for. */
+  const [swapId, setSwapId] = useState<string | null>(null)
+  const swapping = entries.find((e) => e.exerciseId === swapId)
+  /** The plan's line for the lift being swapped: its alternates, and whether the plan can take the swap too. */
+  const planLine = plan.days.find((d) => d.id === workout.dayId)?.exercises.find((e) => e.id === swapId)
+  /** The pause as the server last confirmed it; the title's clock reads it. */
+  const [pause, setPause] = useState<Pause>({ pausedAt: workout.pausedAt, pausedMs: workout.pausedMs })
+  const timed = { ...workout, ...pause }
   /** Zen mode: the screen holds one exercise at a time and nothing else. Lives in the URL. */
   const { zen = false } = Route.useSearch()
   const navigate = useNavigate()
@@ -440,6 +393,36 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
       toast.success(`${updated.name}: ${updated.sets.length} sets from now on`)
     } catch (err) {
       toast.error(errorMessage(err, 'Could not add the set.'))
+    }
+  }
+
+  /** Another lift takes the swapped one's place today; with `alsoPlan`, on the plan day as well. */
+  async function swapLift(name: string, alsoPlan: boolean) {
+    if (!swapId) return
+    setBusy(true)
+    try {
+      await flush()
+      const updated = await swapSessionExerciseFn({
+        data: { workoutId: workout.id, exerciseId: swapId, name, alsoPlan },
+      })
+      sets.setEntries(updated.entries)
+      const fresh = updated.entries.find((e) => e.name === name)
+      if (fresh) sets.setOpenId(fresh.exerciseId)
+      setSwapId(null)
+      toast.success(alsoPlan ? `${name} today and on the plan` : `${name} today`)
+      if (alsoPlan) onChanged()
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not swap.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function pauseSession(paused: boolean) {
+    try {
+      setPause(await pauseWorkoutFn({ data: { workoutId: workout.id, paused } }))
+    } catch (err) {
+      toast.error(errorMessage(err, paused ? 'Could not pause.' : 'Could not resume.'))
     }
   }
 
@@ -495,10 +478,12 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
   return (
     <div>
       <SessionTitle
-        workout={workout}
+        workout={timed}
+        onPause={pauseSession}
         actions={
           <>
-            <ZenButton onClick={() => setZen(true)} />
+            {/* A session can lose every lift to "Plan and today" after the day was emptied: nothing for Zen then. */}
+            <ZenButton onClick={() => setZen(true)} disabled={entries.length === 0} />
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 {/* The trigger swaps the button's data-slot, so the touch-size rule in styles.css misses it:
@@ -560,7 +545,7 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
                       size="sm"
                       aria-label={`Switch to ${d.name}`}
                       onClick={() => switchTo(d.id)}
-                      disabled={busy}
+                      disabled={busy || d.exercises.length === 0}
                     >
                       Switch
                     </Button>
@@ -578,7 +563,21 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
         onDiscard={discard}
       />
 
-      <SessionExercises sets={sets} units={settings.units} steps={stepsOf(settings)} onRamp={rampUp} />
+      <SessionExercises
+        sets={sets}
+        units={settings.units}
+        steps={stepsOf(settings)}
+        onRamp={rampUp}
+        onSwap={setSwapId}
+      />
+      <SwapLiftPanel
+        entry={swapping ?? null}
+        alternates={(planLine?.alternates ?? []).filter((a) => a !== swapping?.name)}
+        onPlan={planLine !== undefined}
+        busy={busy}
+        onClose={() => setSwapId(null)}
+        onPick={swapLift}
+      />
 
       {/* Above the tab bar on phones, at the foot of the window from 768px. */}
       <SessionFooter
@@ -597,9 +596,9 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
         onFinish={finishNow}
       />
 
-      {zen && (
+      {zen && entries.length > 0 && (
         <ZenMode
-          workout={workout}
+          workout={timed}
           entries={entries}
           current={sets.openId}
           units={settings.units}
@@ -613,6 +612,8 @@ function ActiveWorkout({ workout, settings, plan, onChanged, onSummary }: Active
           onAddSet={sets.addSet}
           onRemoveSet={sets.removeSet}
           onRamp={rampUp}
+          onSwap={setSwapId}
+          onPause={pauseSession}
           onFinish={onFinishClick}
           onExit={() => setZen(false)}
         />

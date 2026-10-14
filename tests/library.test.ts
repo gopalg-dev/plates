@@ -13,7 +13,20 @@ describe('exercise library', () => {
       expect(['weight', 'bodyweight', 'time']).toContain(ex.loadType)
       expect(ex.cues.length).toBeGreaterThanOrEqual(1)
       expect(ex.image).toMatch(/\.jpg$/)
+      // The usual sets and range: a swap, a pick and a new exercise start from them.
+      expect(ex.sets).toBeGreaterThanOrEqual(1)
+      expect(ex.sets).toBeLessThanOrEqual(5)
+      expect(ex.repMin).toBeGreaterThanOrEqual(1)
+      expect(ex.repMax).toBeGreaterThanOrEqual(ex.repMin)
+      // Holds count seconds; everything else stays in a rep range a set can be done for.
+      if (ex.loadType === 'time') expect(ex.repMin).toBeGreaterThanOrEqual(20)
+      else expect(ex.repMax).toBeLessThanOrEqual(20)
     }
+    // Heavy barbell lifts low, machines in the middle, small lifts high.
+    expect(findLibrary(LIBRARY, 'barbell-squat')).toMatchObject({ sets: 4, repMin: 5, repMax: 8 })
+    expect(findLibrary(LIBRARY, 'hack-squat')).toMatchObject({ sets: 3, repMin: 8, repMax: 12 })
+    expect(findLibrary(LIBRARY, 'lateral-raise')).toMatchObject({ sets: 3, repMin: 12, repMax: 15 })
+    expect(findLibrary(LIBRARY, 'plank')).toMatchObject({ sets: 3, repMin: 30, repMax: 45 })
     expect(imageUrl({ image: 'Barbell_Squat/0.jpg' })).toBe(
       'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Squat/0.jpg',
     )

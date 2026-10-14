@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { MUSCLES } from '#/lib/logic/stats'
-import { buildSplit, DEFAULT_SPLIT, SPLITS, splitInfo } from '#/lib/splits'
+import { buildSplit, DEFAULT_SPLIT, SPLITS, splitInfo, splitSource } from '#/lib/splits'
 import { DAY_TYPES, MAX_EXERCISES_PER_DAY, SPLIT_IDS } from '#/lib/types'
 
 describe('split templates', () => {
@@ -28,6 +28,12 @@ describe('split templates', () => {
         expect(e.repMax).toBeGreaterThanOrEqual(e.repMin)
       }
     }
+  })
+
+  it('names the program every template follows', () => {
+    for (const s of SPLITS) expect(splitSource(s.id), s.id).toBeTruthy()
+    expect(splitSource('phul4')).toBe("Brandon Campbell's PHUL")
+    expect(splitSource('made-up')).toBeUndefined()
   })
 
   it('hands out fresh copies', () => {

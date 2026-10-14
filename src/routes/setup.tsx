@@ -75,6 +75,8 @@ function SetupPage() {
   const [units, setUnits] = useState<Units>(initial.units)
   const [split, setSplit] = useState<SplitId>(initial.split === OWN_SPLIT ? OWN_SPLIT : templateOf(initial.split))
   const [ownDays, setOwnDays] = useState<DayType[]>(DEFAULT_OWN_DAYS)
+  /** Start the split as its days with no lifts, to fill in on Plan. */
+  const [empty, setEmpty] = useState(false)
   const [bodyweight, setBodyweight] = useState<number | undefined>(initial.bodyweight)
   const [goal, setGoal] = useState<Goal>(initial.goal ?? 'gain')
   const [trainingAge, setTrainingAge] = useState<TrainingAge>(initial.trainingAge)
@@ -87,8 +89,8 @@ function SetupPage() {
   // accounts existed has no split recorded but is on the default. A custom plan matches no template.
   const currentSplit: SplitId | undefined =
     initial.split === OWN_SPLIT ? undefined : (initial.split ?? (initial.setupDone ? DEFAULT_SPLIT : undefined))
-  // "Your own" always builds a fresh plan, over whatever the custom slot held.
-  const switching = initial.setupDone && (split !== currentSplit || split === OWN_SPLIT)
+  // "Your own" always builds a fresh plan, over whatever the custom slot held; so do empty days on any split.
+  const switching = initial.setupDone && (split !== currentSplit || split === OWN_SPLIT || empty)
 
   async function finish() {
     setSaving(true)
@@ -103,9 +105,10 @@ function SetupPage() {
           ...(bodyweight ? { bodyweight } : {}),
         },
       })
-      // Another split shows its own plan: as left earlier, or fresh from the template. The same split changes nothing.
-      if (split === OWN_SPLIT) await createCustomPlanFn({ data: { types: ownDays } })
-      else if (split !== currentSplit) await applySplitFn({ data: { split } })
+      // Another split shows its own plan: as left earlier, or fresh from the template. The same split changes
+      // nothing, unless empty days were asked for.
+      if (split === OWN_SPLIT) await createCustomPlanFn({ data: { types: ownDays, empty } })
+      else if (split !== currentSplit || empty) await applySplitFn({ data: { split, empty } })
       // The first setup records the answer to "What do you weigh today?" as today's weigh-in. A later run
       // only logs when the number was changed, so re-running setup does not invent a weigh-in.
       if (bodyweight && (!initial.setupDone || bodyweight !== initial.bodyweight)) {
@@ -138,6 +141,17 @@ function SetupPage() {
           e.preventDefault()
           next()
         }}
+        // Enter moves on from every step. A text field submits the form on its own; a choice control (a toggle,
+        // a radio, a tick) is a button, and Enter on a button only clicks it, so those are caught here. Other
+        // buttons (Back, a dropdown, a stepper) keep their own Enter.
+        onKeyDown={(e) => {
+          if (e.key !== 'Enter' || saving) return
+          const target = e.target as HTMLElement
+          const choice = target.closest('[role="radio"], [role="checkbox"], [data-slot="toggle-group-item"]')
+          if (!choice) return
+          e.preventDefault()
+          next()
+        }}
       >
         <div className="flex-1 pt-10">
           {step === 0 && (
@@ -164,8 +178,10 @@ function SetupPage() {
           {step === SPLIT_STEP && (
             <section>
               <h1 className="font-condensed text-3xl font-semibold leading-tight">Which split?</h1>
-              <p className="mt-2 text-muted-foreground">
-                How the week is cut up. Every template is yours to edit afterwards, exercise by exercise.
+              <p className="mt-2 text-muted-foreground">How the week is cut up.</p>
+              <p className="mt-3 font-medium">
+                Each template's lifts follow a well-known program, named under it. Every lift is yours to edit
+                afterwards.
               </p>
               <SplitPicker
                 splits={content.splits}
@@ -173,13 +189,17 @@ function SetupPage() {
                 onChange={setSplit}
                 ownDays={ownDays}
                 onOwnDaysChange={setOwnDays}
+                empty={empty}
+                onEmptyChange={setEmpty}
                 className="mt-8"
               />
               {switching && (
                 <p className="mt-4 rounded-lg border px-3 py-2">
-                  {split === OWN_SPLIT
-                    ? 'Replaces the plan of your own you have now. Templates keep theirs.'
-                    : 'Each split keeps its own plan. Coming back to one finds it as you left it.'}
+                  {empty
+                    ? 'Replaces the plan this split has now with empty days.'
+                    : split === OWN_SPLIT
+                      ? 'Replaces the plan of your own you have now. Templates keep theirs.'
+                      : 'Each split keeps its own plan. Coming back to one finds it as you left it.'}
                 </p>
               )}
             </section>

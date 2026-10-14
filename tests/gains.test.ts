@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { bodyweightAlert, stallAlerts, weekAlert } from '#/lib/logic/alerts'
+import { type Alert, bodyweightAlert, shownAlerts, stallAlerts } from '#/lib/logic/alerts'
 import { paceNote } from '#/lib/logic/goal'
 import { type PastEntry, suggestNext } from '#/lib/logic/progression'
 import { plannedPerWeek, summarize } from '#/lib/logic/summary'
@@ -87,8 +87,10 @@ describe('alerts', () => {
     expect(stallAlerts(ws, now)).toEqual([
       {
         kind: 'stall',
+        key: 'stall:bench',
         title: 'bench has not moved in 4 weeks.',
         detail: 'Swap it for an alternate on Plan, or take a lighter week on it.',
+        to: '/plan',
       },
     ])
     // Beating the older best, or too few sessions, is not a stall; a lift with no older history cannot stall.
@@ -100,18 +102,15 @@ describe('alerts', () => {
     expect(stallAlerts(longer, now)).toEqual([])
   })
 
-  it('warns when the sessions left are as many as the days left in the week', () => {
-    // Sunday: one day left.
-    expect(weekAlert(3, 4, now)).toEqual({
-      kind: 'week',
-      title: '1 session left this week.',
-      detail: 'Today is the last day.',
-    })
-    expect(weekAlert(4, 4, now)).toBeNull()
-    // Thursday: four days left, three sessions to go is fine, four is not.
-    const thursday = new Date('2026-10-08T18:00:00')
-    expect(weekAlert(0, 3, thursday)).toBeNull()
-    expect(weekAlert(0, 4, thursday)).toMatchObject({ title: '4 sessions left this week.', detail: '4 days to go.' })
+  it('hides an alert whose key the user has dismissed, and leaves the rest', () => {
+    const a = (key: string): Alert => ({ kind: 'stall', key, title: key, detail: '', to: '/plan' })
+    const list = [a('stall:bench'), a('stall:row'), a('weight:2026-10-05')]
+    expect(shownAlerts(list, undefined)).toHaveLength(3)
+    expect(shownAlerts(list, {}).map((x) => x.key)).toEqual(['stall:bench', 'stall:row', 'weight:2026-10-05'])
+    expect(shownAlerts(list, { 'stall:row': '2026-10-11T00:00:00Z' }).map((x) => x.key)).toEqual([
+      'stall:bench',
+      'weight:2026-10-05',
+    ])
   })
 
   it('says the scale is flat after three weeks against a gain or a cut', () => {
@@ -124,6 +123,7 @@ describe('alerts', () => {
       kind: 'weight',
       title: 'Weight flat for 3 weeks.',
     })
+    expect(bodyweightAlert(flat, 'gain', 'kg', now)).toMatchObject({ key: 'weight:2026-10-05', to: '/stats?tab=body' })
     expect(bodyweightAlert(flat, 'gain', 'kg', now)?.detail).toBe('Eat more: aim for +0.25 kg a week.')
     expect(bodyweightAlert(flat, 'cut', 'kg', now)?.detail).toBe('Eat less: aim for −0.25 kg a week.')
     expect(bodyweightAlert(flat, 'hold', 'kg', now)).toBeNull()

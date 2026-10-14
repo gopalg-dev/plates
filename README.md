@@ -14,11 +14,20 @@ Four screens, one job each:
   weight moves up sooner, a "+1 set to plan" offer on a lift trained often, completed and felt fine
   (one set a week, up to 6 a lift and 20 a muscle a week; the deload card drops them again), and
   Finish with a one-tap effort check-in followed by what the session did:
-  every lift's best set, new bests, the week's count. Lifts that stopped moving, a week running out and a
-  scale that is not moving show up here as one-line alerts. The header's menu switches the day or discards the session.
+  every lift's best set, new bests, the week's count. Lifts that stopped moving, a scale that is not moving and
+  a finished week's report show up here as a card deck: one card at a time, swipe or arrow between them, each
+  with its own action (see the report, go to Plan, see your weight) and a dismiss that is remembered. The
+  header's menu switches the day or discards the session.
+  The title counts the minutes since the start, with a pause button whose time stays out of the session's minutes.
+  Swap under a lift's sets puts another lift in its place for today (an alternate or any library lift, with its
+  own targets and range; ticked sets stay), or on the plan too when ticked.
 - **Plan**: the days of your split, each exercise with its picture. Edit an exercise, swap in an
-  alternate, add or remove exercises (ten per day at most), add a day of any kind (it starts with
-  five lifts), rename, reorder or remove days, or bring your own plan from an Excel template.
+  alternate, add or remove exercises (ten per day at most, down to none), add a day of any kind (it starts with
+  five lifts), rename, reorder or remove days, or bring your own plan from an Excel template. Every split's
+  lifts follow a well-known program, named under it in the picker (the Reddit PPL, Nippard's PPL + Upper / Lower,
+  Campbell's PHUL, the classic Upper / Lower, full-body and bodybuilding splits, Arnold's); "Start with empty
+  days" gives the split's days with no lifts, to fill in yourself. A day with no lifts offers "Add lifts on Plan"
+  on Today instead of Start.
 - **Stats**, in three tabs. Lifts: chips sort the lifts by trend (climbing, stuck, slipping, idle, new);
   pick a lift and see it week by week, the latest best set, a
   chart of each week's best set, a table reading "this week 62.5 kg × 7, last week 60 kg × 8,
@@ -38,8 +47,10 @@ Four screens, one job each:
   for two days after a week or month ends. Share draws the week as a 1080 × 1350 PNG in any of the
   looks: the days, the sessions, and a highlight the lifter picks: a new best, how many, the streak, every session
   done, or nothing (the share sheet on phones, a download elsewhere); bodyweight only when ticked.
-- **Library**: 137 exercises with a picture, muscles, equipment and cues, searchable and
-  filterable. "Pick from library" fills an exercise in from the plan editor or the import preview.
+- **Library**: 137 exercises with a picture, muscles, equipment, cues, and the sets and range each is usually
+  done for (heavy barbell lifts 5-8, machine and dumbbell work 8-12, small lifts 12-15, holds in seconds),
+  searchable and filterable. "Pick from library" fills an exercise in, numbers included, from the plan editor
+  or the import preview; a swap to a library lift takes its numbers too.
   The picture on any exercise row (Plan, Today, a session) opens the same view in place, through
   `?exercise=<id>` in the URL, so a reload or a shared link opens it too.
 - **Settings**: units, the gym's smallest steps for bar plates, dumbbells and the machine stack, or one for all (a barbell steps by two plates), training age, bodyweight goal, progression, whether the screen stays on during
@@ -52,7 +63,7 @@ First run asks five questions, one per screen: units, which split (nine template
 Push / Pull / Legs to Full body and the Arnold split, or your own: a kind for each of two to six days), bodyweight, training age, and how the weight
 should go up (reps then weight, weight every session, or the last set to as many reps as you can
 setting the next load). Days can run in a
-rolling order or sit on fixed weekdays, with Today showing a rest day or anything skipped this week.
+rolling order or sit on fixed weekdays, with Today showing today's day or a rest day.
 
 ## Stack
 
@@ -90,6 +101,8 @@ bun run db:seed -- --reset      # replaces both collections with the bundle
 bun run db:repair               # lists exercises whose load type disagrees with the library; --yes applies
 bun run db:simulate -- matrix   # two years of a beginner through the real server code, every split × method
 bun run db:simulate -- seed     # the same two years for a new sim@example.com account in the dev database, to look at
+                                # --empty starts the split with empty days and fills them from the library by hand;
+                                # --swaps has machines taken mid-session (swaps for today or for good) and pauses
 bun scripts/day.ts              # one day at a time for day@example.com in the database .env points at: sessions as the
                                 # simulated lifter logs them, to watch Today, Stats and the Report change day by day
 bun run db:seed -- --demo       # also a demo account with eight weeks of logs; empty database only

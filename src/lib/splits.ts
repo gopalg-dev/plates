@@ -43,6 +43,28 @@ export function splitInfo(id: SplitId): SplitInfo {
   return SPLITS.find((s) => s.id === id) ?? SPLITS[0]
 }
 
+/**
+ * The well-known program each template follows, shown under it in the picker. The lifts are not random: each
+ * template keeps its program's shape, with every muscle twice a week on four days or more and 10 to 20 hard sets
+ * a week on the big muscles, which is where the research on muscle growth points.
+ */
+export const SPLIT_SOURCES: Record<string, string> = {
+  ppl6: 'After the Reddit PPL',
+  ppl3: 'The Reddit PPL, each day once a week',
+  pplul5: "After Jeff Nippard's PPL + Upper / Lower",
+  ul4: 'The classic four-day Upper / Lower',
+  phul4: "Brandon Campbell's PHUL",
+  ulf3: 'Upper / Lower with a full-body catch-up day',
+  full3: 'The classic three-day full body',
+  bro5: 'The classic five-day bodybuilding split',
+  arnold6: "Arnold Schwarzenegger's split",
+}
+
+/** The program a template follows, for the picker. A template added to the database may have none. */
+export function splitSource(id: SplitId): string | undefined {
+  return SPLIT_SOURCES[id]
+}
+
 function day(id: string, name: string, type: DayType, exercises: Exercise[]): PlanDay {
   return { id, name, type, exercises }
 }
@@ -148,7 +170,7 @@ const TEMPLATES: Record<(typeof SPLITS)[number]['id'], () => PlanDay[]> = {
     day('power-lower', 'Power lower', 'lower', [
       ex('Barbell Squat', 3, 3, 5, 'quads'),
       ex('Conventional Deadlift', 3, 3, 5, 'hamstrings', { note: 'Use straps.' }),
-      ex('Leg Press', 3, 6, 10, 'quads'),
+      ex('Leg Press', 3, 10, 15, 'quads'),
       ex('Leg Curl', 3, 6, 10, 'hamstrings'),
       ex('Seated Calf Raise', 4, 6, 10, 'calves'),
     ]),

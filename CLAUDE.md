@@ -6,6 +6,12 @@ A rule that needs more than a few lines of detail keeps that detail in its own f
 `docs/agents/`, and the rule names the file as a plain path, so it is read only when the rule applies.
 Never `@`-import those files here: an import loads them into every session.
 
+## What the app does
+
+The app shows: stats, reports, targets and the plan. It never pushes the user toward a decision. No
+streak guilt, no "sessions left", no "skipped this week", no "do it now". Surface the information and
+let the user act on their own free will; every decision and customization is theirs alone.
+
 ## Components
 
 - Need a new piece of UI? First look for a shadcn component that does the job: the ones in

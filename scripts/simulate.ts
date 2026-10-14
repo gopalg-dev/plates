@@ -8,7 +8,11 @@
  *   bun run db:simulate -- seed [split] [method] [days] [--email …]  two years for a new account in the dev database
  *
  * Any of them takes the gym's smallest steps in kg, as Settings holds them: --plate 5 --dumbbell 2 --stack 5,
- * or --same 5 for one value everywhere. Unset is the app's defaults.
+ * or --same 5 for one value everywhere. Unset is the app's defaults. Two more stories, on top of any run:
+ *   --empty   the split is started with empty days and the lifter fills each day from the library by hand, so
+ *             every lift carries the library's own sets and range rather than the template's
+ *   --swaps   now and then a machine is taken: the lift is swapped mid-session, for today or for good, sometimes
+ *             after a set is already done; and some sessions are paused for five minutes
  *
  * Needs the local MongoDB (bun run db:up). Uses its own database, workout_plan_v3_sim, and drops it first.
  * Results land beside this file: scripts/sim-results.json or scripts/sim-run-<split>-<method>.json.
@@ -18,11 +22,14 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { hashPassword } from 'better-auth/crypto'
 import { MongoClient, ObjectId } from 'mongodb'
+import { DAY_BLOCKS } from '../src/lib/day-blocks'
+import { findLibraryByName, LIBRARY, nameKey } from '../src/lib/library'
 import { deloadHint } from '../src/lib/logic/effort'
 import { incrementFor, stepsOf } from '../src/lib/logic/progression'
+import { activeMinutes } from '../src/lib/logic/session-time'
 import { attachBodyweight, epley, weeklyStrength } from '../src/lib/logic/stats'
 import { liftTrend } from '../src/lib/logic/trend'
-import type { LoggedSet, Progression, Settings } from '../src/lib/types'
+import type { LoggedSet, Progression, Settings, WorkoutEntry } from '../src/lib/types'
 import * as repo from '../src/server/repo'
 import { grown, repsAllowed, startCapacity } from './lifter'
 
@@ -70,6 +77,8 @@ interface EntryLog {
   rampOffer: boolean
   ramped: boolean
   planSets: number
+  /** The top of the lift's range: the app only steps the weight up once a set reaches it. */
+  repMax: number
   /** What the app steps this lift by; weight lifts only. */
   step?: number
 }
@@ -91,11 +100,30 @@ interface RunResult {
   trends: { day: number; lift: string; trend: string }[]
   anomalies: string[]
   months: { day: number; lifts: Record<string, { w: number; reps: number; e1rm: number; sets: number }> }[]
+  /** The machine-taken story: every swap made, and every paused session. */
+  swaps: { day: number; from: string; to: string; forGood: boolean; afterASet: boolean }[]
+  pauses: number
+  /**
+   * Honest training observations that are not data bugs: a light lift plateauing because its smallest step is a big
+   * relative jump, a bodyweight lift stuck under its range. The data is right; the lifter is just stuck.
+   */
+  notes: string[]
 }
 
 let UID = 'sim-user'
 /** The gym's smallest steps, from the command line; empty is the app's defaults. */
 let gym: Pick<Settings, 'plate' | 'dumbbellStep' | 'stackStep' | 'sameStep'> = {}
+/** The two stories: a split started empty and filled by hand; machines taken and sessions paused. */
+let story = { empty: false, swaps: false }
+
+/** A lift to swap to: the plan line's first alternate, else a library lift of the same muscle and kind. */
+function swapTarget(entry: WorkoutEntry, alternates: string[] | undefined): string | undefined {
+  const other = (name: string) => nameKey(name) !== nameKey(entry.name)
+  const alt = alternates?.find(other)
+  if (alt) return alt
+  const pool = LIBRARY.filter((ex) => ex.muscle === entry.muscle && ex.loadType === entry.loadType && other(ex.name))
+  return pool.length ? pool[Math.floor(rnd() * pool.length)].name : undefined
+}
 
 async function run(
   split: string,
@@ -130,6 +158,9 @@ async function run(
     trends: [],
     anomalies: [],
     months: [],
+    swaps: [],
+    pauses: 0,
+    notes: [],
   }
   await repo.saveSettings(UID, {
     units: 'kg',
@@ -140,8 +171,36 @@ async function run(
     progression,
     ...gym,
   })
-  await repo.applySplit(UID, split)
+  await repo.applySplit(UID, split, { empty: story.empty })
+  if (story.empty) {
+    // The lifter fills each day by hand, picking from the library as the editor does: the library's own numbers.
+    for (const d of await (await repo.getPlan(UID)).days) {
+      await (async () => {
+        if (
+          await repo.startWorkout(UID, d.id).then(
+            () => true,
+            () => false,
+          )
+        )
+          result.anomalies.push(`${d.name}: an empty day started a session`)
+      })()
+      for (const block of DAY_BLOCKS[d.type]()) {
+        const lib = findLibraryByName(LIBRARY, block.name)
+        if (!lib) throw new Error(`${block.name} is not in the library`)
+        await repo.addExercise(UID, d.id, {
+          name: lib.name,
+          sets: lib.sets,
+          repMin: lib.repMin,
+          repMax: lib.repMax,
+          muscle: lib.muscle,
+          loadType: lib.loadType,
+        })
+      }
+    }
+  }
   let plan = await repo.getPlan(UID)
+  /** After a swap for good, the lifts the next session of that day must show. */
+  const expectOnDay = new Map<string, string>()
   const cap0 = new Map<string, number>()
   const info = new Map<string, { muscle: string; loadType: string }>()
   for (const d of plan.days)
@@ -192,9 +251,24 @@ async function run(
         deload: deloadWeek,
         entries: [],
       }
+      const expected = expectOnDay.get(w.dayId)
+      if (expected && !w.entries.some((e) => e.name === expected)) {
+        result.anomalies.push(
+          `${session.date} ${w.dayName}: ${expected} was swapped in for good, but the session lacks it`,
+        )
+      }
+      expectOnDay.delete(w.dayId)
+      const paused = story.swaps && result.sessions.length % 10 === 9
+      if (paused) {
+        await repo.pauseWorkout(UID, w.id, true)
+        clock += 5 * 60_000
+        result.pauses++
+      }
       const rirs: number[] = []
       let failed = 0
-      for (let entry of w.entries) {
+      let entries = w.entries
+      for (let k = 0; k < entries.length; k++) {
+        let entry = entries[k]
         const meta = info.get(entry.exerciseId) ?? { muscle: entry.muscle, loadType: entry.loadType }
         const cap =
           grown(
@@ -212,6 +286,42 @@ async function run(
         const planEx = (await repo.getPlan(UID)).days
           .find((d) => d.id === w.dayId)
           ?.exercises.find((e) => e.id === entry.exerciseId)
+        // The machine is taken, now and then: swap for today or for good, sometimes with a set already done.
+        if (story.swaps && entry.loadType === 'weight' && !deloadWeek && rnd() < 0.06) {
+          const to = swapTarget(entry, planEx?.alternates)
+          if (to) {
+            const afterASet = rnd() < 0.5
+            const forGood = planEx !== undefined && rnd() < 0.4
+            if (afterASet) {
+              const wgt = entry.suggested?.[0]?.weight ?? chosen.get(entry.exerciseId) ?? 20
+              const reps = Math.max(1, Math.min(repsAllowed(cap, wgt, 0), entry.repMax))
+              await repo.saveEntrySets(UID, w.id, entry.exerciseId, [
+                { weight: wgt, reps, done: true },
+                ...entry.sets.slice(1).map(() => ({ done: false })),
+              ])
+              session.entries.push({
+                ...logOf(entry, planEx?.sets),
+                sets: [{ w: wgt, reps, failed: reps < entry.repMin }],
+              })
+            }
+            const before = entries.length
+            const updated = await repo.swapSessionExercise(UID, w.id, entry.exerciseId, to, forGood)
+            entries = updated.entries
+            result.swaps.push({ day, from: entry.name, to, forGood, afterASet })
+            if (forGood) expectOnDay.set(w.dayId, to)
+            if (afterASet ? entries.length !== before + 1 : entries.length !== before) {
+              result.anomalies.push(
+                `${session.date} ${entry.name} → ${to}: the session has ${entries.length} lifts, expected ${afterASet ? before + 1 : before}`,
+              )
+            }
+            const ids = entries.map((e) => e.exerciseId)
+            if (new Set(ids).size !== ids.length)
+              result.anomalies.push(`${session.date}: duplicate lift ids after a swap: ${ids.join(', ')}`)
+            // The new lift sits where the old one was (after it, when a set of the old one stays); it is logged next.
+            if (afterASet) continue
+            entry = entries[k]
+          }
+        }
         const log: EntryLog = {
           id: entry.exerciseId,
           name: entry.name,
@@ -221,6 +331,7 @@ async function run(
           rampOffer: !!entry.rampOffer,
           ramped,
           planSets: planEx?.sets ?? entry.sets.length,
+          repMax: entry.repMax,
         }
         const sets: LoggedSet[] = []
         const n = deloadWeek ? Math.ceil(entry.sets.length / 2) : entry.sets.length
@@ -281,6 +392,13 @@ async function run(
               ? 1
               : 2
       await repo.finishWorkout(UID, w.id, { effort: session.effort })
+      if (paused) {
+        const [done] = await repo.listWorkouts(UID, { limit: 1 })
+        const minutes = activeMinutes(done, today())
+        if (done.pausedAt || Math.round((done.pausedMs ?? 0) / 60_000) !== 5 || minutes !== 0) {
+          result.anomalies.push(`${session.date}: finished while paused, pausedMs ${done.pausedMs}, minutes ${minutes}`)
+        }
+      }
       result.sessions.push(session)
     }
     // Month end: a snapshot of every lift's best set and the plan's sets.
@@ -309,6 +427,21 @@ async function run(
   return result
 }
 
+/** A lift's log line before its sets are known. */
+function logOf(entry: WorkoutEntry, planSets: number | undefined): EntryLog {
+  return {
+    id: entry.exerciseId,
+    name: entry.name,
+    loadType: entry.loadType,
+    sets: [],
+    hint: entry.hint,
+    rampOffer: !!entry.rampOffer,
+    ramped: false,
+    planSets: planSets ?? entry.sets.length,
+    repMax: entry.repMax,
+  }
+}
+
 // ---------------------------------------------------------------- checks
 
 function findAnomalies(r: RunResult) {
@@ -319,40 +452,50 @@ function findAnomalies(r: RunResult) {
   const noBump = new Map<string, number>()
   for (const s of bySession) {
     for (const e of s.entries) {
+      // The app keeps a lift's history per plan day: the same name on two days (Push A 12-15, Push B 15-20) is two
+      // lines with their own targets. The checker scopes by day too, or it reads one day's top against the other's.
+      const key = `${s.dayId}|${e.id}`
+      // The stall rule drops a weight a tenth after three flat sessions and says so: an intended drop, not a bug.
+      const rebuilding = (e.hint ?? '').includes('build back up')
       if (e.loadType === 'bodyweight') {
         // A bodyweight lift under its range for a long run: the app never offers the easier alternate.
-        if (e.sets.every((x) => x.failed)) short.set(e.id, (short.get(e.id) ?? 0) + 1)
-        else short.set(e.id, 0)
-        if ((short.get(e.id) ?? 0) === 12)
-          r.anomalies.push(`${s.date} ${e.name}: under its rep range for 12 sessions, nothing changed`)
+        if (e.sets.every((x) => x.failed)) short.set(key, (short.get(key) ?? 0) + 1)
+        else short.set(key, 0)
+        if ((short.get(key) ?? 0) === 12) r.notes.push(`${s.date} ${e.name}: under its rep range for 12 sessions`)
         continue
       }
       if (e.loadType !== 'weight') continue
-      // Every set at the top of the range, session rated ok or easier, and the next target did not move.
-      const prevNo = noBump.get(e.id)
-      if (prevNo !== undefined && e.sets[0]?.target !== undefined && e.sets[0].target <= prevNo)
+      // Every set at the top of the range, session rated ok or easier, and the next target did not move: a real bug.
+      const prevNo = noBump.get(key)
+      if (prevNo !== undefined && e.sets[0]?.target !== undefined && e.sets[0].target <= prevNo && !rebuilding)
         r.anomalies.push(
           `${s.date} ${e.name}: every set topped out last time, felt fine, target still ${e.sets[0].target}`,
         )
-      const topped = e.sets.every((x) => x.reps >= (x.targetReps ?? 0) && !x.failed)
-      if (topped && s.effort <= 2 && r.progression !== 'topset') noBump.set(e.id, Math.max(...e.sets.map((x) => x.w)))
-      else noBump.delete(e.id)
+      // Topped out means the top of the range on every set, which is what moves the weight; meeting the aim is not.
+      const topped = e.sets.every((x) => x.reps >= e.repMax && !x.failed)
+      if (topped && s.effort <= 2 && r.progression !== 'topset') noBump.set(key, Math.max(...e.sets.map((x) => x.w)))
+      else noBump.delete(key)
       const top = Math.max(...e.sets.map((x) => x.w))
-      const prev = lastTop.get(e.id)
+      const prev = lastTop.get(key)
       if (prev) {
         const t = e.sets[0]?.target
+        // Data bugs: a target off the lift's weight step, or the weight rising right after a failure on linear.
         if (t !== undefined && e.step && Math.abs(t / e.step - Math.round(t / e.step)) > 1e-9)
           r.anomalies.push(`${s.date} ${e.name}: target ${t} is not on its ${e.step} kg step`)
-        if (t !== undefined && t < prev.w * 0.85 && !s.deload)
-          r.anomalies.push(`${s.date} ${e.name}: target ${t} fell from ${prev.w} without a deload`)
         if (prev.failed && t !== undefined && t > prev.w && r.progression === 'linear')
           r.anomalies.push(`${s.date} ${e.name}: weight went up to ${t} right after a failed set at ${prev.w}`)
-        if (top === prev.w) flat.set(e.id, (flat.get(e.id) ?? 0) + 1)
-        else flat.set(e.id, 0)
-        if ((flat.get(e.id) ?? 0) === 9) r.anomalies.push(`${s.date} ${e.name}: same weight ${top} for 9 sessions`)
+        // A drop with no deload and no stall-rebuild hint is a bug; the stall rebuild itself is an honest note.
+        if (t !== undefined && t < prev.w * 0.85 && !s.deload) {
+          if (rebuilding) r.notes.push(`${s.date} ${e.name}: stall rebuild, ${prev.w} → ${t}`)
+          else r.anomalies.push(`${s.date} ${e.name}: target ${t} fell from ${prev.w} without a deload`)
+        }
+        if (top === prev.w) flat.set(key, (flat.get(key) ?? 0) + 1)
+        else flat.set(key, 0)
+        if ((flat.get(key) ?? 0) === 9)
+          r.notes.push(`${s.date} ${e.name}: same weight ${top} for 9 sessions (step too big to clear)`)
       }
       if (e.sets.length > 6) r.anomalies.push(`${s.date} ${e.name}: ${e.sets.length} sets, over the cap`)
-      lastTop.set(e.id, {
+      lastTop.set(key, {
         w: top,
         day: s.day,
         failed: e.sets.some((x) => x.failed),
@@ -379,6 +522,16 @@ function summary(r: RunResult): string {
   lines.push(
     `ramp offers ${offers}, taken ${ramps}; deload hints ${r.deloads.length} (days ${r.deloads.join(', ') || 'none'}); stall alerts ${r.alerts.filter((a) => a.kind === 'stall').length}, week alerts ${r.alerts.filter((a) => a.kind === 'week').length}, scale alerts ${r.alerts.filter((a) => a.kind === 'weight').length}`,
   )
+  if (r.swaps.length || r.pauses) {
+    const forGood = r.swaps.filter((s) => s.forGood).length
+    const afterASet = r.swaps.filter((s) => s.afterASet).length
+    lines.push(
+      `swaps ${r.swaps.length} (${forGood} for good, ${afterASet} after a set); paused sessions ${r.pauses}; e.g. ${r.swaps
+        .slice(0, 3)
+        .map((s) => `${s.from} → ${s.to}${s.forGood ? ' (plan)' : ''}`)
+        .join(', ')}`,
+    )
+  }
   const marks = [30, 90, 180, 360, 540, 720]
   const names = Object.keys(r.months[r.months.length - 1]?.lifts ?? {})
   lines.push(`| Lift | ${marks.map((m) => `m${Math.round(m / 30)}`).join(' | ')} |`)
@@ -398,8 +551,9 @@ function summary(r: RunResult): string {
       .join(', ')}`,
   )
   lines.push(
-    `anomalies ${r.anomalies.length}${r.anomalies.length ? `:\n- ${r.anomalies.slice(0, 12).join('\n- ')}` : ''}`,
+    `training notes ${r.notes.length} (stuck light lifts, stall rebuilds; honest data, not bugs)${r.notes.length ? `:\n- ${r.notes.slice(0, 6).join('\n- ')}${r.notes.length > 6 ? `\n- …${r.notes.length - 6} more` : ''}` : ''}`,
   )
+  lines.push(`DATA BUGS ${r.anomalies.length}${r.anomalies.length ? `:\n- ${r.anomalies.join('\n- ')}` : ' — clean'}`)
   return lines.join('\n')
 }
 
@@ -417,7 +571,13 @@ const picked =
     ? { plate: same, sameStep: true }
     : { plate: stepFlag('plate'), dumbbellStep: stepFlag('dumbbell'), stackStep: stepFlag('stack') }
 gym = Object.fromEntries(Object.entries(picked).filter(([, v]) => v !== undefined))
-const pos = args.filter((a, i) => !a.startsWith('--') && !args[i - 1]?.startsWith('--'))
+story = { empty: args.includes('--empty'), swaps: args.includes('--swaps') }
+const STORY_FLAGS = ['--empty', '--swaps']
+const pos = args.filter(
+  (a, i) => !a.startsWith('--') && (!args[i - 1]?.startsWith('--') || STORY_FLAGS.includes(args[i - 1])),
+)
+if (story.empty || story.swaps)
+  console.log(`stories: ${[story.empty && 'empty days', story.swaps && 'swaps'].filter(Boolean).join(', ')}\n`)
 const inForce = stepsOf({ units: 'kg', ...gym })
 console.log(`steps: bar plates ${inForce.plates}, dumbbells ${inForce.dumbbell}, stack ${inForce.stack} kg\n`)
 const client = await MongoClient.connect('mongodb://localhost:27017')

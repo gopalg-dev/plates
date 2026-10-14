@@ -1,5 +1,4 @@
 import type { PlanDay } from '../types'
-import { startOfWeek } from './stats'
 
 export const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export const WEEKDAY_LONG = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
@@ -55,12 +54,7 @@ export interface WeekdayView {
   doneToday: boolean
   /** The next planned day after today, and in how many days it comes. */
   next: { day: PlanDay; inDays: number } | null
-  /** Days planned earlier this week (Monday first) with no finished session this week. */
-  skipped: PlanDay[]
 }
-
-/** Monday = 0 ... Sunday = 6. */
-const weekIndex = (weekday: number) => (weekday + 6) % 7
 
 function sameDay(a: Date, b: Date): boolean {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate()
@@ -68,8 +62,6 @@ function sameDay(a: Date, b: Date): boolean {
 
 /** What Today shows under the weekday schedule. `finished` holds recent sessions, at least this week's. */
 export function weekdayView(days: PlanDay[], now: Date, finished: Finished[]): WeekdayView {
-  const weekStart = startOfWeek(now).getTime()
-  const thisWeek = new Set(finished.filter((f) => new Date(f.finishedAt).getTime() >= weekStart).map((f) => f.dayId))
   const todayDone = new Set(finished.filter((f) => sameDay(new Date(f.finishedAt), now)).map((f) => f.dayId))
   const wd = now.getDay()
 
@@ -84,9 +76,5 @@ export function weekdayView(days: PlanDay[], now: Date, finished: Finished[]): W
     if (day) next = { day, inDays: offset }
   }
 
-  const skipped = days.filter(
-    (d) => d.weekday !== undefined && weekIndex(d.weekday) < weekIndex(wd) && !thisWeek.has(d.id),
-  )
-
-  return { today, doneToday, next, skipped }
+  return { today, doneToday, next }
 }

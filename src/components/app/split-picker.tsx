@@ -1,11 +1,13 @@
 import { Minus, Plus } from 'lucide-react'
 import { Button } from '#/components/ui/button'
+import { Checkbox } from '#/components/ui/checkbox'
 import { Label } from '#/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '#/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import { type SplitInfo, type SplitTemplate, splitInfos } from '#/lib/content'
 import { buildCustomDays, DAY_LABEL } from '#/lib/day-blocks'
 import { must } from '#/lib/must'
+import { splitSource } from '#/lib/splits'
 import { DAY_TYPES, type DayType, type SplitId } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { DayIcon } from './day-mark'
@@ -23,8 +25,9 @@ export const DEFAULT_OWN_DAYS: DayType[] = ['upper', 'lower', 'upper', 'lower']
 export const MAX_OWN_DAYS = 6
 export const MIN_OWN_DAYS = 2
 
-/** Name, days, one line on who it fits, and the shape of the week. */
+/** Name, days, one line on who it fits, the program it follows, and the shape of the week. */
 export function SplitOptionBody({ split, template }: { split: SplitInfo; template: SplitTemplate }) {
+  const source = splitSource(split.id)
   return (
     <span className="min-w-0 flex-1">
       <span className="flex items-baseline justify-between gap-3">
@@ -34,8 +37,27 @@ export function SplitOptionBody({ split, template }: { split: SplitInfo; templat
         </span>
       </span>
       <span className="mt-0.5 block text-muted-foreground">{split.fit}</span>
+      {source && <span className="mt-0.5 block text-sm text-muted-foreground">{source}</span>}
       <WeekShape days={template.days} className="mt-2.5" />
     </span>
+  )
+}
+
+/** The tick under the list: the picked split's days with no lifts in them, to fill in on Plan. */
+export function EmptyDaysOption({
+  checked,
+  onChange,
+  className,
+}: {
+  checked: boolean
+  onChange: (checked: boolean) => void
+  className?: string
+}) {
+  return (
+    <Label className={cn('flex cursor-pointer items-center gap-3 text-base font-normal', className)}>
+      <Checkbox checked={checked} onCheckedChange={(c) => onChange(c === true)} className="size-5" />
+      Start with empty days
+    </Label>
   )
 }
 
@@ -107,6 +129,8 @@ export function SplitPicker({
   ownPlan,
   ownMode = 'build',
   onOwnModeChange,
+  empty,
+  onEmptyChange,
   className,
 }: {
   splits: SplitTemplate[]
@@ -120,58 +144,69 @@ export function SplitPicker({
   /** With an existing plan: keep it, or start over from new days. */
   ownMode?: 'keep' | 'build'
   onOwnModeChange?: (mode: 'keep' | 'build') => void
+  /** Start the picked split as its days with no lifts. */
+  empty: boolean
+  onEmptyChange: (empty: boolean) => void
   className?: string
 }) {
   const keeping = ownPlan !== undefined && ownMode === 'keep'
   return (
-    <RadioGroup value={value} onValueChange={(v) => onChange(v)} className={cn('gap-3', className)}>
-      {splitInfos(splits).map((s) => (
-        <Label key={s.id} className={splitOptionRow}>
-          <RadioGroupItem value={s.id} className="mt-0.5" />
-          <SplitOptionBody
-            split={s}
-            template={must(
-              splits.find((t) => t.id === s.id),
-              `the ${s.id} template`,
-            )}
-          />
-        </Label>
-      ))}
-      <Label className={cn(splitOptionRow, 'flex-col items-stretch gap-0')}>
-        <span className="flex items-start gap-3">
-          <RadioGroupItem value={OWN_SPLIT} className="mt-0.5" />
-          <span className="min-w-0 flex-1">
-            <span className="flex items-baseline justify-between gap-3">
-              <span className="font-medium">Your own</span>
-              <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
-                {keeping ? ownPlan.days : ownDays.length}{' '}
-                {(keeping ? ownPlan.days : ownDays.length) === 1 ? 'day' : 'days'}
+    <div className={cn('flex flex-col gap-3', className)}>
+      <RadioGroup value={value} onValueChange={(v) => onChange(v)} className="gap-3">
+        {splitInfos(splits).map((s) => (
+          <Label key={s.id} className={splitOptionRow}>
+            <RadioGroupItem value={s.id} className="mt-0.5" />
+            <SplitOptionBody
+              split={s}
+              template={must(
+                splits.find((t) => t.id === s.id),
+                `the ${s.id} template`,
+              )}
+            />
+          </Label>
+        ))}
+        <Label className={cn(splitOptionRow, 'flex-col items-stretch gap-0')}>
+          <span className="flex items-start gap-3">
+            <RadioGroupItem value={OWN_SPLIT} className="mt-0.5" />
+            <span className="min-w-0 flex-1">
+              <span className="flex items-baseline justify-between gap-3">
+                <span className="font-medium">Your own</span>
+                <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
+                  {keeping ? ownPlan.days : ownDays.length}{' '}
+                  {(keeping ? ownPlan.days : ownDays.length) === 1 ? 'day' : 'days'}
+                </span>
+              </span>
+              <span className="mt-0.5 block text-muted-foreground">
+                {keeping
+                  ? 'Your plan, as you left it.'
+                  : empty
+                    ? 'Pick a kind for each day.'
+                    : 'Pick a kind for each day. Each starts with five lifts to edit.'}
               </span>
             </span>
-            <span className="mt-0.5 block text-muted-foreground">
-              {keeping
-                ? 'Your plan, as you left it.'
-                : 'Pick a kind for each day. Each starts with five lifts to edit.'}
+          </span>
+          {value === OWN_SPLIT && !keeping && (
+            <OwnDaysEditor days={ownDays} onChange={onOwnDaysChange} className="mt-4 pl-7" />
+          )}
+          {value === OWN_SPLIT && ownPlan && onOwnModeChange && (
+            <span className="mt-3 pl-7">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground"
+                onClick={() => onOwnModeChange(keeping ? 'build' : 'keep')}
+              >
+                {keeping ? 'Start over with new days' : 'Keep the plan I have'}
+              </Button>
             </span>
-          </span>
-        </span>
-        {value === OWN_SPLIT && !keeping && (
-          <OwnDaysEditor days={ownDays} onChange={onOwnDaysChange} className="mt-4 pl-7" />
-        )}
-        {value === OWN_SPLIT && ownPlan && onOwnModeChange && (
-          <span className="mt-3 pl-7">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground"
-              onClick={() => onOwnModeChange(keeping ? 'build' : 'keep')}
-            >
-              {keeping ? 'Start over with new days' : 'Keep the plan I have'}
-            </Button>
-          </span>
-        )}
-      </Label>
-    </RadioGroup>
+          )}
+        </Label>
+      </RadioGroup>
+      {/* Empty days apply to whatever split will be built; only returning to an existing own plan has nothing to empty. */}
+      {!(value === OWN_SPLIT && keeping) && (
+        <EmptyDaysOption checked={empty} onChange={onEmptyChange} className="px-1" />
+      )}
+    </div>
   )
 }

@@ -28,6 +28,13 @@ export interface LibraryExercise {
   /** A machine loaded with bar plates, one each side, rather than a pin stack: it steps like a barbell. */
   plateLoaded?: boolean
   loadType: LoadType
+  /**
+   * The sets and the range the lift is usually done for: heavy barbell lifts low, machine and dumbbell work in the
+   * middle, small lifts high; seconds for a timed hold. A swap, a library pick and a new exercise start from them.
+   */
+  sets: number
+  repMin: number
+  repMax: number
   level: Level
   cues: string[]
   /** Path under the image host, like `Barbell_Squat/0.jpg`. */

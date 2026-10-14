@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react'
+import { ArrowLeftRight, Check } from 'lucide-react'
 import { AccordionContent, AccordionItem, AccordionTrigger } from '#/components/ui/accordion'
 import { Button } from '#/components/ui/button'
 import { Toggle } from '#/components/ui/toggle'
@@ -33,6 +33,8 @@ export interface ExerciseRowProps {
   onRemoveSet: () => void
   /** Takes the set the ramp offered (`entry.rampOffer`): on the session and on the plan. Absent in the session editor. */
   onRamp?: () => void
+  /** Opens the swap panel: another lift takes this one's place today. Absent in the session editor and the demo. */
+  onSwap?: () => void
 }
 
 /** The nearest earlier set that has a value, so a blank set can borrow from it. */
@@ -57,6 +59,7 @@ export function ExerciseRow({
   onAddSet,
   onRemoveSet,
   onRamp,
+  onSwap,
 }: ExerciseRowProps) {
   const doneCount = entry.sets.filter((s) => s.done).length
   const allDone = entry.sets.length > 0 && doneCount === entry.sets.length
@@ -198,6 +201,18 @@ export function ExerciseRow({
               aria-label={`Remove set ${entry.sets.length}`}
             >
               Remove the last set
+            </Button>
+          )}
+          {onSwap && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground"
+              onClick={onSwap}
+              aria-label={`Swap ${entry.name}`}
+            >
+              <ArrowLeftRight aria-hidden />
+              Swap
             </Button>
           )}
         </div>

@@ -43,14 +43,12 @@ describe('weekday view', () => {
   // Wednesday 7 October 2026, midday.
   const wednesday = new Date(2026, 9, 7, 12)
 
-  it('shows the day that matches the calendar and what was skipped', () => {
+  it('shows the day that matches the calendar, and the next one', () => {
     const view = weekdayView(days, wednesday, [{ dayId: 'pull-a', finishedAt: new Date(2026, 9, 5, 19).toISOString() }])
     expect(view.today?.id).toBe('legs-a')
     expect(view.doneToday).toBe(false)
     expect(view.next?.day.id).toBe('pull-b')
     expect(view.next?.inDays).toBe(1)
-    // Monday's Pull A was done; Tuesday's Push A was not.
-    expect(view.skipped.map((d) => d.id)).toEqual(['push-a'])
   })
 
   it('prefers the day still to do when two days share a weekday', () => {
@@ -81,13 +79,5 @@ describe('weekday view', () => {
     expect(view.today).toBeNull()
     expect(view.next?.day.id).toBe('pull-a')
     expect(view.next?.inDays).toBe(1)
-    expect(view.skipped).toHaveLength(6)
-  })
-
-  it('ignores sessions from last week', () => {
-    const view = weekdayView(days, wednesday, [
-      { dayId: 'push-a', finishedAt: new Date(2026, 8, 29, 19).toISOString() },
-    ])
-    expect(view.skipped.map((d) => d.id)).toEqual(['pull-a', 'push-a'])
   })
 })

@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '#/components/ui/dialog'
-import { Field, FieldGroup, FieldLabel } from '#/components/ui/field'
+import { Field, FieldDescription, FieldGroup, FieldLabel } from '#/components/ui/field'
 import { errorMessage, longDate } from '#/lib/format'
 import { dayKey } from '#/lib/logic/stats'
 import type { BodyweightLog, MeasurementLog, Units } from '#/lib/types'
@@ -27,6 +27,50 @@ import { DatePicker } from './date-picker'
 import { NumberField } from './number-field'
 
 type Variant = 'outline' | 'default' | 'secondary'
+
+type Tape = 'arm' | 'chest' | 'waist'
+const TAPES: Tape[] = ['arm', 'chest', 'waist']
+const TAPE_LABEL: Record<Tape, string> = { arm: 'Arm', chest: 'Chest', waist: 'Waist' }
+/** Where the tape goes, one line under each field, so every entry is taken the same way. */
+const TAPE_HOW: Record<Tape, string> = {
+  arm: 'Upper arm bent and flexed, around the peak.',
+  chest: 'Under the armpits, around the fullest part, after breathing out.',
+  waist: 'At the navel, belly relaxed, after breathing out.',
+}
+
+/** The three tape fields, shared by the log and the edit dialogs. */
+function TapeFields({
+  values,
+  onChange,
+  lengthUnit,
+  step,
+}: {
+  values: Record<Tape, number | undefined>
+  onChange: Record<Tape, (v: number | undefined) => void>
+  lengthUnit: string
+  step: number
+}) {
+  return (
+    <>
+      {TAPES.map((tape, i) => (
+        <Field key={tape}>
+          <FieldLabel>
+            {TAPE_LABEL[tape]}, {lengthUnit}
+          </FieldLabel>
+          <NumberField
+            label={`${TAPE_LABEL[tape]} in ${lengthUnit}`}
+            value={values[tape]}
+            onChange={onChange[tape]}
+            step={step}
+            inputMode="decimal"
+            autoFocus={i === 0}
+          />
+          <FieldDescription>{TAPE_HOW[tape]}</FieldDescription>
+        </Field>
+      ))}
+    </>
+  )
+}
 
 function fail(err: unknown) {
   toast.error(errorMessage(err, 'Could not save.'))
@@ -280,37 +324,12 @@ export function LogMeasurementsDialog({ lengthUnit, onLogged, variant = 'outline
             <DialogDescription className="sr-only">Arm, chest and waist, and the day.</DialogDescription>
           </DialogHeader>
           <FieldGroup className="gap-5 py-5">
-            <Field>
-              <FieldLabel>Arm, {lengthUnit}</FieldLabel>
-              <NumberField
-                label={`Arm in ${lengthUnit}`}
-                value={arm}
-                onChange={setArm}
-                step={step}
-                inputMode="decimal"
-                autoFocus
-              />
-            </Field>
-            <Field>
-              <FieldLabel>Chest, {lengthUnit}</FieldLabel>
-              <NumberField
-                label={`Chest in ${lengthUnit}`}
-                value={chest}
-                onChange={setChest}
-                step={step}
-                inputMode="decimal"
-              />
-            </Field>
-            <Field>
-              <FieldLabel>Waist, {lengthUnit}</FieldLabel>
-              <NumberField
-                label={`Waist in ${lengthUnit}`}
-                value={waist}
-                onChange={setWaist}
-                step={step}
-                inputMode="decimal"
-              />
-            </Field>
+            <TapeFields
+              values={{ arm, chest, waist }}
+              onChange={{ arm: setArm, chest: setChest, waist: setWaist }}
+              lengthUnit={lengthUnit}
+              step={step}
+            />
             {!editing && <DateField id="tape-day" value={day} onChange={setDay} />}
           </FieldGroup>
           <DialogFooter>
@@ -424,37 +443,12 @@ function TapeForm({ log, lengthUnit, onChanged }: { log: MeasurementLog; lengthU
         <DialogDescription>Fix the numbers or remove the entry. The date stays.</DialogDescription>
       </DialogHeader>
       <FieldGroup className="gap-5 py-5">
-        <Field>
-          <FieldLabel>Arm, {lengthUnit}</FieldLabel>
-          <NumberField
-            label={`Arm in ${lengthUnit}`}
-            value={arm}
-            onChange={setArm}
-            step={step}
-            inputMode="decimal"
-            autoFocus
-          />
-        </Field>
-        <Field>
-          <FieldLabel>Chest, {lengthUnit}</FieldLabel>
-          <NumberField
-            label={`Chest in ${lengthUnit}`}
-            value={chest}
-            onChange={setChest}
-            step={step}
-            inputMode="decimal"
-          />
-        </Field>
-        <Field>
-          <FieldLabel>Waist, {lengthUnit}</FieldLabel>
-          <NumberField
-            label={`Waist in ${lengthUnit}`}
-            value={waist}
-            onChange={setWaist}
-            step={step}
-            inputMode="decimal"
-          />
-        </Field>
+        <TapeFields
+          values={{ arm, chest, waist }}
+          onChange={{ arm: setArm, chest: setChest, waist: setWaist }}
+          lengthUnit={lengthUnit}
+          step={step}
+        />
       </FieldGroup>
       <DialogFooter className="sm:justify-between">
         <Button

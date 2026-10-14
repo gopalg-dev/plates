@@ -1,4 +1,5 @@
 import type { BodyweightLog, DayType, LoggedSet, Muscle, Plan, TrainingAge, Workout, WorkoutEntry } from '../types'
+import { activeMinutes } from './session-time'
 
 export const MUSCLES: Muscle[] = [
   'chest',
@@ -328,8 +329,7 @@ export function totalsBetween(ws: Workout[], start: Date, end: Date): WeekTotals
   const out: WeekTotals = { sets: 0, lifted: 0, minutes: 0 }
   for (const w of finished(ws)) {
     if (!inRange(w.finishedAt, start, end)) continue
-    const ms = new Date(w.finishedAt).getTime() - new Date(w.startedAt).getTime()
-    out.minutes += Math.max(0, Math.round(ms / 60_000))
+    out.minutes += activeMinutes(w, end)
     for (const e of w.entries) {
       for (const s of effectiveSets(e)) {
         out.sets++

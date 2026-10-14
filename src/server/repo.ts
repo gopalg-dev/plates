@@ -1,14 +1,16 @@
 import { createHash } from 'node:crypto'
 import { type Db, ObjectId } from 'mongodb'
-import { DEFAULT_SPLIT } from '#/lib/content'
+import { DEFAULT_SPLIT, emptyDays } from '#/lib/content'
 import { buildCustomDays, buildDay } from '#/lib/day-blocks'
 import { findLibraryByName } from '#/lib/library'
-import { type Alert, bodyweightAlert, reviewAlerts, stallAlerts, weekAlert } from '#/lib/logic/alerts'
+import { type Alert, bodyweightAlert, reviewAlerts, shownAlerts, stallAlerts } from '#/lib/logic/alerts'
 import {
   addExerciseTo,
   type ExercisePatch,
+  lineOf,
   removeExerciseFrom,
   swapExerciseIn,
+  swapLine,
   updateExerciseIn,
 } from '#/lib/logic/day-edit'
 import { type FeedbackTrigger, feedbackDue, type Mood } from '#/lib/logic/feedback'
@@ -16,16 +18,10 @@ import { nextDayId } from '#/lib/logic/next-day'
 import { type PastEntry, progressionOf, STALL_SESSIONS, stepsOf, suggestNext } from '#/lib/logic/progression'
 import { rampOffer } from '#/lib/logic/ramp'
 import { assignWeekdays, type Finished } from '#/lib/logic/schedule'
-import { missingFrom, syncEntries } from '#/lib/logic/session-sync'
-import {
-  attachBodyweight,
-  dayKey,
-  plannedSetsFor,
-  plannedVolumeByMuscle,
-  sessionsInWeek,
-  startOfWeek,
-} from '#/lib/logic/stats'
-import { finishSummary, plannedPerWeek, type SessionSummary } from '#/lib/logic/summary'
+import { missingFrom, setsLeft, swapEntries, syncEntries } from '#/lib/logic/session-sync'
+import { type Pause, setPaused } from '#/lib/logic/session-time'
+import { attachBodyweight, dayKey, plannedSetsFor, plannedVolumeByMuscle, startOfWeek } from '#/lib/logic/stats'
+import { finishSummary, type SessionSummary } from '#/lib/logic/summary'
 import { must } from '#/lib/must'
 import {
   type BodyweightLog,
@@ -210,8 +206,9 @@ export async function resetPlan(userId: string): Promise<Plan> {
 /**
  * Moves to another split: remembers the choice and shows that split's plan, as the user left it,
  * or fresh from the template the first time. The plan being left stays for when they come back.
+ * With `empty`, the split starts as its days with no lifts, in place of whatever plan it had.
  */
-export async function applySplit(userId: string, split: SplitId): Promise<Plan> {
+export async function applySplit(userId: string, split: SplitId, { empty = false } = {}): Promise<Plan> {
   if (split === 'custom') {
     // The plan of your own has no template: it can only be returned to, never started from here.
     const own = await findPlan(userId, 'custom')
@@ -222,6 +219,7 @@ export async function applySplit(userId: string, split: SplitId): Promise<Plan> 
   // Read the template first: an unknown id throws before anything is written.
   const template = await splitTemplate(split)
   await saveSettings(userId, { split })
+  if (empty) return savePlanFor(userId, split, emptyDays(template))
   const existing = await findPlan(userId, split)
   return existing ? toPlan(existing) : savePlanFor(userId, split, template)
 }
@@ -258,7 +256,6 @@ export async function setDayWeekday(userId: string, dayId: string, weekday: numb
  */
 export async function replacePlan(userId: string, days: PlanDay[], split?: SplitId): Promise<Plan> {
   if (days.length === 0) throw new Error('The plan needs at least one day')
-  if (days.some((d) => d.exercises.length === 0)) throw new Error('Every day needs at least one exercise')
   if (split) await splitTemplate(split) // an unknown template id throws here
   const source: PlanSource = split ?? 'custom'
   await saveSettings(userId, { split: source })
@@ -291,7 +288,7 @@ export function addExercise(userId: string, dayId: string, input: Omit<Exercise,
   return editDay(userId, dayId, (day) => addExerciseTo(day, input))
 }
 
-/** Takes an exercise off a day. Logged sessions keep their copy. A day keeps at least one exercise. */
+/** Takes an exercise off a day. Logged sessions keep their copy. */
 export function removeExercise(userId: string, dayId: string, exerciseId: string): Promise<Plan> {
   return editDay(userId, dayId, (day) => removeExerciseFrom(day, exerciseId))
 }
@@ -357,8 +354,9 @@ export async function moveDay(userId: string, dayId: string, direction: 'up' | '
 }
 
 /** A plan of the user's own, one block per chosen type, in the custom slot. */
-export async function createCustomPlan(userId: string, types: DayType[]): Promise<Plan> {
-  return replacePlan(userId, buildCustomDays(types))
+export async function createCustomPlan(userId: string, types: DayType[], { empty = false } = {}): Promise<Plan> {
+  const days = buildCustomDays(types)
+  return replacePlan(userId, empty ? emptyDays(days) : days)
 }
 
 // ---- workouts ----
@@ -459,6 +457,7 @@ export async function startWorkout(userId: string, dayId: string): Promise<Worko
   const [plan, settings] = await Promise.all([getPlan(userId), getSettings(userId)])
   const day = plan.days.find((d) => d.id === dayId)
   if (!day) throw new Error('Day not found')
+  if (day.exercises.length === 0) throw new Error(`${day.name} has no lifts yet. Add some on Plan first.`)
   const { workouts } = await cols()
   await workouts.deleteMany({ userId, status: 'in_progress' })
   const entries = await sessionEntries(userId, plan, settings, day.id, day.exercises)
@@ -522,6 +521,62 @@ export async function acceptRamp(userId: string, workoutId: string, exerciseId: 
   )
 }
 
+/**
+ * One lift of the session in progress swapped for another, by name (the machine is taken). The new lift comes in
+ * as at the start of a session, with its own targets and, when the library knows it, its own sets and range; sets
+ * ticked on the old lift stay (see `swapEntries`). With `alsoPlan`, the plan day swaps too, so the next session
+ * starts with the new lift. Returns the session as it is now.
+ */
+export async function swapSessionExercise(
+  userId: string,
+  workoutId: string,
+  exerciseId: string,
+  newName: string,
+  alsoPlan: boolean,
+): Promise<Workout> {
+  const { workouts } = await cols()
+  const doc = await workouts.findOne({ _id: oid(workoutId), userId, status: 'in_progress' })
+  if (!doc) throw new Error('Workout not found')
+  const entry = doc.entries.find((e) => e.exerciseId === exerciseId)
+  if (!entry) throw new Error('Exercise not found')
+  const [plan, settings, { library }] = await Promise.all([getPlan(userId), getSettings(userId), readContent()])
+  const day = plan.days.find((d) => d.id === doc.dayId)
+  const planned = day?.exercises.find((e) => e.id === exerciseId)
+  // The line the new lift is built from: the plan's, or the session's own when the plan no longer has the lift.
+  const line = planned ?? lineOf(entry, entry.sets.length)
+  // The new id must be free on the session and on the day, so a later "Plan and today" finds the same lift. The old
+  // lift's own id is free only when it goes; with sets ticked it stays, and the new lift must not share its id.
+  const ticked = entry.sets.some((s) => s.done)
+  const taken = [...doc.entries.map((e) => e.exerciseId), ...(day?.exercises.map((e) => e.id) ?? [])].filter(
+    (id) => ticked || id !== exerciseId,
+  )
+  const swapped = swapLine(line, newName, library, taken)
+  // With sets ticked, only what was left goes to the new lift.
+  if (ticked) swapped.sets = setsLeft(entry)
+  const [fresh] = await sessionEntries(userId, plan, settings, doc.dayId, [swapped])
+  const entries = swapEntries(doc.entries, exerciseId, fresh)
+  await workouts.updateOne({ _id: doc._id }, { $set: { entries } })
+  if (alsoPlan && planned && day) {
+    await editDay(userId, day.id, (d) => swapExerciseIn(d, exerciseId, newName, library))
+  }
+  return toWorkout({ ...doc, entries })
+}
+
+/** Pauses or resumes the session in progress (see `lib/logic/session-time.ts`). Returns the pause fields. */
+export async function pauseWorkout(userId: string, workoutId: string, paused: boolean): Promise<Pause> {
+  const { workouts } = await cols()
+  const doc = await workouts.findOne({ _id: oid(workoutId), userId, status: 'in_progress' })
+  if (!doc) throw new Error('Workout not found')
+  const next = setPaused(doc, paused, new Date())
+  await workouts.updateOne(
+    { _id: doc._id },
+    next.pausedAt
+      ? { $set: { pausedAt: next.pausedAt, pausedMs: next.pausedMs ?? 0 } }
+      : { $set: { pausedMs: next.pausedMs ?? 0 }, $unset: { pausedAt: '' } },
+  )
+  return next
+}
+
 /** The deload: every ramped lift goes back to the plan's own number of sets. Returns how many did. */
 export async function resetRamp(userId: string): Promise<number> {
   const plan = await getPlan(userId)
@@ -579,6 +634,8 @@ export async function finishWorkout(
   const patch: Partial<WorkoutDoc> = { status: 'done', finishedAt: now.toISOString() }
   if (extra.effort !== undefined) patch.effort = extra.effort
   if (extra.note) patch.note = extra.note
+  // A session finished while paused: the pause ends with it, so its minutes read right.
+  if (doc.pausedAt) patch.pausedMs = setPaused(doc, false, now).pausedMs
   // Earlier sessions are read before this one joins them.
   const [past, settings, plan, weighIns] = await Promise.all([
     listWorkouts(userId, { sinceDays: 365 }),
@@ -586,8 +643,8 @@ export async function finishWorkout(
     getPlan(userId),
     listBodyweights(userId),
   ])
-  await workouts.updateOne({ _id, userId }, { $set: patch })
-  const done = { ...toWorkout(doc), ...patch } as Workout
+  await workouts.updateOne({ _id, userId }, { $set: patch, ...(doc.pausedAt ? { $unset: { pausedAt: '' } } : {}) })
+  const done = { ...toWorkout(doc), ...patch, pausedAt: undefined } as Workout
   return {
     finished: true,
     summary: finishSummary(done, past, weighIns, plan, settings, now),
@@ -798,6 +855,21 @@ export async function dismissFeedback(userId: string): Promise<void> {
   await saveSettings(userId, { feedbackAt: new Date().toISOString() })
 }
 
+/**
+ * A Today alert was dismissed: it stays hidden until the thing it is about changes, since the key holds the lift,
+ * the week or the period. Entries older than 90 days are pruned, so the record cannot grow without bound.
+ */
+export async function dismissAlert(userId: string, key: string): Promise<void> {
+  const settings = await getSettings(userId)
+  const now = new Date()
+  const cutoff = now.getTime() - 90 * 86_400_000
+  const kept = Object.fromEntries(
+    Object.entries(settings.alertsDismissed ?? {}).filter(([, at]) => new Date(at).getTime() >= cutoff),
+  )
+  kept[key] = now.toISOString()
+  await saveSettings(userId, { alertsDismissed: kept })
+}
+
 // ---- accounts ----
 
 /** What the deletion log keeps: nothing that points back at a person. */
@@ -916,13 +988,15 @@ export async function getTodayData(userId: string): Promise<TodayData> {
     listBodyweights(userId, 60),
     measurements.findOne({ userId }, { sort: { date: -1 } }),
   ])
-  const alerts: Alert[] = [
-    // The report on a week or month just finished, for its first two days.
-    ...reviewAlerts(now, { settings, plan, workouts: attachBodyweight(recent, bodyweights), bodyweights }),
-    ...stallAlerts(attachBodyweight(recent, bodyweights), now),
-    weekAlert(sessionsInWeek(recent, now), plannedPerWeek(plan, settings), now),
-    bodyweightAlert(bodyweights, settings.goal, settings.units, now),
-  ].filter((a): a is Alert => a !== null)
+  const alerts = shownAlerts(
+    [
+      // The report on a week or month just finished, for its first two days.
+      ...reviewAlerts(now, { settings, plan, workouts: attachBodyweight(recent, bodyweights), bodyweights }),
+      ...stallAlerts(attachBodyweight(recent, bodyweights), now),
+      bodyweightAlert(bodyweights, settings.goal, settings.units, now),
+    ].filter((a): a is Alert => a !== null),
+    settings.alertsDismissed,
+  )
   return {
     settings,
     plan,

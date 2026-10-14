@@ -1,4 +1,4 @@
-import { Check, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ArrowLeftRight, Check, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '#/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '#/components/ui/dialog'
@@ -10,6 +10,7 @@ import { DayIcon } from './day-mark'
 import { canComplete, LEFT_OPTIONS, targetFor, targetOf } from './exercise-row'
 import { ExerciseThumb } from './exercise-thumb'
 import { NumberField } from './number-field'
+import { Elapsed } from './session-view'
 
 /*
  * Zen mode: one exercise on the screen. Every set is listed with its numbers, so the sets already
@@ -32,6 +33,10 @@ export interface ZenProps {
   onAddSet: (exerciseId: string) => void
   onRemoveSet: (exerciseId: string) => void
   onRamp: (exerciseId: string) => void
+  /** Opens the swap panel for a lift. Absent in the demo. */
+  onSwap?: (exerciseId: string) => void
+  /** Pauses or resumes the session's clock. Absent in the demo. */
+  onPause?: (paused: boolean) => void
   onFinish: () => void
   onExit: () => void
 }
@@ -73,6 +78,8 @@ export function ZenScreen({
   onAddSet,
   onRemoveSet,
   onRamp,
+  onSwap,
+  onPause,
   onFinish,
   onExit,
 }: ZenProps) {
@@ -124,9 +131,10 @@ export function ZenScreen({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex shrink-0 items-center justify-between gap-3 px-4 pt-safe">
-        <p className="mt-3 flex items-center gap-2 text-muted-foreground">
-          <DayIcon type={workout.dayType} className="size-6 rounded-md" />
-          {workout.dayName}
+        <p className="mt-3 flex min-w-0 items-center gap-2 text-muted-foreground">
+          <DayIcon type={workout.dayType} className="size-6 shrink-0 rounded-md" />
+          <span className="truncate">{workout.dayName}</span>
+          <Elapsed workout={workout} onPause={onPause} className="shrink-0" />
         </p>
         <Button variant="ghost" size="sm" className="mt-3 -mr-2" onClick={onExit}>
           <X aria-hidden />
@@ -298,6 +306,18 @@ export function ZenScreen({
                 aria-label={`Remove set ${entry.sets.length}`}
               >
                 Remove the last set
+              </Button>
+            )}
+            {onSwap && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground"
+                onClick={() => onSwap(entry.exerciseId)}
+                aria-label={`Swap ${entry.name}`}
+              >
+                <ArrowLeftRight aria-hidden />
+                Swap
               </Button>
             )}
           </div>

@@ -1,6 +1,6 @@
-import { findLibraryByName, type LibraryExercise } from '../library'
+import { findLibraryByName, type LibraryExercise, nameKey } from '../library'
 import { slug } from '../seed-plan'
-import { type Exercise, MAX_EXERCISES_PER_DAY, type PlanDay } from '../types'
+import { type Exercise, MAX_EXERCISES_PER_DAY, type PlanDay, type WorkoutEntry } from '../types'
 import { guessLoad } from './plan-sheet'
 
 /*
@@ -16,6 +16,22 @@ function findExercise(day: PlanDay, exerciseId: string): Exercise {
   const ex = day.exercises.find((e) => e.id === exerciseId)
   if (!ex) throw new Error('Exercise not found')
   return ex
+}
+
+/** A session lift as a plan line, for a swap on a session whose day no longer has the lift. */
+export function lineOf(
+  entry: Pick<WorkoutEntry, 'exerciseId' | 'name' | 'muscle' | 'loadType' | 'repMin' | 'repMax'>,
+  sets: number,
+): Exercise {
+  return {
+    id: entry.exerciseId,
+    name: entry.name,
+    sets,
+    repMin: entry.repMin,
+    repMax: entry.repMax,
+    muscle: entry.muscle,
+    loadType: entry.loadType,
+  }
 }
 
 /** `base`, or `base-2`, `base-3`… when the day already uses it. */
@@ -49,29 +65,50 @@ export function addExerciseTo(day: PlanDay, input: Omit<Exercise, 'id'>): PlanDa
   return next
 }
 
-/** Takes an exercise off the day. A day keeps at least one exercise. */
+/** Takes an exercise off the day. The last one can go too: a day with no lifts waits on Plan to be filled. */
 export function removeExerciseFrom(day: PlanDay, exerciseId: string): PlanDay {
   findExercise(day, exerciseId)
-  if (day.exercises.length <= 1) throw new Error('A day needs at least one exercise')
   return { ...day, exercises: day.exercises.filter((e) => e.id !== exerciseId) }
 }
 
 /** Replaces an exercise with one of its alternates. The old one becomes an alternate, so you can swap back. */
 export function swapExerciseIn(day: PlanDay, exerciseId: string, newName: string, library: LibraryExercise[]): PlanDay {
   const next = structuredClone(day)
-  const ex = findExercise(next, exerciseId)
+  const at = next.exercises.findIndex((e) => e.id === exerciseId)
+  if (at < 0) throw new Error('Exercise not found')
+  next.exercises[at] = swapLine(
+    next.exercises[at],
+    newName,
+    library,
+    next.exercises.filter((_, i) => i !== at).map((e) => e.id),
+  )
+  return next
+}
+
+/**
+ * One plan line swapped for another lift, by name. The old name becomes an alternate, so you can swap back. A lift
+ * the library knows brings its own shape: its load type (Pull-ups are bodyweight, Lat Pulldown takes a weight), its
+ * muscle, and its usual sets and range (a hack squat is not done for a squat's 5-8). Unknown names keep the line's
+ * numbers and have their load type guessed. `taken` holds the ids the new one must not clash with.
+ */
+export function swapLine(line: Exercise, newName: string, library: LibraryExercise[], taken: string[]): Exercise {
+  const ex = structuredClone(line)
   const name = newName.trim()
   if (!name) throw new Error('Name is empty')
+  if (nameKey(name) === nameKey(ex.name)) throw new Error(`${ex.name} is the lift already`)
   const others = (ex.alternates ?? []).filter((a) => a !== name)
   ex.alternates = [ex.name, ...others]
   ex.name = name
-  // The alternate's own shape: Pull-ups are bodyweight, Lat Pulldown takes a weight. Unknown names are guessed.
   const known = findLibraryByName(library, name)
   ex.loadType = known?.loadType ?? guessLoad(name, '')
-  if (known) ex.muscle = known.muscle
-  ex.id = uniqueId(
-    slug(name),
-    next.exercises.filter((e) => e !== ex).map((e) => e.id),
-  )
-  return next
+  if (known) {
+    ex.muscle = known.muscle
+    ex.sets = known.sets
+    ex.repMin = known.repMin
+    ex.repMax = known.repMax
+    // The set count is the new lift's own: the ramp's memory of the old one goes.
+    delete ex.ramp
+  }
+  ex.id = uniqueId(slug(name), taken)
+  return ex
 }

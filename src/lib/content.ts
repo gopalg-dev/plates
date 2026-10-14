@@ -58,6 +58,11 @@ export function buildSplitFrom(splits: SplitTemplate[], id: SplitId): PlanDay[] 
   return structuredClone(found.days)
 }
 
+/** The same days with no lifts in them: a split started empty, for the lifter to fill in on Plan. */
+export function emptyDays(days: PlanDay[]): PlanDay[] {
+  return days.map((d) => ({ ...d, exercises: [] }))
+}
+
 /** The template id behind a plan source, or the default when the plan is custom or unset. */
 export function templateOf(source: PlanSource | undefined): SplitId {
   return source && source !== 'custom' ? source : DEFAULT_SPLIT

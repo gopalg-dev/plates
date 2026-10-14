@@ -322,6 +322,96 @@ no Inter/Geist. Checked.
       tsconfig types. Regenerate the route tree with a build or the dev server, not the standalone `tsr generate`,
       which drops the Start `Register` block. Reader-tested twice with fresh agents; e2e "the guide lists every
       section" passes on mobile and desktop. The full e2e run is still to do.
+- [x] 58. Small asks (2026-10-14): Enter moves on from every setup step (the form catches Enter on a toggle, radio or
+      tick, which are buttons and would only click; text fields submitted already; Back, dropdowns and steppers
+      keep their own Enter). The tape dialogs say where the tape goes, one line under each field (`TAPE_HOW`,
+      shared `TapeFields` for the log and edit dialogs: arm bent and flexed around the peak, chest under the
+      armpits after breathing out, waist at the navel relaxed), with a "How to measure" section in the guide's
+      Body page; there are no measurement pictures, as the picture set is the exercise library only.
+      - Bug hunt on the day's work (user request), with `tests/scenarios.test.ts` (whole stories through the
+        server code: a split started empty, filled from the library, trained three sessions with the targets, Stats
+        and the report checked at each step; a machine taken mid-session, swapped for good with ticked sets kept,
+        then for today only, each lift keeping its own history, a pause taken out of the minutes) and the two-year
+        simulator's two new stories (`--empty`, `--swaps`: 214 swaps, 57 paused sessions over 580 sessions, no
+        duplicate ids, every swap for good present next time, every pause closed; the anomaly counts match the
+        plain run, and the "topped out" check now reads the range's top, not the aim, which it mistook before).
+        Found and fixed: a swap to the same lift after a ticked set gave two session entries one id (refused now,
+        and a kept lift's id is reserved); "Plan and today" after emptying the day left a session with no lifts and
+        Zen read an entry that was not there (Zen off then); Change session offered empty days (Switch off);
+        Today drew an empty bordered list on an empty day; the swap panel's "Also on the plan" tick stuck between
+        swaps; a library entry added in the database without the new fields made the server re-run the fill-in
+        on every read (only the bundle's ids count now). Known, left: "Add a day" on a plan started empty still
+        brings five lifts, as there is no stored "empty" preference.
+- [x] 59. Today alerts as a card deck (2026-10-14, user request, chosen from a six-way demo artifact built in the
+      app's skin and since deleted). The four stacked bordered alert rows on Today became `AlertDeck`
+      (components/app/alert-deck.tsx): a slideshow, one card at a time, the rest behind dots. Swipe by touch or
+      cursor (pointer events, the track follows the finger then settles on the next card or snaps back, a fifth of
+      the width is the threshold; it is a carousel slide, not a drag-and-throw, at the user's call), or the ‹ ›
+      buttons, or arrow focus. The action button is full width on phones and hugs its label at the bottom-right
+      from `sm:` up (the user found full width unpleasant on tablet and web). Each alert now carries a stable
+      `key` (`stall:<exerciseId>`, `week:<weekStart>`, `weight:<weekStart>`, `review:<kind>:<at>`) and a `to`:
+      review → its report, stall → `/plan`, weight → `/stats?tab=body`, week → no route, its "Pick a day" button
+      opens the day picker on Today (passed as `onPickDay`). A × dismisses: `Settings.alertsDismissed` (key → ISO)
+      via `dismissAlertFn`/`repo.dismissAlert` (prunes entries over 90 days), and `shownAlerts` in alerts.ts filters
+      them in `getTodayData`; the client also drops the card at once by key. `gains.test` pins the keys and
+      `shownAlerts`; `repo.test` covers the dismiss, the prune and the Today filter; the explore spec asserts the
+      deck leads with the stall, its action links to Plan, and a dismiss survives a reload. Research question
+      answered first with the ui-ux-pro-max skill (one primary action, progressive disclosure, a badge over a
+      shout); the swipe-away deck was reshaped to a plain slideshow on the user's feedback. Then, by the user's
+      principle that the app never pushes a decision (now in CLAUDE.md "What the app does"), the week alert
+      ("N sessions left this week", `weekAlert`) and the whole "Skipped this week" + "Do it now" section
+      (`WeekdayView.skipped`, its weekday block on Today) were removed; alert kinds are now stall / weight /
+      review, each with a `to`, and the deck's week branch and `onPickDay` are gone. The empty-days checkbox gate
+      was fixed (it was hidden whenever a custom plan existed, since it keyed on the own-plan keep flag; now only
+      hidden when returning to an existing own plan), caught by the app e2e run.
+- [x] 57. Start with empty days, and the programs behind the templates (2026-10-14, user request). The user asked
+      whether the split templates were research-based or random, and for a way to take a split's days without its
+      lifts. The templates follow well-known programs (the Reddit PPL, Nippard's PPL + UL, Campbell's PHUL, the
+      classic UL, full-body and bro splits, Arnold's) and the research's two points (each muscle twice a week on
+      4+ days, 10-20 hard sets a week on the big muscles; the direct sets per muscle were counted per template, the
+      5 and 6 day splits sit in the band, the 3 day ones lower, arms thin on ul4 / pplul5 / ulf3, left as is).
+      `SPLIT_SOURCES` in splits.ts names each program under its card in the picker (`splitSource`; a template added
+      to the database has none), and the guide's Plan section says what the templates keep. A **Start with empty
+      days** tick under the picker (`EmptyDaysOption`, setup and Settings; in Settings ticking it with nothing
+      picked offers the current split, button "Start with empty days") sends `empty` to `applySplit` /
+      `createCustomPlan`, which save the split's days with no lifts in place of the plan that split had
+      (`emptyDays` in lib/content.ts). The "at least one lift" rule went: `removeExerciseFrom` takes the last one,
+      `replacePlan` no longer refuses (the import page still does, as a sheet day is its rows and an empty day
+      cannot travel through the file), `startWorkout` refuses an empty day, Today shows "No lifts yet" with an
+      outline "Add lifts on Plan" link in place of Start, Pick a day disables Start on it, and "Restore default
+      order" stays off on an empty day. Reset to the original plan brings the template's lifts back. Zen mode was
+      never reachable with no lifts once Start refuses. A checkbox on every split card was considered and dropped:
+      one tick under the list is the same choice with less noise.
+- [x] 56. Mid-session swap, library numbers, and the session clock (2026-10-14, four user questions).
+      - Sets and range per lift (user asked whether they belong to the exercise or to a preference). Research:
+        coaching practice sets the band by the lift (heavy compounds low, isolation high) and the goal shifts it;
+        Hevy and Strong leave the numbers to the user per routine line, Fitbod and Jefit compute them from a goal.
+        Plates already has the user's number on every plan line and a progression that reads it, so the defaults
+        belong to the lift and no preference was added: `library.json` carries `sets`, `repMin`, `repMax` on all
+        137 entries (barbell squat and bench 4 × 5-8, deadlift 3 × 4-6, rows 6-10, machine and dumbbell work 8-12,
+        leg press 10-15, small lifts 12-15, calves 4 × 12-15, holds 30-45 s). A swap (`swapLine` in day-edit.ts,
+        which `swapExerciseIn` now wraps) and a library pick in the editor take the lift's numbers; an unknown name
+        keeps the line's. Before, a swap kept the old lift's range (a hack squat inherited the squat's 5-8) and
+        the editor always started at 3 × 8-12. Databases seeded before the fields existed are filled in by
+        `fillLibrary` in server/content.ts on the first read that finds an entry without `sets` (only the missing
+        fields, so edits made in the database stay); `bun run db:seed` reports the count as `filled`.
+      - The templates were checked line by line against PHUL's original sheet, RP and Nippard's programs: all
+        sound; the one fix is PHUL power lower's Leg Press, 6-10 to the original's 10-15. The database copy of the
+        template is only refreshed by `bun run db:seed -- --reset`.
+      - Swap for today (the machine is taken): **Swap** in the action row under a lift's sets on Today and in Zen
+        opens `SwapLiftPanel` (swap-lift.tsx: the plan line's alternates, then the whole library list, and an
+        "Also on the plan" tick when the lift is on the plan day). `repo.swapSessionExercise` builds the new lift
+        as at the start of a session (own history, targets, library numbers), `swapEntries` in session-sync.ts
+        puts it in the old one's place, or, with sets ticked, keeps those as the old lift and puts the new one
+        after it with the sets that were left (`setsLeft`). The id is kept clear of the session's and the day's
+        ids, so a later "Plan and today" finds the same lift. Before, the only way was Plan → Use this → "Plan and
+        today", which changed the plan for good.
+      - The session clock: the title reads "Started 6:05 PM · 42 min" with a pause / resume button (`Elapsed` in
+        session-view.tsx, `useNow` ticking every 15 s, null until the page is live so nothing differs between
+        server and client); Zen's header shows the same. `Workout.pausedAt` / `pausedMs`, `setPaused` and
+        `activeMs` in `lib/logic/session-time.ts`; finishing while paused closes the pause; the minutes in Stats
+        and the session summary read `activeMinutes`, so paused time stays out. No rest timer and no target
+        length, by the user's call: a target would make the session a race.
 - [x] 55. Report (2026-10-13, user request, the third attempt after the two undone ones noted under 54; this one
       starts from the research and keeps Stats untouched). `/report` (src/routes/_app/report.tsx,
       components/app/report-view.tsx) from the sidebar and a Today alert (a button beside the Stats title was

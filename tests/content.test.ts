@@ -34,7 +34,7 @@ beforeEach(async () => {
 suite('content', () => {
   it('seeds an empty database from the bundle and reads it back', async () => {
     const report = await seedContent(must(client, 'the test database').db(dbName))
-    expect(report).toEqual({ library: LIBRARY.length, splits: BUNDLED_SPLITS.length })
+    expect(report).toEqual({ library: LIBRARY.length, splits: BUNDLED_SPLITS.length, filled: 0 })
     const content = await readContent()
     expect(content.library).toHaveLength(LIBRARY.length)
     expect(content.splits.map((s) => s.id)).toEqual(BUNDLED_SPLITS.map((s) => s.id))
@@ -54,11 +54,50 @@ suite('content', () => {
     await db.collection('library').updateOne({ _id: 'pull-ups' as never }, { $set: { name: 'Chin-ups, wide' } })
     await db.collection('library').deleteOne({ _id: 'plank' as never })
     const again = await seedContent(db)
-    expect(again).toEqual({ library: 1, splits: 0 })
+    expect(again).toEqual({ library: 1, splits: 0, filled: 0 })
     forgetContent()
     const { library } = await readContent()
     expect(library.find((e) => e.id === 'pull-ups')?.name).toBe('Chin-ups, wide')
     expect(library.find((e) => e.id === 'plank')?.name).toBe('Plank')
+  })
+
+  it('fills in the sets and range on entries seeded before the bundle had them, and keeps the rest', async () => {
+    const db = must(client, 'the test database').db(dbName)
+    await seedContent(db)
+    const library = db.collection('library')
+    await library.updateOne(
+      { _id: 'hack-squat' as never },
+      { $set: { name: 'Hack squat, narrow' }, $unset: { sets: '', repMin: '', repMax: '' } },
+    )
+    await library.updateOne({ _id: 'leg-press' as never }, { $set: { repMax: 20 } })
+    // A read fills the gap on its own, as the first request after a deploy would.
+    forgetContent()
+    const { library: read } = await readContent()
+    expect(read.find((e) => e.id === 'hack-squat')).toMatchObject({
+      name: 'Hack squat, narrow',
+      sets: 3,
+      repMin: 8,
+      repMax: 12,
+    })
+    // An entry that has the fields keeps its own numbers.
+    expect(read.find((e) => e.id === 'leg-press')?.repMax).toBe(20)
+    expect((await seedContent(db)).filled).toBe(0)
+  })
+
+  it('leaves an entry added in the database alone, and does not keep trying to fill it', async () => {
+    const db = must(client, 'the test database').db(dbName)
+    await seedContent(db)
+    const plank = must(await db.collection('library').findOne({ _id: 'plank' as never }), 'the plank')
+    const { _id: _p, sets: _s, repMin: _min, repMax: _max, ...rest } = plank
+    await db.collection('library').insertOne({ ...rest, _id: 'my-hold' as never, name: 'My hold' })
+    forgetContent()
+    const first = await readContent()
+    expect(first.library.find((e) => e.id === 'my-hold')?.sets).toBeUndefined()
+    // A second read within the cache window, and a fresh one after it, both come from the database as it is.
+    forgetContent()
+    const seeded = await seedContent(db)
+    expect(seeded).toEqual({ library: 0, splits: 0, filled: 0 })
+    expect((await readContent()).library.find((e) => e.id === 'my-hold')?.name).toBe('My hold')
   })
 
   it('resets to the bundle on request', async () => {
