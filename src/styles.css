@@ -60,6 +60,9 @@
   --app-font-condensed: "Barlow Condensed", "Barlow", ui-sans-serif, system-ui, sans-serif;
   /* The handwritten face, for the odd hand-drawn note on the public pages. */
   --app-font-hand: "Caveat", ui-sans-serif, cursive;
+
+  /* What a look paints behind the page: a glow, a gradient or a grain. The plain looks paint nothing. */
+  --app-backdrop: none;
 }
 
 .dark {
@@ -105,100 +108,49 @@
 }
 
 /*
- * Light variants, picked in Settings and kept per device. Only token values change: the components,
- * the type and the plate colours' meaning stay. Neither has a dark mode; the script never adds `.dark`
- * while one is on.
+ * The other looks, picked from the account menu and kept per device. Only token values change: the components
+ * and the type stay. A light look has no dark mode; the script never adds `.dark` while one is on.
  */
-
-/* Chalk: the gym whiteboard. Warm chalk surface, graphite ink, flat with hairline rules, matte plates. */
-:root[data-theme="chalk"] {
-  color-scheme: light;
-  --background: hsla(40, 18%, 97%, 1);
-  --foreground: hsla(30, 6%, 12%, 1);
-  --card: hsla(40, 18%, 97%, 1);
-  --card-foreground: hsla(30, 6%, 12%, 1);
-  --popover: hsla(40, 20%, 99%, 1);
-  --popover-foreground: hsla(30, 6%, 12%, 1);
-  --primary: hsla(30, 6%, 12%, 1);
-  --primary-foreground: hsla(40, 18%, 97%, 1);
-  --secondary: hsla(40, 14%, 92%, 1);
-  --secondary-foreground: hsla(30, 6%, 12%, 1);
-  --muted: hsla(40, 14%, 92%, 1);
-  --muted-foreground: hsla(30, 5%, 42%, 1);
-  --accent: hsla(40, 14%, 92%, 1);
-  --accent-foreground: hsla(30, 6%, 12%, 1);
-  --destructive: hsla(4, 62%, 46%, 1);
-  --destructive-foreground: hsla(0, 0%, 100%, 1);
-  --border: hsla(38, 12%, 84%, 1);
-  --input: hsla(38, 12%, 78%, 1);
-  --ring: hsla(30, 6%, 12%, 1);
-  --chart-1: hsla(216, 55%, 42%, 1);
-  --chart-2: hsla(150, 45%, 34%, 1);
-  --chart-3: hsla(44, 90%, 46%, 1);
-  --chart-4: hsla(4, 62%, 46%, 1);
-  --chart-5: hsla(30, 5%, 46%, 1);
-  --radius: 0.375rem;
-  --sidebar: hsla(40, 16%, 94%, 1);
-  --sidebar-foreground: hsla(30, 6%, 12%, 1);
-  --sidebar-primary: hsla(30, 6%, 12%, 1);
-  --sidebar-primary-foreground: hsla(40, 18%, 97%, 1);
-  --sidebar-accent: hsla(40, 14%, 88%, 1);
-  --sidebar-accent-foreground: hsla(30, 6%, 12%, 1);
-  --sidebar-border: hsla(38, 12%, 84%, 1);
-  --sidebar-ring: hsla(30, 6%, 12%, 1);
-  --day-push: hsla(4, 62%, 46%, 1);
-  --day-pull: hsla(216, 55%, 42%, 1);
-  --day-legs: hsla(44, 90%, 46%, 1);
-  --success: hsla(150, 45%, 34%, 1);
-  --success-foreground: hsla(0, 0%, 100%, 1);
-}
 
 /*
- * Pocket: a different app altogether. The device's own typeface instead of Barlow, big soft corners,
- * white cards lifted off a grey page, and the pull blue as the primary colour instead of ink.
+ * Lime: the dark half of the shadcn preset `buJ6Wpc` (neutral base, lime primary, square corners). Always dark;
+ * the plate colours come from `.dark` as on Slate.
  */
-:root[data-theme="pocket"] {
-  color-scheme: light;
-  --app-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --app-font-condensed: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --background: hsla(220, 14%, 95%, 1);
-  --foreground: hsla(222, 20%, 16%, 1);
-  --card: hsla(0, 0%, 100%, 1);
-  --card-foreground: hsla(222, 20%, 16%, 1);
-  --popover: hsla(0, 0%, 100%, 1);
-  --popover-foreground: hsla(222, 20%, 16%, 1);
-  --primary: hsla(216, 72%, 44%, 1);
-  --primary-foreground: hsla(0, 0%, 100%, 1);
-  --secondary: hsla(220, 14%, 90%, 1);
-  --secondary-foreground: hsla(222, 20%, 16%, 1);
-  --muted: hsla(220, 14%, 91%, 1);
-  --muted-foreground: hsla(220, 9%, 44%, 1);
-  --accent: hsla(216, 72%, 94%, 1);
-  --accent-foreground: hsla(216, 72%, 30%, 1);
-  --destructive: hsla(357, 69%, 47%, 1);
+:root[data-theme="lime"] {
+  color-scheme: dark;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.768 0.233 130.85);
+  --primary-foreground: oklch(0.405 0.101 131.063);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: hsla(0, 0%, 100%, 1);
-  --border: hsla(220, 14%, 87%, 1);
-  --input: hsla(220, 14%, 82%, 1);
-  --ring: hsla(216, 72%, 44%, 1);
-  --chart-1: hsla(216, 72%, 44%, 1);
-  --chart-2: hsla(146, 65%, 34%, 1);
-  --chart-3: hsla(47, 100%, 43%, 1);
-  --chart-4: hsla(357, 69%, 47%, 1);
-  --chart-5: hsla(220, 9%, 46%, 1);
-  --radius: 1rem;
-  --sidebar: hsla(0, 0%, 100%, 1);
-  --sidebar-foreground: hsla(222, 20%, 16%, 1);
-  --sidebar-primary: hsla(216, 72%, 44%, 1);
-  --sidebar-primary-foreground: hsla(0, 0%, 100%, 1);
-  --sidebar-accent: hsla(216, 72%, 94%, 1);
-  --sidebar-accent-foreground: hsla(216, 72%, 30%, 1);
-  --sidebar-border: hsla(220, 14%, 87%, 1);
-  --sidebar-ring: hsla(216, 72%, 44%, 1);
-  --day-push: hsla(357, 69%, 47%, 1);
-  --day-pull: hsla(216, 72%, 44%, 1);
-  --day-legs: hsla(47, 100%, 43%, 1);
-  --success: hsla(146, 65%, 34%, 1);
-  --success-foreground: hsla(0, 0%, 100%, 1);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0;
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.768 0.233 130.85);
+  --sidebar-primary-foreground: oklch(0.274 0.072 132.109);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
 }
 
 /* Popular themes on their own published palettes, picked from the same menu. Red, blue and yellow still mean push, pull and legs. */
@@ -291,6 +243,319 @@
   --success-foreground: hsla(0, 0%, 100%, 1);
 }
 
+/*
+ * The elements: six looks named for fire, water, forest, air, sky and stone. Each one paints a backdrop behind
+ * the page and tints the plates to its own palette, so the element shows on every screen. Push stays in the red
+ * family, pull in the blue, legs in the yellow.
+ */
+
+/* Fire: warm charcoal with an ember glow rising from the bottom edge, ember buttons, sharp corners. Always dark. */
+:root[data-theme="fire"] {
+  color-scheme: dark;
+  --background: oklch(0.19 0.015 30);
+  --foreground: oklch(0.95 0.015 60);
+  --card: oklch(0.24 0.02 30);
+  --card-foreground: oklch(0.95 0.015 60);
+  --popover: oklch(0.24 0.02 30);
+  --popover-foreground: oklch(0.95 0.015 60);
+  --primary: oklch(0.7 0.19 45);
+  --primary-foreground: oklch(0.16 0.03 40);
+  --secondary: oklch(0.3 0.025 30);
+  --secondary-foreground: oklch(0.95 0.015 60);
+  --muted: oklch(0.28 0.02 30);
+  --muted-foreground: oklch(0.74 0.03 50);
+  --accent: oklch(0.32 0.04 35);
+  --accent-foreground: oklch(0.95 0.015 60);
+  --destructive: oklch(0.65 0.22 25);
+  --destructive-foreground: hsla(0, 0%, 100%, 1);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.7 0.19 45);
+  --chart-1: oklch(0.7 0.19 45);
+  --chart-2: oklch(0.8 0.15 80);
+  --chart-3: oklch(0.6 0.2 25);
+  --chart-4: oklch(0.7 0.05 60);
+  --chart-5: oklch(0.55 0.03 40);
+  --radius: 0.25rem;
+  --sidebar: oklch(0.16 0.015 30);
+  --sidebar-foreground: oklch(0.95 0.015 60);
+  --sidebar-primary: oklch(0.7 0.19 45);
+  --sidebar-primary-foreground: oklch(0.16 0.03 40);
+  --sidebar-accent: oklch(0.26 0.025 30);
+  --sidebar-accent-foreground: oklch(0.95 0.015 60);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.7 0.19 45);
+  --day-push: oklch(0.56 0.22 25);
+  --day-pull: oklch(0.52 0.08 240);
+  --day-legs: oklch(0.8 0.16 85);
+  --day-legs-ink: oklch(0.2 0.03 60);
+  --success: oklch(0.72 0.17 145);
+  --success-foreground: oklch(0.16 0.03 40);
+  /* Sparks over the ember glow. */
+  --app-backdrop:
+    radial-gradient(5px 5px at 14% 88%, oklch(0.88 0.17 65 / 75%), transparent),
+    radial-gradient(4px 4px at 27% 76%, oklch(0.88 0.17 65 / 50%), transparent),
+    radial-gradient(6px 6px at 41% 93%, oklch(0.88 0.17 65 / 65%), transparent),
+    radial-gradient(4px 4px at 53% 70%, oklch(0.88 0.17 65 / 35%), transparent),
+    radial-gradient(5px 5px at 66% 84%, oklch(0.88 0.17 65 / 60%), transparent),
+    radial-gradient(4px 4px at 79% 73%, oklch(0.88 0.17 65 / 40%), transparent),
+    radial-gradient(6px 6px at 90% 90%, oklch(0.88 0.17 65 / 70%), transparent),
+    radial-gradient(80% 55% at 50% 110%, oklch(0.55 0.2 35 / 55%), transparent 70%);
+}
+
+/* Water: deep navy lit from above and fading to teal, sea-teal buttons, round corners. Always dark. */
+:root[data-theme="water"] {
+  color-scheme: dark;
+  --background: oklch(0.22 0.04 240);
+  --foreground: oklch(0.96 0.01 220);
+  --card: oklch(0.27 0.04 235);
+  --card-foreground: oklch(0.96 0.01 220);
+  --popover: oklch(0.27 0.04 235);
+  --popover-foreground: oklch(0.96 0.01 220);
+  --primary: oklch(0.78 0.12 195);
+  --primary-foreground: oklch(0.18 0.04 230);
+  --secondary: oklch(0.32 0.04 235);
+  --secondary-foreground: oklch(0.96 0.01 220);
+  --muted: oklch(0.3 0.035 235);
+  --muted-foreground: oklch(0.76 0.04 220);
+  --accent: oklch(0.34 0.05 220);
+  --accent-foreground: oklch(0.96 0.01 220);
+  --destructive: oklch(0.68 0.19 20);
+  --destructive-foreground: hsla(0, 0%, 100%, 1);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 16%);
+  --ring: oklch(0.78 0.12 195);
+  --chart-1: oklch(0.78 0.12 195);
+  --chart-2: oklch(0.7 0.14 150);
+  --chart-3: oklch(0.75 0.1 260);
+  --chart-4: oklch(0.8 0.1 90);
+  --chart-5: oklch(0.6 0.04 230);
+  --radius: 1rem;
+  --sidebar: oklch(0.19 0.04 240);
+  --sidebar-foreground: oklch(0.96 0.01 220);
+  --sidebar-primary: oklch(0.78 0.12 195);
+  --sidebar-primary-foreground: oklch(0.18 0.04 230);
+  --sidebar-accent: oklch(0.29 0.04 235);
+  --sidebar-accent-foreground: oklch(0.96 0.01 220);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.78 0.12 195);
+  --day-push: oklch(0.7 0.17 25);
+  --day-push-ink: oklch(0.2 0.04 240);
+  --day-pull: oklch(0.52 0.16 255);
+  --day-legs: oklch(0.84 0.11 90);
+  --day-legs-ink: oklch(0.2 0.04 240);
+  --success: oklch(0.74 0.15 160);
+  --success-foreground: oklch(0.18 0.04 230);
+  /* Three wave lines along the bottom edge, under the light from above. */
+  --app-backdrop:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='120' fill='none' stroke='%23ffffff' stroke-width='2'%3E%3Cpath d='M0 30 Q50 0 100 30 T200 30 T300 30 T400 30' stroke-opacity='.14'/%3E%3Cpath d='M0 70 Q50 40 100 70 T200 70 T300 70 T400 70' stroke-opacity='.09'/%3E%3Cpath d='M0 110 Q50 80 100 110 T200 110 T300 110 T400 110' stroke-opacity='.05'/%3E%3C/svg%3E")
+    bottom / 400px 120px repeat-x,
+    radial-gradient(60% 40% at 50% 0%, oklch(0.75 0.12 195 / 25%), transparent 70%),
+    linear-gradient(180deg, oklch(0.45 0.1 200 / 45%), transparent 45%);
+}
+
+/*
+ * Forest: the deep of the woods, near-black green, with sunlit leaves overhead. Vivid leaf-green buttons, green
+ * hairlines, a dark floor. Always dark.
+ */
+:root[data-theme="forest"] {
+  color-scheme: dark;
+  --background: oklch(0.17 0.04 152);
+  --foreground: oklch(0.95 0.03 130);
+  --card: oklch(0.22 0.045 152);
+  --card-foreground: oklch(0.95 0.03 130);
+  --popover: oklch(0.22 0.045 152);
+  --popover-foreground: oklch(0.95 0.03 130);
+  --primary: oklch(0.78 0.21 140);
+  --primary-foreground: oklch(0.17 0.05 150);
+  --secondary: oklch(0.27 0.05 150);
+  --secondary-foreground: oklch(0.95 0.03 130);
+  --muted: oklch(0.25 0.045 150);
+  --muted-foreground: oklch(0.74 0.08 140);
+  --accent: oklch(0.3 0.07 145);
+  --accent-foreground: oklch(0.95 0.03 130);
+  --destructive: oklch(0.66 0.2 25);
+  --destructive-foreground: hsla(0, 0%, 100%, 1);
+  --border: oklch(0.8 0.2 140 / 14%);
+  --input: oklch(0.8 0.2 140 / 20%);
+  --ring: oklch(0.78 0.21 140);
+  --chart-1: oklch(0.78 0.21 140);
+  --chart-2: oklch(0.85 0.17 120);
+  --chart-3: oklch(0.6 0.12 160);
+  --chart-4: oklch(0.7 0.1 80);
+  --chart-5: oklch(0.55 0.05 150);
+  --radius: 0.5rem;
+  --sidebar: oklch(0.14 0.035 152);
+  --sidebar-foreground: oklch(0.95 0.03 130);
+  --sidebar-primary: oklch(0.78 0.21 140);
+  --sidebar-primary-foreground: oklch(0.17 0.05 150);
+  --sidebar-accent: oklch(0.24 0.05 150);
+  --sidebar-accent-foreground: oklch(0.95 0.03 130);
+  --sidebar-border: oklch(0.8 0.2 140 / 14%);
+  --sidebar-ring: oklch(0.78 0.21 140);
+  --day-push: oklch(0.56 0.19 15);
+  --day-pull: oklch(0.52 0.12 225);
+  --day-legs: oklch(0.85 0.17 110);
+  --day-legs-ink: oklch(0.17 0.05 150);
+  --success: oklch(0.72 0.18 150);
+  --success-foreground: oklch(0.17 0.05 150);
+  /* A pine treeline along the bottom edge, with sunlit green overhead and the forest floor darkening behind the trees. */
+  --app-backdrop:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='96' fill='%23000000' fill-opacity='.32'%3E%3Cpath d='M4 96 14 68 9 68 17 50 13 50 20 26 27 50 23 50 31 68 26 68 36 96Z'/%3E%3Cpath transform='translate(36 19.2) scale(.8)' d='M4 96 14 68 9 68 17 50 13 50 20 26 27 50 23 50 31 68 26 68 36 96Z'/%3E%3Cpath transform='translate(72 4.8) scale(.95)' d='M4 96 14 68 9 68 17 50 13 50 20 26 27 50 23 50 31 68 26 68 36 96Z'/%3E%3Cpath transform='translate(116 26.9) scale(.72)' d='M4 96 14 68 9 68 17 50 13 50 20 26 27 50 23 50 31 68 26 68 36 96Z'/%3E%3C/svg%3E")
+    bottom / 160px 96px repeat-x,
+    radial-gradient(45% 30% at 15% 6%, oklch(0.75 0.2 140 / 45%), transparent 70%),
+    radial-gradient(26% 18% at 86% 10%, oklch(0.72 0.2 140 / 35%), transparent 70%),
+    radial-gradient(90% 55% at 50% 110%, oklch(0.07 0.03 152 / 85%), transparent 70%);
+}
+
+/* Air: near-white with a faint blue haze at the top, barely-there borders, soft indigo buttons, the roundest corners. */
+:root[data-theme="air"] {
+  color-scheme: light;
+  --background: oklch(0.985 0.005 230);
+  --foreground: oklch(0.3 0.03 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.3 0.03 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.3 0.03 260);
+  --primary: oklch(0.56 0.14 275);
+  --primary-foreground: hsla(0, 0%, 100%, 1);
+  --secondary: oklch(0.95 0.01 240);
+  --secondary-foreground: oklch(0.3 0.03 260);
+  --muted: oklch(0.95 0.008 240);
+  --muted-foreground: oklch(0.52 0.03 260);
+  --accent: oklch(0.94 0.02 270);
+  --accent-foreground: oklch(0.35 0.08 275);
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: hsla(0, 0%, 100%, 1);
+  --border: oklch(0.92 0.01 240);
+  --input: oklch(0.9 0.012 240);
+  --ring: oklch(0.56 0.14 275);
+  --chart-1: oklch(0.56 0.14 275);
+  --chart-2: oklch(0.7 0.1 200);
+  --chart-3: oklch(0.75 0.1 320);
+  --chart-4: oklch(0.8 0.1 90);
+  --chart-5: oklch(0.65 0.02 250);
+  --radius: 1.25rem;
+  --sidebar: oklch(0.97 0.008 230);
+  --sidebar-foreground: oklch(0.3 0.03 260);
+  --sidebar-primary: oklch(0.56 0.14 275);
+  --sidebar-primary-foreground: hsla(0, 0%, 100%, 1);
+  --sidebar-accent: oklch(0.93 0.015 240);
+  --sidebar-accent-foreground: oklch(0.3 0.03 260);
+  --sidebar-border: oklch(0.92 0.01 240);
+  --sidebar-ring: oklch(0.56 0.14 275);
+  --day-push: oklch(0.55 0.19 10);
+  --day-pull: oklch(0.53 0.13 265);
+  --day-legs: oklch(0.86 0.1 90);
+  --success: oklch(0.6 0.14 150);
+  --success-foreground: hsla(0, 0%, 100%, 1);
+  /* Wind streaks across the top right, over the haze. */
+  --app-backdrop:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='200' fill='none' stroke='%235b6a8a' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M20 60C160 20 300 20 420 60S560 100 590 70' stroke-opacity='.14'/%3E%3Cpath d='M60 110C200 70 340 70 460 110S580 150 590 130' stroke-opacity='.1'/%3E%3Cpath d='M110 160C230 120 350 120 450 160' stroke-opacity='.07'/%3E%3C/svg%3E")
+    right top / 600px 200px no-repeat,
+    radial-gradient(90% 60% at 50% -10%, oklch(0.9 0.04 230 / 80%), transparent 70%);
+}
+
+/* Sky: pale blue at the top fading to white, white cards, sky-blue buttons. Always light. */
+:root[data-theme="sky"] {
+  color-scheme: light;
+  --background: oklch(0.96 0.02 230);
+  --foreground: oklch(0.28 0.04 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.28 0.04 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.28 0.04 250);
+  --primary: oklch(0.53 0.15 245);
+  --primary-foreground: hsla(0, 0%, 100%, 1);
+  --secondary: oklch(0.92 0.03 230);
+  --secondary-foreground: oklch(0.28 0.04 250);
+  --muted: oklch(0.93 0.025 230);
+  --muted-foreground: oklch(0.5 0.04 245);
+  --accent: oklch(0.9 0.05 230);
+  --accent-foreground: oklch(0.32 0.08 245);
+  --destructive: oklch(0.58 0.22 25);
+  --destructive-foreground: hsla(0, 0%, 100%, 1);
+  --border: oklch(0.88 0.03 230);
+  --input: oklch(0.85 0.035 230);
+  --ring: oklch(0.53 0.15 245);
+  --chart-1: oklch(0.53 0.15 245);
+  --chart-2: oklch(0.7 0.12 190);
+  --chart-3: oklch(0.8 0.12 80);
+  --chart-4: oklch(0.68 0.14 330);
+  --chart-5: oklch(0.6 0.04 240);
+  --radius: 0.75rem;
+  --sidebar: oklch(0.93 0.03 230);
+  --sidebar-foreground: oklch(0.28 0.04 250);
+  --sidebar-primary: oklch(0.53 0.15 245);
+  --sidebar-primary-foreground: hsla(0, 0%, 100%, 1);
+  --sidebar-accent: oklch(0.88 0.04 230);
+  --sidebar-accent-foreground: oklch(0.28 0.04 250);
+  --sidebar-border: oklch(0.88 0.03 230);
+  --sidebar-ring: oklch(0.53 0.15 245);
+  --day-push: oklch(0.56 0.2 20);
+  --day-pull: oklch(0.46 0.15 260);
+  --day-legs: oklch(0.85 0.15 90);
+  --success: oklch(0.6 0.15 150);
+  --success-foreground: hsla(0, 0%, 100%, 1);
+  /* Two clouds and the sun, high up, over the day gradient. */
+  --app-backdrop:
+    radial-gradient(18% 9% at 15% 14%, oklch(1 0 0 / 95%), transparent 70%),
+    radial-gradient(12% 6% at 26% 11%, oklch(1 0 0 / 95%), transparent 70%),
+    radial-gradient(22% 9% at 70% 22%, oklch(1 0 0 / 90%), transparent 70%),
+    radial-gradient(14% 6% at 80% 19%, oklch(1 0 0 / 90%), transparent 70%),
+    radial-gradient(25% 25% at 92% 4%, oklch(0.95 0.12 90 / 55%), transparent 70%),
+    linear-gradient(180deg, oklch(0.88 0.06 235 / 90%), transparent 55%);
+}
+
+/* Stone: warm grey with a fine grain, graphite buttons, sand accents, square corners. Always light. */
+:root[data-theme="stone"] {
+  color-scheme: light;
+  --background: oklch(0.93 0.008 70);
+  --foreground: oklch(0.26 0.01 60);
+  --card: oklch(0.96 0.006 75);
+  --card-foreground: oklch(0.26 0.01 60);
+  --popover: oklch(0.97 0.006 75);
+  --popover-foreground: oklch(0.26 0.01 60);
+  --primary: oklch(0.32 0.01 60);
+  --primary-foreground: oklch(0.96 0.006 75);
+  --secondary: oklch(0.88 0.012 70);
+  --secondary-foreground: oklch(0.26 0.01 60);
+  --muted: oklch(0.89 0.01 70);
+  --muted-foreground: oklch(0.46 0.015 60);
+  --accent: oklch(0.86 0.03 75);
+  --accent-foreground: oklch(0.26 0.01 60);
+  --destructive: oklch(0.55 0.19 25);
+  --destructive-foreground: hsla(0, 0%, 100%, 1);
+  --border: oklch(0.82 0.012 70);
+  --input: oklch(0.78 0.014 70);
+  --ring: oklch(0.32 0.01 60);
+  --chart-1: oklch(0.5 0.06 60);
+  --chart-2: oklch(0.55 0.03 200);
+  --chart-3: oklch(0.65 0.1 80);
+  --chart-4: oklch(0.55 0.12 30);
+  --chart-5: oklch(0.6 0.01 60);
+  --radius: 0;
+  --sidebar: oklch(0.9 0.01 70);
+  --sidebar-foreground: oklch(0.26 0.01 60);
+  --sidebar-primary: oklch(0.32 0.01 60);
+  --sidebar-primary-foreground: oklch(0.96 0.006 75);
+  --sidebar-accent: oklch(0.85 0.015 70);
+  --sidebar-accent-foreground: oklch(0.26 0.01 60);
+  --sidebar-border: oklch(0.82 0.012 70);
+  --sidebar-ring: oklch(0.32 0.01 60);
+  --day-push: oklch(0.52 0.14 35);
+  --day-pull: oklch(0.48 0.07 240);
+  --day-legs: oklch(0.72 0.12 80);
+  --success: oklch(0.52 0.12 145);
+  --success-foreground: hsla(0, 0%, 100%, 1);
+  /* A low rock ridge along the bottom edge, faint strata lines, and a fine grain of fractal noise, tiled. */
+  --app-backdrop:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='120' preserveAspectRatio='none' fill='%23000000' fill-opacity='.07'%3E%3Cpath d='M0 120V92L90 60 170 84 260 40 340 70 430 52 520 90 600 58 690 82 800 44V120Z'/%3E%3C/svg%3E")
+    bottom / 100% 120px no-repeat,
+    repeating-linear-gradient(175deg, transparent 0 140px, oklch(0.4 0.02 60 / 6%) 140px 142px, transparent 142px 300px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.3 0 0 0 0 0.25 0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
 @theme inline {
   --font-sans: var(--app-font-sans);
   --font-condensed: var(--app-font-condensed);
@@ -353,6 +618,16 @@
     min-height: 100dvh;
     font-variant-numeric: tabular-nums;
     overscroll-behavior-y: none;
+  }
+
+  /* The look's backdrop, pinned to the viewport behind everything, so it reads the same on a long page. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: var(--app-backdrop);
   }
 
   input[type="number"] {

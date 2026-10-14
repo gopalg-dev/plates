@@ -237,11 +237,16 @@ shadcn Drawers; forms use the shadcn field components.
 The body map on Stats uses the figure polygons of [react-body-highlighter](https://github.com/giavinh79/react-body-highlighter)
 by GV79, MIT License, folded into the nine muscles the app tracks.
 
-Five looks, picked from the account menu and kept on the device: Slate (the default, dark when the
-device is), Chalk (warm white and graphite, flat), Pocket (the device's own typeface, soft corners,
-white cards, blue buttons), and two popular themes on their own published palettes, Catppuccin Latte
-and Dracula. Each is a block of token values in `src/styles.css`; the components never change, and
-red, blue and yellow still mean push, pull and legs in every one of them.
+Ten looks, picked from the account menu and kept on the device; hovering or arrowing onto one
+previews it on the page until the menu closes, and each group lists the looks in the device's own
+mode first. At the top: Slate (the default,
+dark when the device is), Catppuccin Latte and Dracula on their published palettes, and Lime (a
+shadcn preset, always dark: neutral greys, lime buttons, square corners). Under a Nature Elements heading: six
+named for the elements, Air, Sky and Stone (light) and Fire, Water and Forest (dark). Each is a
+block of token values in `src/styles.css`; the components never change. An
+element look also paints its element behind the page (sparks over an ember glow, waves, a pine
+treeline under sunlit green, wind streaks, clouds and sun, a rock ridge over stone grain) and tints the plates to its
+palette; push stays in the red family, pull in the blue and legs in the yellow in every look.
 
 ## Licence
 

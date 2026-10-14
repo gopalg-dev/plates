@@ -78,7 +78,8 @@ export function DemoPhone({ screen, label, className }: { screen: DemoScreenName
 /** A phone's screen inside the demo window: the status bar, the app scrolling between, and the home bar. */
 export function PhoneScreen({ children }: { children: ReactNode }) {
   return (
-    <div className="flex h-dvh flex-col bg-background">
+    // No page colour of its own: the body's, and the look's backdrop behind it, show through.
+    <div className="flex h-dvh flex-col">
       <div aria-hidden className="flex h-[54px] shrink-0 items-center justify-between pt-1.5 pr-7 pl-12">
         <span className="text-[17px] font-semibold">9:41</span>
         <span className="flex items-center gap-1.5">

@@ -296,7 +296,10 @@ no Inter/Geist. Checked.
 - [x] 24. UX pass against the ui-ux-pro-max checklist: tap targets, tap delay, press feedback,
       pending skeleton, inline sign-in errors, show / hide password, tappable list rows.
       HANDOVER.md item 25.
-- [x] 25. Looks: Slate (default), Chalk and Pocket, plus Catppuccin Latte and Dracula, as token
+- [x] 25. Looks: Slate (default), Catppuccin Latte, Dracula, Lime (a dark shadcn preset, which
+      replaced Pocket on 2026-10-14), and the six elements (Air, Sky, Stone, Fire, Water, Forest,
+      2026-10-14, each with its element painted behind the page and its own plates; Chalk dropped
+      the same day), as token
       blocks keyed on `<html data-theme>`,
       picked from the account menu, kept per device, applied before paint. HANDOVER.md item 27.
 - [x] 26. Day glyphs: a plate-coloured tile with a lucide glyph per day type replaces the colour bar

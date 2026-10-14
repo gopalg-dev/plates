@@ -650,8 +650,8 @@ test('the report reads last week, picks a week from a calendar, and shares it as
   await dialog.getByRole('combobox', { name: 'Highlight' }).click()
   await page.getByRole('option', { name: 'Nothing' }).click()
   await expect(dialog.getByRole('combobox', { name: 'Highlight' })).toHaveText('Nothing')
-  await dialog.getByRole('radio', { name: 'Dracula' }).click()
-  await expect(dialog.getByRole('radio', { name: 'Dracula' })).toBeChecked()
+  await dialog.getByRole('radio', { name: 'Lime' }).click()
+  await expect(dialog.getByRole('radio', { name: 'Lime' })).toBeChecked()
   await snap('22-share-card')
   const download = page.waitForEvent('download')
   await dialog.getByRole('button', { name: 'Save image' }).click()
@@ -696,7 +696,18 @@ test('a template resets to its original, and the plan of your own is untouched b
 
 test('every look keeps the day colours and readable text', async () => {
   await open('/')
-  for (const look of ['Chalk', 'Pocket', 'Dracula', 'Catppuccin Latte', 'Slate']) {
+  for (const look of [
+    'Catppuccin Latte',
+    'Lime',
+    'Dracula',
+    'Air',
+    'Sky',
+    'Stone',
+    'Fire',
+    'Water',
+    'Forest',
+    'Slate',
+  ]) {
     await accountMenu()
     await page.getByRole('menuitem', { name: 'Look' }).hover()
     await page.getByRole('menuitemradio', { name: look }).click()

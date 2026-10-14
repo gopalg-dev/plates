@@ -40,7 +40,7 @@ export interface CardTheme {
 }
 
 /**
- * Every look as a card theme: the slate default in light and dark, and the four others. The looks are set on the
+ * Every look as a card theme: the slate default in light and dark, and the others. The looks are set on the
  * document, so each is applied for a moment and read back; it all happens before the browser paints again, so
  * nothing flickers.
  */

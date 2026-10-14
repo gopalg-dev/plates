@@ -182,22 +182,50 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     by `THEME_SCRIPT` (`src/lib/theme.ts`, injected from `__root.tsx`), which sets
     `<html data-theme>` and adds `.dark` for a dark theme, or for the slate default on a dark
     device. The looks are token blocks in `styles.css` (`:root[data-theme='…']`), nothing else
-    changes. Five, after the user trimmed a longer list ("we have a handful, just keep a few"):
+    changes. Ten, as of 2026-10-15:
     - Slate: the original, cool grey, Barlow Condensed numbers, dark with the device.
-    - Chalk: the gym whiteboard, warm chalk white, graphite ink, flat (card = page), hairline warm
-      borders, matte plates, 6px radius. Always light.
-    - Pocket: a different app: the device's own typeface (`--app-font-sans` / `--app-font-condensed`,
-      which the `@theme` font tokens now point at), 16px radius, white cards on a grey page, pull
-      blue as the primary colour.
-    - Catppuccin Latte and Dracula, on their published palettes (Dracula has 7.5M+ installs per a
-      2025 VS Code themes guide). Red / blue / yellow / green map to push / pull / legs / success,
-      the accent to `--primary` and `--ring`; Dracula is in the script's `dark` map so `.dark` is
-      added and the components' dark styles apply. Their blocks were generated from hex by a
-      scratch script, not typed. Dropped on request: Snow, Nord, Catppuccin Mocha, Solarized
-      Light, Gruvbox, Rosé Pine Dawn, Tokyo Night (easy to bring back the same way).
-    `THEME_OPTIONS` in `src/lib/theme.ts` is the list the submenu renders; `saveTheme` writes the
-    key and calls `window.__applyTheme`. The e2e picks Chalk and Pocket, reloads, and checks
-    `data-theme`; screenshots `17b-chalk`, `17c-pocket`.
+    - Catppuccin Latte and Dracula, on their published palettes: red / blue / yellow / green map to
+      push / pull / legs / success, the accent to `--primary` and `--ring`; Dracula is in the
+      script's `dark` map so `.dark` is added, and its pastel plates take a dark ink. Their blocks
+      were generated from hex by a scratch script, not typed. Dracula was dropped on 2026-10-14
+      and asked back the next day.
+    - Lime: the dark half of the shadcn preset `buJ6Wpc` (`shadcn apply --preset buJ6Wpc --only theme`,
+      run in a scratch copy and pasted in as a block): neutral greys, lime primary, `--radius: 0`
+      (the CLI wrote 0.875rem; the builder's own CSS, which the user pasted, says 0). Always dark,
+      so it is in the script's `dark` map. The light half was dropped on request, and the preset's
+      Lyra style (its own component files) was not applied.
+    - The elements (2026-10-14, user: "nature elements theme ... the entire app should be reflecting
+      the theme, maybe a background change"): Air, Sky, Stone (light) and Fire, Water, Forest (dark).
+      Each sets `--app-backdrop`, painted by `body::before` fixed behind the page (sparks over an
+      ember glow, waves, a pine treeline under sunlit green for Forest, whose palette follows the
+      user's photo of deep woods with vivid lit leaves (hand-drawn leaf clusters were tried and
+      dropped for the treeline), wind streaks, clouds and sun, a rock ridge over fractal-noise grain
+      for Stone), its own `--radius`, and plates tinted to its
+      palette (push red family, pull blue family, legs yellow family, inks overridden where a plate
+      is light). `SidebarInset` and the demo `PhoneScreen` are `bg-transparent` at the call site so
+      the backdrop shows through; the sticky bars keep their `bg-background/95`.
+    - Gone: Pocket (the device's own typeface, 16px radius, white cards on grey, pull blue as
+      primary; replaced by Lime on 2026-10-14, the `--app-font-*` tokens it swapped stay), then Chalk
+      (the gym whiteboard) the same day on request ("cleanup the remaining"). Earlier,
+      from a longer first list: Snow, Nord, Catppuccin Mocha, Solarized Light, Gruvbox, Rosé Pine
+      Dawn, Tokyo Night. Any of them comes back as a token block the same way.
+    `THEME_OPTIONS` in `src/lib/theme.ts` is the list the submenu renders (`look-menu.tsx`): the
+    plain looks on top (Slate, Catppuccin Latte, Lime, Dracula), a separator, then a small grey "Nature
+    Elements" label over the options flagged `element`. One flat list: a nested submenu for the
+    elements was tried and dropped the same day ("no need for the submenu"), and the palette button
+    on the public pages lists the looks with no "Look" title. On phones the account menu is `w-44`
+    and `align="start"` so the Look submenu, which Radix only opens to the right, fits beside it on
+    a 360px screen. A look previews on the page while its item has focus (hover or arrow key,
+    2026-10-15, user: "previewing the themes on the web while hovering"): `previewTheme` sets
+    `data-theme` and `.dark` without saving, after a 150ms pause so a sweep across the list does not
+    flash; within each group the looks in the device's own mode come first (`byDeviceMode`, Slate
+    counts as the device's mode so it always leads), the others after, so a sweep flips once per
+    group on any device ("dark and light mixed makes the eyes hurt", "latte ... mixed between two
+    darks"); the list's unmount (it closes, picked or not) calls `endPreview`, which re-runs
+    `window.__applyTheme` for the saved look. `saveTheme` writes the key and calls
+    `window.__applyTheme`. The e2e picks
+    Catppuccin Latte and Lime, reloads, and checks `data-theme`; screenshots `17b-latte`,
+    `17c-lime`; the explore walkthrough snaps every look.
 28. Day glyphs (user: "instead of colour tags, icons or illustrations"). `DayIcon` in
     `day-mark.tsx`: a plate-coloured tile with a lucide glyph per day type (push ArrowBigUp, pull
     ArrowBigDown, legs Footprints, upper / lower ArrowUpToLine / ArrowDownToLine, full Dumbbell,
@@ -205,8 +233,8 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
     scales with the tile (`size-*`). It replaced the `DayMark` bar on Plan days, Today's title and
     zen header, the day pickers, the import preview, the Stats day chooser and the session editor
     title. The bar stays for the wordmark, the sign-in frame and the week shapes. The ink on a tile
-    is a token (`--day-push-ink` and friends, white / white / black-80 by default) because
-    Dracula's pastel plates lost the white glyph; Dracula sets all three to its background.
+    is a token (`--day-push-ink` and friends, white / white / black-80 by default) because a look
+    with a light plate loses the white glyph; Water darkens the ink on its coral push plate.
 29. Mail. `src/server/mail-templates.ts` holds `signInMail(url, minutes)`: a table-based HTML
     email in the app's light look (wordmark bars, condensed "Sign in", one line, one ink button,
     the link as text, a one-line footer), plus the plain-text twin; `auth.ts` sends it. The

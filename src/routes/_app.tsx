@@ -145,7 +145,8 @@ function AppLayout() {
               <SidebarRail />
             </Sidebar>
 
-            <SidebarInset className="min-w-0">
+            {/* No page colour of its own: the body's, and the look's backdrop behind it, show through. */}
+            <SidebarInset className="min-w-0 bg-transparent">
               {/* Phones have no rail: a slim header opens the same sidebar as a sheet with every screen in it. */}
               <header className="sticky top-0 z-30 flex h-12 items-center gap-2 border-b bg-background/95 px-2 backdrop-blur md:hidden">
                 <SidebarTrigger aria-label="Open menu" />
@@ -220,10 +221,11 @@ function AccountMenu({ who, email, image }: { who: string; email: string; image:
               <ChevronsUpDown className="ml-auto size-4" aria-hidden />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
+          {/* On a phone the menu stays narrow and hugs the sheet's left edge, so the Look submenu fits beside it. */}
           <DropdownMenuContent
-            className="min-w-56 rounded-lg"
+            className={isMobile ? 'w-44 rounded-lg' : 'min-w-56 rounded-lg'}
             side={isMobile ? 'bottom' : 'right'}
-            align="end"
+            align={isMobile ? 'start' : 'end'}
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-base font-normal">

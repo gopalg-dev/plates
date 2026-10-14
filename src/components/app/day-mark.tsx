@@ -41,7 +41,7 @@ const colour: Record<Family, string> = {
   mixed: 'bg-muted-foreground',
 }
 
-/** Ink on top of each plate colour: a token, so a theme with light plates (Dracula) can darken it. */
+/** Ink on top of each plate colour: a token, so a theme with a light plate (Water's coral) can darken it. */
 const ink: Record<Family, string> = {
   push: 'text-(--day-push-ink)',
   pull: 'text-(--day-pull-ink)',
