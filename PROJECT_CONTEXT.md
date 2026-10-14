@@ -342,6 +342,24 @@ no Inter/Geist. Checked.
         swaps; a library entry added in the database without the new fields made the server re-run the fill-in
         on every read (only the bundle's ids count now). Known, left: "Add a day" on a plan started empty still
         brings five lifts, as there is no stored "empty" preference.
+- [x] 60. The interactive demo mirrors the app, and SEO groundwork (2026-10-14, user request). The live phone on
+      How it works now runs the same flow as the app: Today opens on **Next up** (the day the plan says is next, its
+      lifts, the week streak and a review alert), and only Start — or a day from Pick a day — begins the session;
+      finishing or discarding returns to Next up. To share instead of duplicate, the Today "Next up" view was
+      extracted from `routes/_app/index.tsx` into `components/app/next-up.tsx` (`NextUpView` + `Streak`): the route
+      wires it to the server and passes the weigh-in/tape reminder as a `nudge` slot; the demo (`TodayDemo` in
+      guide-demos.tsx) passes made-up data, starts a client session via `demoSession(…, dayId)`, and opens its own
+      report from the alert through `onAlertAction`. The demo session gained the app's header menu (**Change
+      session** → a day-picker drawer, **Discard workout** → back to Next up), shown only when an `onSwitch` is
+      given. Earlier in the same batch the demo also got the Report (top bar + `ReportDemo` on `ReportView`), a
+      working mid-session swap, and the Plan day **Rename or change kind** dialog — the last by extracting
+      `DayDialog` from `routes/_app/plan.tsx` into plan-view.tsx with an `onSave(name, type)` callback (route saves
+      to the server, demo updates its own plan). The report top bar double-header on the Plan and Stats tabs was
+      fixed with a `header` prop on `PlanDemo`/`StatsDemo` (off inside the app demo). SEO: `robots.txt` and
+      `sitemap.xml` are now server routes that read the request origin (so the domain is right on any host; the
+      static `public/robots.txt` is gone, `/signup` is left out since production signs in with Google), and the
+      root head carries `Organization` + `WebSite` JSON-LD with absolute URLs for brand searches (sitelinks and the
+      rest are Google's to grant, over time; this is the groundwork). `public/google…​.html` verifies Search Console.
 - [x] 59. Today alerts as a card deck (2026-10-14, user request, chosen from a six-way demo artifact built in the
       app's skin and since deleted). The four stacked bordered alert rows on Today became `AlertDeck`
       (components/app/alert-deck.tsx): a slideshow, one card at a time, the rest behind dots. Swipe by touch or

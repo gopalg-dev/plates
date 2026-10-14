@@ -91,8 +91,8 @@ function GuidePage() {
 /** A hand-drawn note and a squiggly arrow down to the live phone: it is the app, and it can be tapped. */
 function TryIt() {
   return (
-    <div aria-hidden className="flex items-end gap-1 pl-10 text-muted-foreground sm:pl-16">
-      <span className="-rotate-6 pb-7 font-condensed text-xl font-medium">It's live. Tap around.</span>
+    <div aria-hidden className="flex items-end gap-1 pl-4 text-muted-foreground">
+      <span className="-rotate-6 pb-6 font-hand text-2xl font-semibold">It's live. Tap around.</span>
       <svg
         aria-hidden
         viewBox="0 0 80 70"
@@ -104,7 +104,7 @@ function TryIt() {
         strokeLinejoin="round"
       >
         <path d="M6 10 C 28 2, 52 8, 48 25 C 45 37, 27 34, 33 23 C 39 13, 61 20, 63 38 C 64 49, 60 57, 55 64" />
-        <path d="M47 57 L 55 65 L 62 55" />
+        <path d="M64 60 L 55 64 L 56 54" />
       </svg>
     </div>
   )

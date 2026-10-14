@@ -13,8 +13,10 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppLibraryRouteImport } from './routes/_app/library'
 import { Route as AppPlanRouteImport } from './routes/_app/plan'
@@ -44,6 +46,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SetupRoute = SetupRouteImport.update({
   id: '/setup',
   path: '/setup',
@@ -52,6 +59,11 @@ const SetupRoute = SetupRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -105,8 +117,10 @@ export interface FileRoutesByFullPath {
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/library': typeof AppLibraryRoute
   '/plan': typeof AppPlanRoute
   '/report': typeof AppReportRoute
@@ -120,8 +134,10 @@ export interface FileRoutesByTo {
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/library': typeof AppLibraryRoute
   '/plan': typeof AppPlanRoute
   '/report': typeof AppReportRoute
@@ -138,8 +154,10 @@ export interface FileRoutesById {
   '/how-it-works': typeof HowItWorksRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_app/library': typeof AppLibraryRoute
   '/_app/plan': typeof AppPlanRoute
   '/_app/report': typeof AppReportRoute
@@ -157,8 +175,10 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/login'
     | '/privacy'
+    | '/robots.txt'
     | '/setup'
     | '/signup'
+    | '/sitemap.xml'
     | '/library'
     | '/plan'
     | '/report'
@@ -172,8 +192,10 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/login'
     | '/privacy'
+    | '/robots.txt'
     | '/setup'
     | '/signup'
+    | '/sitemap.xml'
     | '/library'
     | '/plan'
     | '/report'
@@ -189,8 +211,10 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/login'
     | '/privacy'
+    | '/robots.txt'
     | '/setup'
     | '/signup'
+    | '/sitemap.xml'
     | '/_app/library'
     | '/_app/plan'
     | '/_app/report'
@@ -207,8 +231,10 @@ export interface RootRouteChildren {
   HowItWorksRoute: typeof HowItWorksRoute
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   SetupRoute: typeof SetupRoute
   SignupRoute: typeof SignupRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   DemoScreenRoute: typeof DemoScreenRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -243,6 +269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/setup': {
       id: '/setup'
       path: '/setup'
@@ -255,6 +288,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/': {
@@ -350,8 +390,10 @@ const rootRouteChildren: RootRouteChildren = {
   HowItWorksRoute: HowItWorksRoute,
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   SetupRoute: SetupRoute,
   SignupRoute: SignupRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   DemoScreenRoute: DemoScreenRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

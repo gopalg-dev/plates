@@ -1,41 +1,23 @@
-import { createFileRoute, Link, useNavigate, useRouter } from '@tanstack/react-router'
-import { ArrowLeftRight, Flame, MoreHorizontal, Ruler, Scale, Trash2, X } from 'lucide-react'
+import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
+import { ArrowLeftRight, MoreHorizontal, Ruler, Scale, Trash2, X } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { AlertDeck } from '#/components/app/alert-deck'
 import { LogBodyweightDialog, LogMeasurementsDialog } from '#/components/app/body-dialogs'
 import { DayIcon } from '#/components/app/day-mark'
-import { targetOf } from '#/components/app/exercise-row'
-import { ExerciseThumb } from '#/components/app/exercise-thumb'
+import { NextUpView } from '#/components/app/next-up'
 import { DiscardDialog, FinishCheckIn, SummaryDialog } from '#/components/app/session-finish'
 import { SessionExercises, SessionFooter, SessionTitle, ZenButton } from '#/components/app/session-view'
 import { SwapLiftPanel } from '#/components/app/swap-lift'
 import { useSessionSets } from '#/components/app/use-session-sets'
 import { ZenMode } from '#/components/app/zen-mode'
 import { Button } from '#/components/ui/button'
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from '#/components/ui/drawer'
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '#/components/ui/drawer'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '#/components/ui/dropdown-menu'
-import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemGroup,
-  ItemMedia,
-  ItemSeparator,
-  ItemTitle,
-} from '#/components/ui/item'
-import { errorMessage, relativeDay } from '#/lib/format'
+import { Item, ItemActions, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from '#/components/ui/item'
+import { errorMessage } from '#/lib/format'
 import { nudgeFor } from '#/lib/logic/nudges'
 import { stepsOf } from '#/lib/logic/progression'
-import { lastDoneAt, WEEKDAY_SHORT, weekdayOf, weekdayView } from '#/lib/logic/schedule'
+import { weekdayOf, weekdayView } from '#/lib/logic/schedule'
 import type { Pause } from '#/lib/logic/session-time'
 import { plannedSetsFor, weeklyStreakOf } from '#/lib/logic/stats'
 import type { SessionSummary } from '#/lib/logic/summary'
@@ -43,7 +25,6 @@ import { pageTitle } from '#/lib/page-title'
 import { rowTap } from '#/lib/row-tap'
 import type { LoggedSet, NudgeKind, Plan, PlanDay, Settings, Workout } from '#/lib/types'
 import { useWakeLock } from '#/lib/use-wake-lock'
-import { cn } from '#/lib/utils'
 import {
   acceptRampFn,
   discardWorkoutFn,
@@ -99,29 +80,9 @@ function TodayPage() {
 
 // ---------------------------------------------------------------- next up
 
-/** The week streak, top right of Today: a flame and a big number of weeks. Muted until the first streak week. */
-function Streak({ weeks }: { weeks: number }) {
-  const on = weeks > 0
-  const unit = weeks === 1 ? 'week' : 'weeks'
-  return (
-    <div
-      className={cn('flex shrink-0 items-center gap-2', on ? 'text-foreground' : 'text-muted-foreground')}
-      role="img"
-      aria-label={`${weeks} ${unit} streak`}
-    >
-      <Flame aria-hidden className={cn('size-8 sm:size-9', on ? 'fill-day-legs text-day-legs' : '')} />
-      <span className="flex flex-col items-center">
-        <span className="font-condensed text-4xl font-semibold leading-none tabular-nums sm:text-5xl">{weeks}</span>
-        <span className="mt-1 text-sm leading-none text-muted-foreground">{unit}</span>
-      </span>
-    </div>
-  )
-}
-
 function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void }) {
   const { plan, settings, nextDayId } = data
   const [starting, setStarting] = useState<string | null>(null)
-  const [pickerOpen, setPickerOpen] = useState(false)
   const now = new Date()
   const nudge = nudgeFor(data.lastBodyweightAt, data.lastMeasurementAt, now, settings.nudges)
   // "Not now" hides the reminder at once; the server remembers it, and the next reload shows the next one, if any.
@@ -153,13 +114,24 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
       : null
     : (plan.days.find((d) => d.id === nextDayId) ?? plan.days[0])
 
+  const title = day ? day.name : view?.doneToday ? 'Done for today' : 'Rest day'
+  const markType = day?.type ?? view?.today?.type
+  const streak = weeklyStreakOf(
+    data.recent.map((f) => f.finishedAt),
+    now,
+  )
   const totalSets = day ? day.exercises.reduce((n, e) => n + plannedSetsFor(e.sets, settings.trainingAge), 0) : 0
+  const nextLine = view?.next
+    ? `Next: ${view.next.day.name}, ${view.next.inDays === 1 ? 'tomorrow' : weekdayOf(view.next.day)}.`
+    : ''
+  const summary = day
+    ? `${day.exercises.length} exercises, ${totalSets} sets`
+    : `${view?.doneToday && view.today ? `${view.today.name} is in the log. ` : 'Nothing planned for today. '}${nextLine}`
 
   async function start(dayId: string) {
     setStarting(dayId)
     try {
       await startWorkoutFn({ data: { dayId } })
-      setPickerOpen(false)
       onChanged()
     } catch (err) {
       toast.error(errorMessage(err, 'Could not start the workout.'))
@@ -168,157 +140,50 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
     }
   }
 
-  const title = day ? day.name : view?.doneToday ? 'Done for today' : 'Rest day'
-  const markType = day?.type ?? view?.today?.type
-  const streak = weeklyStreakOf(
-    data.recent.map((f) => f.finishedAt),
-    now,
-  )
-  const nextLine = view?.next
-    ? `Next: ${view.next.day.name}, ${view.next.inDays === 1 ? 'tomorrow' : weekdayOf(view.next.day)}.`
-    : ''
+  // The weigh-in / tape reminder: the one app-specific slot the shared view does not carry.
+  const reminder =
+    nudge && nudge.kind !== waved ? (
+      <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border px-3 py-2.5">
+        {nudge.kind === 'weight' ? (
+          <Scale className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+        ) : (
+          <Ruler className="size-5 shrink-0 text-muted-foreground" aria-hidden />
+        )}
+        <p className="min-w-0 flex-1">
+          <span className="font-medium">{nudge.title}</span>{' '}
+          <span className="text-muted-foreground">{nudge.detail}</span>
+        </p>
+        <div className="ml-auto flex items-center gap-1">
+          {nudge.kind === 'weight' ? (
+            <LogBodyweightDialog units={settings.units} onLogged={onChanged} />
+          ) : (
+            <LogMeasurementsDialog lengthUnit={settings.units === 'kg' ? 'cm' : 'in'} onLogged={onChanged} />
+          )}
+          <Button variant="ghost" size="icon-sm" aria-label="Not now" onClick={() => void wave(nudge.kind)}>
+            <X aria-hidden />
+          </Button>
+        </div>
+      </div>
+    ) : null
 
   return (
-    <div>
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-muted-foreground">
-            {now.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-          </p>
-          <h1 className="mt-1 flex items-center gap-3 font-condensed text-4xl font-semibold leading-none sm:text-5xl">
-            {markType && <DayIcon type={markType} className="size-11 rounded-xl" />}
-            {title}
-          </h1>
-        </div>
-        <Streak weeks={streak} />
-      </div>
-      {day ? (
-        <p className="mt-3 text-muted-foreground">
-          {day.exercises.length === 0 ? 'No lifts yet.' : `${day.exercises.length} exercises, ${totalSets} sets`}
-        </p>
-      ) : (
-        <p className="mt-3 text-muted-foreground">
-          {view?.doneToday && view.today ? `${view.today.name} is in the log. ` : 'Nothing planned for today. '}
-          {nextLine}
-        </p>
-      )}
-
-      <AlertDeck alerts={shownAlerts} onDismiss={dismissAlert} />
-
-      {nudge && nudge.kind !== waved && (
-        <div className="mt-5 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border px-3 py-2.5">
-          {nudge.kind === 'weight' ? (
-            <Scale className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-          ) : (
-            <Ruler className="size-5 shrink-0 text-muted-foreground" aria-hidden />
-          )}
-          <p className="min-w-0 flex-1">
-            <span className="font-medium">{nudge.title}</span>{' '}
-            <span className="text-muted-foreground">{nudge.detail}</span>
-          </p>
-          <div className="ml-auto flex items-center gap-1">
-            {nudge.kind === 'weight' ? (
-              <LogBodyweightDialog units={settings.units} onLogged={onChanged} />
-            ) : (
-              <LogMeasurementsDialog lengthUnit={settings.units === 'kg' ? 'cm' : 'in'} onLogged={onChanged} />
-            )}
-            <Button variant="ghost" size="icon-sm" aria-label="Not now" onClick={() => void wave(nudge.kind)}>
-              <X aria-hidden />
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {day && day.exercises.length > 0 && (
-        <ItemGroup className="mt-8 border-y">
-          {day.exercises.map((ex, i) => (
-            <div key={ex.id}>
-              {i > 0 && <ItemSeparator />}
-              <Item size="sm" className="px-1">
-                <ItemMedia variant="image">
-                  <ExerciseThumb name={ex.name} />
-                </ItemMedia>
-                <ItemContent>
-                  <ItemTitle className="text-base font-normal">{ex.name}</ItemTitle>
-                </ItemContent>
-                <span className="shrink-0 tabular-nums text-muted-foreground">
-                  {plannedSetsFor(ex.sets, settings.trainingAge)} × {targetOf(ex)}
-                </span>
-              </Item>
-            </div>
-          ))}
-        </ItemGroup>
-      )}
-
-      <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-center">
-        {/* A day with no lifts cannot start: it waits on Plan to be filled. */}
-        {day &&
-          (day.exercises.length === 0 ? (
-            <Button asChild variant="outline" size="lg" className="h-12 text-base">
-              <Link to="/plan">Add lifts on Plan</Link>
-            </Button>
-          ) : (
-            <Button size="lg" className="h-12 text-base" onClick={() => start(day.id)} disabled={starting !== null}>
-              Start {day.name}
-            </Button>
-          ))}
-        <Drawer open={pickerOpen} onOpenChange={setPickerOpen}>
-          <DrawerTrigger asChild>
-            {day ? (
-              <Button variant="ghost" size="lg">
-                Not this one? Pick another day
-              </Button>
-            ) : (
-              <Button size="lg" className="h-12 text-base">
-                Pick a day
-              </Button>
-            )}
-          </DrawerTrigger>
-          <DrawerContent className="max-h-[92dvh]">
-            <DrawerHeader>
-              <DrawerTitle>Pick a day</DrawerTitle>
-              <DrawerDescription className="sr-only">Start a different day.</DrawerDescription>
-            </DrawerHeader>
-            <ItemGroup className="px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
-              {plan.days.map((d) => {
-                const doneAt = lastDoneAt(d.id, data.recent)
-                // The day's weekday (or its size), and when it was last done, so a day just trained stands out.
-                const detail = [
-                  byWeekday && d.weekday !== undefined ? WEEKDAY_SHORT[d.weekday] : `${d.exercises.length} exercises`,
-                  doneAt ? `Done ${relativeDay(doneAt, now)}` : null,
-                ]
-                return (
-                  <Item
-                    key={d.id}
-                    size="sm"
-                    className="cursor-pointer px-2"
-                    onClick={rowTap(() => start(d.id)).onClick}
-                  >
-                    <ItemMedia>
-                      <DayIcon type={d.type} className="size-8 rounded-md" />
-                    </ItemMedia>
-                    <ItemContent>
-                      <ItemTitle className="text-base">{d.name}</ItemTitle>
-                      <ItemDescription>{detail.filter(Boolean).join(' · ')}</ItemDescription>
-                    </ItemContent>
-                    <ItemActions>
-                      <Button
-                        size="sm"
-                        aria-label={`Start ${d.name}`}
-                        onClick={() => start(d.id)}
-                        disabled={starting !== null || d.exercises.length === 0}
-                      >
-                        Start
-                      </Button>
-                    </ItemActions>
-                  </Item>
-                )
-              })}
-            </ItemGroup>
-          </DrawerContent>
-        </Drawer>
-      </div>
-    </div>
+    <NextUpView
+      day={day}
+      days={plan.days}
+      trainingAge={settings.trainingAge}
+      now={now}
+      streakWeeks={streak}
+      title={title}
+      markType={markType}
+      summary={summary}
+      byWeekday={byWeekday}
+      recent={data.recent}
+      alerts={shownAlerts}
+      onDismissAlert={dismissAlert}
+      onStart={start}
+      starting={starting}
+      nudge={reminder}
+    />
   )
 }
 

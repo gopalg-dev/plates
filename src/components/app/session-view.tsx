@@ -31,15 +31,15 @@ export function SessionTitle({
   onPause?: (paused: boolean) => void
 }) {
   return (
-    <header className="flex items-start justify-between gap-4">
-      <div>
-        <p className="flex items-center gap-2 text-muted-foreground">
-          Started {timeOfDay(workout.startedAt)}
+    <header className="flex items-start justify-between gap-3">
+      <div className="min-w-0">
+        <p className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-muted-foreground">
+          <span className="whitespace-nowrap">Started {timeOfDay(workout.startedAt)}</span>
           <Elapsed workout={workout} onPause={onPause} />
         </p>
         <h1 className="mt-1 flex items-center gap-3 font-condensed text-4xl font-semibold leading-none sm:text-5xl">
-          <DayIcon type={workout.dayType} className="size-11 rounded-xl" />
-          {workout.dayName}
+          <DayIcon type={workout.dayType} className="size-11 shrink-0 rounded-xl" />
+          <span className="min-w-0 [overflow-wrap:anywhere]">{workout.dayName}</span>
         </h1>
       </div>
       <div className="flex shrink-0 items-center gap-2">{actions}</div>
@@ -64,12 +64,10 @@ export function Elapsed({
   if (!now) return null
   const paused = Boolean(workout.pausedAt)
   return (
-    <span className={cn('inline-flex items-center gap-1', className)}>
+    <span className={cn('inline-flex items-center gap-1 whitespace-nowrap', className)}>
       <span aria-hidden>·</span>
-      <span className="tabular-nums">
-        {elapsedLabel(activeMs(workout, now))}
-        {paused && ', paused'}
-      </span>
+      {/* The icon shows paused; a screen reader hears it on the button's label, so no "paused" word is needed here. */}
+      <span className="tabular-nums">{elapsedLabel(activeMs(workout, now))}</span>
       {onPause && (
         <Button
           variant="ghost"

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { DayIcon } from '#/components/app/day-mark'
 import { ExerciseEditor, type ExerciseEditorActions } from '#/components/app/exercise-editor'
-import { DaySection, PlanTitle } from '#/components/app/plan-view'
+import { DayDialog, DaySection, PlanTitle } from '#/components/app/plan-view'
 import { Accordion } from '#/components/ui/accordion'
 import { Button } from '#/components/ui/button'
 import {
@@ -16,9 +16,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '#/components/ui/dialog'
-import { Field, FieldGroup, FieldLabel } from '#/components/ui/field'
-import { Input } from '#/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import { DEFAULT_SPLIT, planSourceInfo } from '#/lib/content'
 import { DAY_LABEL } from '#/lib/day-blocks'
 import { errorMessage } from '#/lib/format'
@@ -217,7 +214,8 @@ function PlanPage() {
       <DayDialog
         day={renaming}
         onClose={() => setRenaming(null)}
-        onSaved={async () => {
+        onSave={async (name, type) => {
+          if (renaming) await updateDayFn({ data: { dayId: renaming.id, name, type } })
           setRenaming(null)
           await router.invalidate()
         }}
@@ -319,90 +317,6 @@ function TodaySyncDialog({ day, onClose }: { day: PlanDay | null; onClose: () =>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
-
-// ---------------------------------------------------------------- account
-
-/** Phones have no sidebar, so the sign-out lives here as well. */
-// ---------------------------------------------------------------- day name and kind
-
-function DayDialog({
-  day,
-  onClose,
-  onSaved,
-}: {
-  day: PlanDay | null
-  onClose: () => void
-  onSaved: () => Promise<void>
-}) {
-  return (
-    <Dialog open={day !== null} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        {day && <DayForm key={day.id} day={day} onClose={onClose} onSaved={onSaved} />}
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function DayForm({ day, onClose, onSaved }: { day: PlanDay; onClose: () => void; onSaved: () => Promise<void> }) {
-  const [name, setName] = useState(day.name)
-  const [type, setType] = useState<DayType>(day.type)
-  const [busy, setBusy] = useState(false)
-
-  async function save() {
-    setBusy(true)
-    try {
-      await updateDayFn({ data: { dayId: day.id, name: name.trim(), type } })
-      await onSaved()
-    } catch (err) {
-      toast.error(errorMessage(err, 'Could not save the day.'))
-      setBusy(false)
-    }
-  }
-
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        void save()
-      }}
-    >
-      <DialogHeader>
-        <DialogTitle>{day.name}</DialogTitle>
-        <DialogDescription className="sr-only">Rename the day or change its kind.</DialogDescription>
-      </DialogHeader>
-      <FieldGroup className="py-4">
-        <Field>
-          <FieldLabel htmlFor="day-name">Name</FieldLabel>
-          <Input id="day-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} autoFocus />
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="day-type">Kind</FieldLabel>
-          <Select value={type} onValueChange={(v) => setType(v as DayType)}>
-            <SelectTrigger id="day-type" className="w-full" aria-label="Kind">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DAY_TYPES.map((t) => (
-                <SelectItem key={t} value={t}>
-                  <DayIcon type={t} className="size-5 rounded" />
-                  {DAY_LABEL[t]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-      </FieldGroup>
-      <DialogFooter>
-        <Button type="button" variant="ghost" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={busy || !name.trim()}>
-          Save
-        </Button>
-      </DialogFooter>
-    </form>
   )
 }
 

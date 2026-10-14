@@ -76,6 +76,8 @@ test('signed out, the home page is How it works, with the way in', async () => {
   // The live phone runs the app's own screens on made-up numbers: a tick counts, Zen covers the tab bar, and the
   // tab bar walks to Plan and Stats with the ticked set still there on the way back.
   const demo = await demoWindow(page, 'Try it: Plates on made-up numbers')
+  // Today opens on Next up — the day the plan says is next and its lifts; Start begins the session.
+  await demo.getByRole('button', { name: /^Start / }).click()
   await expect(demo.getByText(/^0 of \d+ sets done$/)).toBeVisible()
   await demo.getByRole('button', { name: 'Mark set 1 done' }).click()
   await expect(demo.getByText(/^1 of \d+ sets done$/)).toBeVisible()
@@ -89,6 +91,11 @@ test('signed out, the home page is How it works, with the way in', async () => {
   await demo.getByRole('radio', { name: 'Sessions' }).click()
   await expect(demo.getByText(/of 6 sessions/)).toBeVisible()
   await demo.getByRole('navigation', { name: 'Main' }).getByRole('button', { name: 'Today' }).click()
+  await expect(demo.getByText(/^1 of \d+ sets done$/)).toBeVisible()
+  // The Report opens from the top bar on the made-up week; Back returns to Today with the ticked set kept.
+  await demo.getByRole('button', { name: 'Report', exact: true }).click()
+  await expect(demo.getByRole('heading', { name: 'Report', exact: true })).toBeVisible()
+  await demo.getByRole('button', { name: 'Back' }).click()
   await expect(demo.getByText(/^1 of \d+ sets done$/)).toBeVisible()
   await snap(page, '00a-home')
   // Any other screen still asks to sign in first.
@@ -168,11 +175,11 @@ test('logs a workout with the set logger', async () => {
   await expect(page.getByRole('heading', { name: 'Pull A' })).toBeVisible()
   await expect(page.getByText(/Started/)).toBeVisible()
   // The clock counts from the start, and a pause stops it.
-  await expect(page.getByText(/^0 min/)).toBeVisible()
+  await expect(page.getByText('0 min')).toBeVisible()
   await page.getByRole('button', { name: 'Pause the session' }).click()
-  await expect(page.getByText(/^0 min, paused$/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Resume the session' })).toBeVisible()
   await page.getByRole('button', { name: 'Resume the session' }).click()
-  await expect(page.getByText(/^0 min$/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Pause the session' })).toBeVisible()
 
   // Pull-ups open first. Log a set by reps only.
   await expect(page.getByRole('button', { name: /^Pull-ups/ })).toHaveAttribute('aria-expanded', 'true')

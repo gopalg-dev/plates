@@ -27,8 +27,8 @@ export const DEMO_SETTINGS: Settings = { units: 'kg', trainingAge: 'over1', setu
  * hint saying what that was, as the coach would put it. Built from the history, so finishing it adds to the same
  * numbers Stats shows.
  */
-export function demoSession(days: PlanDay[], workouts: Workout[], now: Date): Workout {
-  const day = days.find((d) => d.type === 'pull') ?? days[0]
+export function demoSession(days: PlanDay[], workouts: Workout[], now: Date, dayId?: string): Workout {
+  const day = (dayId ? days.find((d) => d.id === dayId) : undefined) ?? days.find((d) => d.type === 'pull') ?? days[0]
   const lastOf = (exerciseId: string) => {
     for (let i = workouts.length - 1; i >= 0; i--) {
       const entry = workouts[i].entries.find((e) => e.exerciseId === exerciseId)

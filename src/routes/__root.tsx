@@ -43,7 +43,37 @@ export const Route = createRootRoute({
       { rel: 'apple-touch-icon', href: '/icon-192.png' },
       { rel: 'manifest', href: '/manifest.webmanifest' },
     ],
-    scripts: [{ children: THEME_SCRIPT }],
+    scripts: [
+      { children: THEME_SCRIPT },
+      // Brand identity for search engines: who Plates is and its site, so a brand search can show it in full.
+      ...(loaderData
+        ? [
+            {
+              type: 'application/ld+json',
+              children: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@graph': [
+                  {
+                    '@type': 'Organization',
+                    '@id': `${loaderData.origin}/#organization`,
+                    name: 'Plates',
+                    url: loaderData.origin,
+                    logo: `${loaderData.origin}/icon-512.png`,
+                  },
+                  {
+                    '@type': 'WebSite',
+                    '@id': `${loaderData.origin}/#website`,
+                    name: 'Plates',
+                    url: loaderData.origin,
+                    description: DESCRIPTION,
+                    publisher: { '@id': `${loaderData.origin}/#organization` },
+                  },
+                ],
+              }),
+            },
+          ]
+        : []),
+    ],
   }),
   shellComponent: RootDocument,
   component: RootComponent,

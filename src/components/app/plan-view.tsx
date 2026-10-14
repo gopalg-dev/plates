@@ -1,7 +1,17 @@
 import { ArrowDown, ArrowUp, ListRestart, MoreHorizontal, Pencil, Plus, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 import { AccordionContent, AccordionItem, AccordionTrigger } from '#/components/ui/accordion'
 import { Badge } from '#/components/ui/badge'
 import { Button } from '#/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '#/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,7 +19,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '#/components/ui/dropdown-menu'
-import { FieldLabel } from '#/components/ui/field'
+import { Field, FieldGroup, FieldLabel } from '#/components/ui/field'
+import { Input } from '#/components/ui/input'
 import {
   Item,
   ItemActions,
@@ -22,10 +33,20 @@ import {
 } from '#/components/ui/item'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import type { SplitInfo } from '#/lib/content'
+import { DAY_LABEL } from '#/lib/day-blocks'
+import { errorMessage } from '#/lib/format'
 import { WEEK_ORDER, WEEKDAY_LONG, weekdayOf } from '#/lib/logic/schedule'
 import { plannedSetsFor } from '#/lib/logic/stats'
 import { rowTap } from '#/lib/row-tap'
-import { type Exercise, MAX_EXERCISES_PER_DAY, type PlanDay, type Schedule, type Settings } from '#/lib/types'
+import {
+  DAY_TYPES,
+  type DayType,
+  type Exercise,
+  MAX_EXERCISES_PER_DAY,
+  type PlanDay,
+  type Schedule,
+  type Settings,
+} from '#/lib/types'
 import { DayIcon } from './day-mark'
 import { targetOf } from './exercise-row'
 import { ExerciseThumb } from './exercise-thumb'
@@ -216,5 +237,95 @@ export function DaySection({
         </div>
       </AccordionContent>
     </AccordionItem>
+  )
+}
+
+/**
+ * Rename a day or change its kind. Shared by the Plan page and the demo on How it works: the page saves to the
+ * server, the demo updates its own plan, each through `onSave`.
+ */
+export function DayDialog({
+  day,
+  onClose,
+  onSave,
+}: {
+  day: PlanDay | null
+  onClose: () => void
+  onSave: (name: string, type: DayType) => Promise<void>
+}) {
+  return (
+    <Dialog open={day !== null} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        {day && <DayForm key={day.id} day={day} onClose={onClose} onSave={onSave} />}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function DayForm({
+  day,
+  onClose,
+  onSave,
+}: {
+  day: PlanDay
+  onClose: () => void
+  onSave: (name: string, type: DayType) => Promise<void>
+}) {
+  const [name, setName] = useState(day.name)
+  const [type, setType] = useState<DayType>(day.type)
+  const [busy, setBusy] = useState(false)
+
+  async function save() {
+    setBusy(true)
+    try {
+      await onSave(name.trim(), type)
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not save the day.'))
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        void save()
+      }}
+    >
+      <DialogHeader>
+        <DialogTitle>{day.name}</DialogTitle>
+        <DialogDescription className="sr-only">Rename the day or change its kind.</DialogDescription>
+      </DialogHeader>
+      <FieldGroup className="py-4">
+        <Field>
+          <FieldLabel htmlFor="day-name">Name</FieldLabel>
+          <Input id="day-name" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} autoFocus />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="day-type">Kind</FieldLabel>
+          <Select value={type} onValueChange={(v) => setType(v as DayType)}>
+            <SelectTrigger id="day-type" className="w-full" aria-label="Kind">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {DAY_TYPES.map((t) => (
+                <SelectItem key={t} value={t}>
+                  <DayIcon type={t} className="size-5 rounded" />
+                  {DAY_LABEL[t]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      </FieldGroup>
+      <DialogFooter>
+        <Button type="button" variant="ghost" onClick={onClose}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={busy || !name.trim()}>
+          Save
+        </Button>
+      </DialogFooter>
+    </form>
   )
 }

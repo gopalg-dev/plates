@@ -25,7 +25,16 @@ const ACTION: Record<Alert['kind'], string> = {
 /** How far along the card must be dragged to move to the next: a fifth of its width. */
 const THRESHOLD = 0.2
 
-export function AlertDeck({ alerts, onDismiss }: { alerts: Alert[]; onDismiss: (key: string) => void }) {
+export function AlertDeck({
+  alerts,
+  onDismiss,
+  onAction,
+}: {
+  alerts: Alert[]
+  onDismiss: (key: string) => void
+  /** Given, the action is a button calling this instead of a link; the demo uses it to stay in its own window. */
+  onAction?: (alert: Alert) => void
+}) {
   const [index, setIndex] = useState(0)
   const viewport = useRef<HTMLDivElement>(null)
   const track = useRef<HTMLDivElement>(null)
@@ -114,14 +123,25 @@ export function AlertDeck({ alerts, onDismiss }: { alerts: Alert[]; onDismiss: (
                       <X aria-hidden />
                     </Button>
                   </div>
-                  <Button
-                    asChild
-                    size="sm"
-                    className="w-full sm:w-auto sm:self-end sm:px-5"
-                    tabIndex={active ? undefined : -1}
-                  >
-                    <Link to={a.to}>{ACTION[a.kind]}</Link>
-                  </Button>
+                  {onAction ? (
+                    <Button
+                      size="sm"
+                      className="w-full sm:w-auto sm:self-end sm:px-5"
+                      tabIndex={active ? undefined : -1}
+                      onClick={() => onAction(a)}
+                    >
+                      {ACTION[a.kind]}
+                    </Button>
+                  ) : (
+                    <Button
+                      asChild
+                      size="sm"
+                      className="w-full sm:w-auto sm:self-end sm:px-5"
+                      tabIndex={active ? undefined : -1}
+                    >
+                      <Link to={a.to}>{ACTION[a.kind]}</Link>
+                    </Button>
+                  )}
                 </div>
               </div>
             )
