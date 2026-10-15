@@ -348,6 +348,16 @@ no Inter/Geist. Checked.
         swaps; a library entry added in the database without the new fields made the server re-run the fill-in
         on every read (only the bundle's ids count now). Known, left: "Add a day" on a plan started empty still
         brings five lifts, as there is no stored "empty" preference.
+- [x] 62. Full cues from the source (2026-10-15, user: "some of the workout cues seem to be cut off", then "update
+      them by looking at the resource where we sourced it"). The first import kept three steps per exercise and
+      cut each at about 170 characters with an ellipsis: 197 cues in 117 of the 137 entries ended mid-sentence, and
+      many exercises stopped before the lift came back up. `library.json` now carries every instruction step from
+      free-exercise-db (`dist/exercises.json`, matched by the picture folder, which is the source id), 4 to 8 per
+      exercise, in full; Side Plank has no source text and keeps its own three. Databases seeded before this hold
+      the cut copies: `fillLibrary` in server/content.ts now also replaces the cues of a bundle entry whose cues end
+      in `…`, on the first read that finds one (the same self-heal as the missing sets and range; a full cue list
+      edited in the database stays). The detail panel scrolls its content on every viewport, so the longer lists
+      needed no UI change.
 - [x] 61. A missed log, and a skipped day (2026-10-15, user problem: "I trained Tuesday but forgot to log it, and
       Today still shows Push with no way to fix it"). Two gaps, one cause: a session could only be born live, and
       Next up only ever read the last finished session. Research first (Hevy backdates a session from its calendar,

@@ -84,6 +84,25 @@ suite('content', () => {
     expect((await seedContent(db)).filled).toBe(0)
   })
 
+  it('restores the full cues on entries whose cues the first import cut short, and keeps edited ones', async () => {
+    const db = must(client, 'the test database').db(dbName)
+    await seedContent(db)
+    const library = db.collection('library')
+    const bundled = must(
+      LIBRARY.find((e) => e.id === 'barbell-squat'),
+      'the bundled squat',
+    )
+    const cut = bundled.cues.slice(0, 3).map((c, i) => (i === 0 ? `${c.slice(0, 40)}…` : c))
+    await library.updateOne({ _id: 'barbell-squat' as never }, { $set: { cues: cut, name: 'Back squat' } })
+    await library.updateOne({ _id: 'plank' as never }, { $set: { cues: ['Hold it.'] } })
+    forgetContent()
+    const { library: read } = await readContent()
+    expect(read.find((e) => e.id === 'barbell-squat')).toMatchObject({ name: 'Back squat', cues: bundled.cues })
+    // A full cue list edited in the database is its editor's, cut short or not in the bundle's eyes.
+    expect(read.find((e) => e.id === 'plank')?.cues).toEqual(['Hold it.'])
+    expect((await seedContent(db)).filled).toBe(0)
+  })
+
   it('leaves an entry added in the database alone, and does not keep trying to fill it', async () => {
     const db = must(client, 'the test database').db(dbName)
     await seedContent(db)
