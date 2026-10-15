@@ -351,7 +351,7 @@ function ImportPage() {
                         >
                           <SelectTrigger
                             aria-label={`${ex.name} type`}
-                            className="col-span-3 h-9 w-full px-2 text-sm sm:col-span-1"
+                            className="col-span-3 h-9 w-full px-2 sm:col-span-1"
                           >
                             <SelectValue />
                           </SelectTrigger>
@@ -369,7 +369,7 @@ function ImportPage() {
                         >
                           <SelectTrigger
                             aria-label={`${ex.name} muscle`}
-                            className="col-span-3 h-9 w-full px-2 text-sm sm:col-span-1"
+                            className="col-span-3 h-9 w-full px-2 sm:col-span-1"
                           >
                             <SelectValue />
                           </SelectTrigger>
@@ -388,7 +388,7 @@ function ImportPage() {
               </li>
             ))}
           </ol>
-          <p className="mt-2 text-sm text-muted-foreground">Columns: sets, low, high, type, muscle.</p>
+          <p className="mt-2 text-muted-foreground">Columns: sets, low, high, type, muscle.</p>
 
           <div className="mt-6 flex items-center gap-3">
             <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>

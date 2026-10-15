@@ -389,7 +389,7 @@ function SettingsPage() {
                 <DialogDescription className="font-medium text-foreground">
                   Each template's lifts follow a well-known program, named under it.
                 </DialogDescription>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground">
                   Each split keeps its own plan, so coming back to one finds it as you left it.
                 </p>
               </DialogHeader>
@@ -444,7 +444,7 @@ function SettingsPage() {
             Account
           </SectionHeading>
           <p className="mt-3">{user.username ?? user.name ?? user.email}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{user.email}</p>
+          <p className="mt-1 text-muted-foreground">{user.email}</p>
         </section>
 
         <section aria-labelledby="fresh-h">

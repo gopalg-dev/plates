@@ -58,7 +58,7 @@ export function SwapLiftPanel({ entry, alternates, onPlan, busy, onClose, onPick
         )}
         {alternates.length > 0 && (
           <div>
-            <p className="mb-1 text-sm text-muted-foreground">Alternates</p>
+            <p className="mb-1 text-muted-foreground">Alternates</p>
             <ItemGroup className="border-y">
               {alternates.map((alt, i) => (
                 <div key={alt}>

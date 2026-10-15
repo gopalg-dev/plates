@@ -157,11 +157,11 @@ function ExportPreview({ layout, workouts, units }: { layout: ExportLayout; work
   if (!headers.length) return null
   return (
     <div className="rounded-md border">
-      <Table className="text-xs" aria-label={`${layout === 'tracker' ? 'Tracker' : 'Log'} sheet preview`}>
+      <Table aria-label={`${layout === 'tracker' ? 'Tracker' : 'Log'} sheet preview`}>
         <TableHeader>
           <TableRow>
             {headers.map((h) => (
-              <TableHead key={h} className="h-8 text-xs">
+              <TableHead key={h} className="h-8">
                 {h}
               </TableHead>
             ))}

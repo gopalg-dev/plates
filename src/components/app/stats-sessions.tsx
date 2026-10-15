@@ -225,7 +225,7 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
             <Button
               variant="ghost"
               size="sm"
-              className="-ml-2 h-8 gap-1 px-2 text-sm font-medium"
+              className="-ml-2 h-8 gap-1 px-2 font-medium"
               aria-label={`${title}. Pick a month`}
             >
               {title}
@@ -252,7 +252,7 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
             />
           </PopoverContent>
         </Popover>
-        <p className="min-w-0 truncate text-sm text-muted-foreground">
+        <p className="min-w-0 truncate text-muted-foreground">
           {sessions} {sessions === 1 ? 'session' : 'sessions'}
         </p>
         <div className="ml-auto flex shrink-0">
@@ -278,10 +278,7 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
           </Button>
         </div>
       </div>
-      <div
-        className="mt-1 grid grid-cols-7 gap-1 px-1 text-center text-sm text-muted-foreground sm:text-xs"
-        aria-hidden
-      >
+      <div className="mt-1 grid grid-cols-7 gap-1 px-1 text-center text-muted-foreground" aria-hidden>
         {WEEKDAYS.map((d, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: the weekday letters repeat (T, S); the column is the identity
           <span key={i}>{d}</span>
@@ -294,10 +291,7 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
           return (
             <div
               key={week.start}
-              className={cn(
-                'grid grid-cols-7 gap-1 rounded-md p-1 text-sm tabular-nums sm:text-xs',
-                isSelected && 'bg-foreground/10',
-              )}
+              className={cn('grid grid-cols-7 gap-1 rounded-md p-1 tabular-nums', isSelected && 'bg-foreground/10')}
             >
               {week.days.map((d, j) => {
                 // biome-ignore lint/suspicious/noArrayIndexKey: an empty cell before the first of the month is only a position

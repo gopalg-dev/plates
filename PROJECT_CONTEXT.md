@@ -348,6 +348,28 @@ no Inter/Geist. Checked.
         swaps; a library entry added in the database without the new fields made the server re-run the fill-in
         on every read (only the bundle's ids count now). Known, left: "Add a day" on a plan started empty still
         brings five lifts, as there is no stored "empty" preference.
+- [x] 63. Both source pictures, and the base text size (2026-10-15, user: "seems like there are two images", "add the
+      end image as well, in the details panel option to go next like a carousel by touch and cursor"; and "remove the
+      text-sm manually added in places so it will automatically take the base variant", then text-xs too). The
+      source photographs every exercise at the start (`0.jpg`) and the end (`1.jpg`) of the movement; the app showed
+      the start only. The detail panel now holds both in a shadcn Carousel (`src/components/ui/carousel.tsx`, as
+      published, on embla-carousel-react): a swipe or a mouse drag moves between them, two arrows sit inside the
+      picture for the cursor, two dots say which is shown, and the next exercise opens on its start again (the
+      carousel is keyed by the exercise). `data-vaul-no-drag` on it keeps the phone drawer from taking a sideways
+      swipe for a pull-down. The data carries both: `library.json` and the `library` collection hold `images`, the
+      source's pair of paths, in place of the single `image` (user: "the images should come from the seeded db, not
+      building in the UI"); `imageUrl(ex, frame)` picks one. Databases seeded with `image` get `images` from the
+      bundle and lose `image` through `fillLibrary`, like the sets and the cues. List rows keep the start
+      thumbnail. Checked by a Playwright scratch script at 360, 393,
+      768 (CDP touch swipe), 1024 and 1440 (arrow click and mouse drag): the end frame shows, the panel stays open,
+      no console errors. Text size: every hand-added `text-sm` (54) and `text-xs` (12, with the calendar's
+      `sm:text-xs`) left the app's own files, so text takes the body's base size; shadcn files untouched. Side
+      effects handled: the guide's ladder label slot grew from `h-4` to `h-6` for the taller line, and the Stats
+      tabs dropped `size="sm"` and took `text-base` ("the tab looks too small on mobile"); the other toggle groups
+      still say `size="sm"`. Also caught up (user: "the hero section demo mobile is outdated on the today page"):
+      the live phone's Today never offered **Skip or done** (item 61) and sat on Pull whatever happened. `TodayDemo`
+      now keeps the day it moved past (a finished session or a skip) and shows the next one by `nextDayId`, and
+      passes `onSkip` to the shared `NextUpView`, so its footer matches the app's.
 - [x] 62. Full cues from the source (2026-10-15, user: "some of the workout cues seem to be cut off", then "update
       them by looking at the resource where we sourced it"). The first import kept three steps per exercise and
       cut each at about 170 characters with an ellipsis: 197 cues in 117 of the 137 entries ended mid-sentence, and

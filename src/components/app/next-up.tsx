@@ -62,7 +62,7 @@ export function Streak({ weeks }: { weeks: number }) {
       <Flame aria-hidden className={cn('size-8 sm:size-9', on ? 'fill-day-legs text-day-legs' : '')} />
       <span className="flex flex-col items-center">
         <span className="font-condensed text-4xl font-semibold leading-none tabular-nums sm:text-5xl">{weeks}</span>
-        <span className="mt-1 text-sm leading-none text-muted-foreground">{unit}</span>
+        <span className="mt-1 leading-none text-muted-foreground">{unit}</span>
       </span>
     </div>
   )

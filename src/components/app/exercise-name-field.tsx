@@ -154,7 +154,7 @@ export function ExerciseNameField({ value, onChange, onPick, ...input }: Props) 
                 />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate">{ex.name}</span>
-                  <span className="block truncate text-sm text-muted-foreground">
+                  <span className="block truncate text-muted-foreground">
                     {MUSCLE_LABEL[ex.muscle]}, {EQUIPMENT_LABEL[ex.equipment].toLowerCase()}
                   </span>
                 </span>

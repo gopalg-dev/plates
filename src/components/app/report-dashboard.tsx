@@ -54,7 +54,7 @@ function Tile({
     <div className="rounded-xl border bg-card p-4">
       <p className="text-muted-foreground">{label}</p>
       <p className="mt-1 font-condensed text-4xl font-semibold leading-none tabular-nums">{value}</p>
-      <p className={cn('mt-2 text-sm tabular-nums', TONE[tone])}>{change}</p>
+      <p className={cn('mt-2 tabular-nums', TONE[tone])}>{change}</p>
     </div>
   )
 }
@@ -225,7 +225,7 @@ export function ReportDashboard({
             <Bar dataKey="before" fill="var(--color-before)" radius={3} isAnimationActive={false} />
           </BarChart>
         </ChartContainer>
-        <ul aria-hidden className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+        <ul aria-hidden className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
           <li className="flex items-center gap-1.5">
             <span className="h-2.5 w-4 rounded-sm bg-foreground" />
             This {unit}
@@ -235,7 +235,7 @@ export function ReportDashboard({
             {before[0].toUpperCase() + before.slice(1)}
           </li>
         </ul>
-        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm tabular-nums text-muted-foreground">
+        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 tabular-nums text-muted-foreground">
           {muscles.map((m) => (
             <li key={m.muscle}>
               {m.muscle} {m.now} of {m.target}

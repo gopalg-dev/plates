@@ -13,7 +13,7 @@ export type PrimaryTab = (typeof PRIMARY_TABS)[number]
 
 /** A tab: dim until it is the current screen, marked by `data-status="active"` (as a router link marks itself). */
 const TAB = cn(
-  'flex h-14 w-full flex-col items-center justify-center gap-0.5 text-xs font-medium text-muted-foreground',
+  'flex h-14 w-full flex-col items-center justify-center gap-0.5 font-medium text-muted-foreground',
   'data-[status=active]:text-foreground',
 )
 

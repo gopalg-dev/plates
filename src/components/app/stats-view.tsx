@@ -20,14 +20,13 @@ export function StatsTabs({ tab, onChange }: { tab: StatsTab; onChange: (tab: St
     <ToggleGroup
       type="single"
       variant="outline"
-      size="sm"
       value={tab}
       onValueChange={(v) => v && v !== tab && onChange(v as StatsTab)}
       aria-label="Stats view"
       className="mt-6"
     >
       {TABS.map((t) => (
-        <ToggleGroupItem key={t} value={t} className="px-3">
+        <ToggleGroupItem key={t} value={t} className="px-3 text-base">
           {TAB_LABEL[t]}
         </ToggleGroupItem>
       ))}

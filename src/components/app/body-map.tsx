@@ -178,7 +178,7 @@ function Figure({ side, figure, done, target, picked, onPick, className }: Figur
           )
         })}
       </svg>
-      <figcaption className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+      <figcaption className="font-medium uppercase tracking-wide text-muted-foreground">
         {side === 'front' ? 'Front' : 'Back'}
       </figcaption>
     </figure>
@@ -212,7 +212,7 @@ const LEGEND: { state: 'on' | 'due' | 'off'; label: string }[] = [
 /** Three swatches that say what the colours mean. */
 export function BodyMapLegend({ className }: { className?: string }) {
   return (
-    <ul className={cn('flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground', className)}>
+    <ul className={cn('flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground', className)}>
       {LEGEND.map(({ state, label }) => {
         const paint = state === 'on' ? regionPaint(1, 1) : state === 'due' ? regionPaint(0, 1) : regionPaint(0, 0)
         return (

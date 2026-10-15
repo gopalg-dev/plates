@@ -110,7 +110,7 @@ export function AlertDeck({
                     />
                     <div className="min-w-0 flex-1">
                       <p className="font-medium leading-tight">{a.title}</p>
-                      <p className="mt-0.5 text-sm text-muted-foreground">{a.detail}</p>
+                      <p className="mt-0.5 text-muted-foreground">{a.detail}</p>
                     </div>
                     <Button
                       variant="ghost"

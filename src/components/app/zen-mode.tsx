@@ -148,7 +148,7 @@ export function ZenScreen({
           {/* The name beside its picture: a long name wraps (a long word breaks), and the picture keeps its size. */}
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-sm tabular-nums text-muted-foreground">
+              <p className="tabular-nums text-muted-foreground">
                 {at + 1} of {entries.length}
               </p>
               <h2 className="mt-1 font-condensed text-4xl font-semibold leading-none [overflow-wrap:anywhere] sm:text-5xl">
@@ -163,7 +163,7 @@ export function ZenScreen({
           {entry.hint && <p className="mt-2 text-base text-muted-foreground">{entry.hint}</p>}
 
           {/* Every set with its numbers: logged ones as they were, the rest as their targets. A tap brings a set to the pad. */}
-          <div className={cn('mt-6 grid gap-2 px-3 text-sm text-muted-foreground', cols)}>
+          <div className={cn('mt-6 grid gap-2 px-3 text-muted-foreground', cols)}>
             <span>Set</span>
             {weighted && <span className="text-center">Weight, {units}</span>}
             <span className="text-center">{timed ? 'Seconds' : 'Reps'}</span>

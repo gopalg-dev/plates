@@ -82,7 +82,7 @@ export function ExerciseRow({
               {entry.sets.length} × {targetOf(entry)}
             </span>
           </span>
-          <span className={cn('text-sm tabular-nums', allDone ? 'text-success' : 'text-muted-foreground')}>
+          <span className={cn('tabular-nums', allDone ? 'text-success' : 'text-muted-foreground')}>
             {doneCount}/{entry.sets.length}
           </span>
           {allDone && (
@@ -95,7 +95,7 @@ export function ExerciseRow({
       </div>
       <AccordionContent className="pb-4 text-base">
         {entry.hint && <p className="mb-3 text-muted-foreground">{entry.hint}</p>}
-        <div className={cn('mb-1 grid gap-2 px-1 text-sm text-muted-foreground', cols)}>
+        <div className={cn('mb-1 grid gap-2 px-1 text-muted-foreground', cols)}>
           <span>Set</span>
           {weighted && <span className="text-center">Weight, {units}</span>}
           <span className="text-center">{timed ? 'Seconds' : 'Reps'}</span>
@@ -109,7 +109,7 @@ export function ExerciseRow({
             return (
               // biome-ignore lint/suspicious/noArrayIndexKey: a set is its position (set 1, set 2) and has no id
               <li key={i} className={cn('grid items-center gap-2', cols)}>
-                <span className="pl-1 text-sm tabular-nums text-muted-foreground">{i + 1}</span>
+                <span className="pl-1 tabular-nums text-muted-foreground">{i + 1}</span>
                 {weighted && (
                   <NumberField
                     label={`Set ${i + 1} weight`}

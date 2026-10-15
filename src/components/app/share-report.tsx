@@ -152,7 +152,7 @@ export function ShareReportDialog({
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
-                <span className="text-sm text-muted-foreground">{themes.find((l) => l.id === picked)?.label}</span>
+                <span className="text-muted-foreground">{themes.find((l) => l.id === picked)?.label}</span>
               </div>
             </div>
             <div className="grid gap-2">

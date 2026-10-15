@@ -415,13 +415,13 @@ function Measurements({
           const good = delta !== undefined && (site === 'waist' ? delta < 0 : delta > 0)
           return (
             <div key={site}>
-              <dt className="text-sm text-muted-foreground capitalize">{site}</dt>
+              <dt className="text-muted-foreground capitalize">{site}</dt>
               <dd className="font-condensed text-3xl font-semibold leading-none tabular-nums">
                 {value ?? '–'}
-                <span className="ml-1 text-sm font-normal text-muted-foreground">{lengthUnit}</span>
+                <span className="ml-1 font-normal text-muted-foreground">{lengthUnit}</span>
               </dd>
               {delta !== undefined && (
-                <dd className={cn('mt-1 text-xs tabular-nums', good ? 'text-success' : 'text-muted-foreground')}>
+                <dd className={cn('mt-1 tabular-nums', good ? 'text-success' : 'text-muted-foreground')}>
                   {signed(delta, 1)} vs last
                 </dd>
               )}

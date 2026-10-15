@@ -2,6 +2,14 @@ import { BookOpen, ChevronLeft, ChevronRight } from 'lucide-react'
 import { type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Button } from '#/components/ui/button'
 import {
+  Carousel,
+  type CarouselApi,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '#/components/ui/carousel'
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -27,6 +35,8 @@ import {
   EQUIPMENT,
   EQUIPMENT_LABEL,
   type Equipment,
+  FRAME_LABEL,
+  FRAMES,
   imageUrl,
   type LibraryExercise,
   searchLibrary,
@@ -50,7 +60,7 @@ const row = 'w-max justify-start py-0.5'
 function TagRow({ label, className, children }: { label: string; className?: string; children: ReactNode }) {
   return (
     <div className={className}>
-      <p className="mb-1 text-sm text-muted-foreground">{label}</p>
+      <p className="mb-1 text-muted-foreground">{label}</p>
       <ScrollArea className="-mx-4">
         <div className="px-4 pb-2">{children}</div>
         <ScrollBar orientation="horizontal" className="mx-4 h-2" />
@@ -215,6 +225,52 @@ interface DetailProps {
   onStep?: (ex: LibraryExercise) => void
 }
 
+/**
+ * The source's two photographs, the start and the end of the movement: a swipe, a drag or the arrows step between
+ * them. The drawer must not take the swipe for a pull-down.
+ */
+function Pictures({ exercise }: { exercise: LibraryExercise }) {
+  const [api, setApi] = useState<CarouselApi>()
+  const [frame, setFrame] = useState(0)
+  useEffect(() => {
+    if (!api) return
+    const sync = () => setFrame(api.selectedScrollSnap())
+    sync()
+    api.on('select', sync)
+    return () => {
+      api.off('select', sync)
+    }
+  }, [api])
+  return (
+    <Carousel data-vaul-no-drag setApi={setApi} className="overflow-hidden rounded-lg bg-muted">
+      <CarouselContent className="ml-0">
+        {FRAMES.map((f) => (
+          <CarouselItem key={f} className="pl-0">
+            <img
+              src={imageUrl(exercise, f)}
+              alt={`${exercise.name}, ${FRAME_LABEL[f]}`}
+              className="max-h-56 w-full object-cover md:max-h-none md:aspect-square"
+            />
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      <CarouselPrevious aria-label="Previous picture" className="left-2" />
+      <CarouselNext aria-label="Next picture" className="right-2" />
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center gap-1.5">
+        {FRAMES.map((f, i) => (
+          <span
+            key={f}
+            className={cn(
+              'size-2 rounded-full border border-background/60 bg-foreground/70',
+              i !== frame && 'opacity-40',
+            )}
+          />
+        ))}
+      </div>
+    </Carousel>
+  )
+}
+
 function describe(ex: LibraryExercise): string {
   const level = ex.level[0].toUpperCase() + ex.level.slice(1)
   return `${MUSCLE_LABEL[ex.muscle]}. ${EQUIPMENT_LABEL[ex.equipment]}. ${level}.`
@@ -236,11 +292,8 @@ export function LibraryDetail({ exercise, onClose, action, among, onStep }: Deta
       {exercise && (
         <div className="px-4 pb-4">
           <div className="md:grid md:grid-cols-[16rem_1fr] md:items-start md:gap-5">
-            <img
-              src={imageUrl(exercise)}
-              alt={`${exercise.name}, starting position`}
-              className="max-h-56 w-full rounded-lg bg-muted object-cover md:max-h-none md:aspect-square"
-            />
+            {/* Keyed, so the next exercise opens on its start position. */}
+            <Pictures key={exercise.id} exercise={exercise} />
             {/* A fixed height from tablets up, so the dialog does not jump between exercises. */}
             <div className="md:h-64 md:overflow-y-auto md:scrollbar-none">
               <ol className="mt-4 list-decimal space-y-2 pl-5 md:mt-0">
@@ -265,7 +318,7 @@ export function LibraryDetail({ exercise, onClose, action, among, onStep }: Deta
                 <ChevronLeft aria-hidden />
                 Previous
               </Button>
-              <span className="flex-1 text-center text-sm tabular-nums text-muted-foreground">
+              <span className="flex-1 text-center tabular-nums text-muted-foreground">
                 {at + 1} of {among.length}
               </span>
               <Button

@@ -130,7 +130,7 @@ function SetupPage() {
     <main className="mx-auto flex min-h-dvh w-full max-w-md flex-col px-4 pt-6 pb-8">
       <div className="flex items-center gap-3">
         <Progress value={((step + 1) / STEPS) * 100} className="h-1 flex-1" aria-label="Setup progress" />
-        <span className="text-sm tabular-nums text-muted-foreground">
+        <span className="tabular-nums text-muted-foreground">
           {step + 1} of {STEPS}
         </span>
       </div>

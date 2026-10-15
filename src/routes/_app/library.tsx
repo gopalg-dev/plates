@@ -25,9 +25,7 @@ function LibraryPage() {
       <div className="mt-6">
         <LibraryList onSelect={show} onResults={setVisible} />
       </div>
-      <p className="mt-8 text-xs text-muted-foreground">
-        Pictures and cues from free-exercise-db, public domain (Unlicense).
-      </p>
+      <p className="mt-8 text-muted-foreground">Pictures and cues from free-exercise-db, public domain (Unlicense).</p>
     </div>
   )
 }

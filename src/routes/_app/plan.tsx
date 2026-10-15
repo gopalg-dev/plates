@@ -204,7 +204,7 @@ function PlanPage() {
                 disabled={busy}
               >
                 <DayIcon type={t} className="size-9 rounded-lg" />
-                <span className="text-sm">{DAY_LABEL[t]}</span>
+                <span>{DAY_LABEL[t]}</span>
               </Button>
             ))}
           </div>

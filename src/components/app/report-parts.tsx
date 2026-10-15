@@ -107,7 +107,7 @@ export function PeriodBar({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 gap-1 px-2 text-sm font-medium"
+                className="h-8 gap-1 px-2 font-medium"
                 aria-label={`${periodLabel(period)}. Pick a ${unit}`}
               >
                 {periodLabel(period)}
@@ -149,7 +149,7 @@ export function PeriodBar({
             </PopoverContent>
           </Popover>
         ) : (
-          <p className="min-w-0 truncate px-1 text-sm font-medium">{periodLabel(period)}</p>
+          <p className="min-w-0 truncate px-1 font-medium">{periodLabel(period)}</p>
         )}
         <Button
           variant="ghost"
@@ -173,7 +173,7 @@ const WEEKDAYS = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
 /** The key to the calendar's colours: the day types trained, and grey for a day without a session. */
 function DayKey({ types, rest }: { types: DayType[]; rest: boolean }) {
   return (
-    <ul aria-hidden className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+    <ul aria-hidden className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
       {types.map((t) => (
         <li key={t} className="flex items-center gap-1.5">
           <span className={cn('size-2.5 rounded-sm', dayColourClass(t))} />
@@ -212,7 +212,7 @@ export function PeriodCalendar({ days, kind, className }: { days: PeriodDay[]; k
       >
         {WEEKDAYS.map((w, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: the weekday letters repeat (T, S); the column is the identity
-          <span key={i} className="text-xs text-muted-foreground">
+          <span key={i} className="text-muted-foreground">
             {w}
           </span>
         ))}
@@ -226,7 +226,7 @@ export function PeriodCalendar({ days, kind, className }: { days: PeriodDay[]; k
             className={cn(
               'flex items-center justify-center rounded-md tabular-nums',
               // A week's days are squares; a month's rows are wider than tall, so six rows stay short.
-              kind === 'week' ? 'aspect-square text-base font-medium' : 'aspect-[4/3] text-sm',
+              kind === 'week' ? 'aspect-square font-medium' : 'aspect-[4/3]',
               d.dayType ? cn(dayColourClass(d.dayType), dayInkClass(d.dayType)) : 'bg-muted text-muted-foreground',
             )}
           >
@@ -286,7 +286,7 @@ export function BestsList({
           <Trophy className="size-4 shrink-0 translate-y-0.5 text-day-legs" aria-label="New best" />
           <span className="min-w-0 flex-1">{pr.name}</span>
           <span className="tabular-nums">{fmtSet(pr.loadType, pr, units)}</span>
-          <span className="w-16 shrink-0 text-right text-sm text-muted-foreground">{when(pr.date)}</span>
+          <span className="w-16 shrink-0 text-right text-muted-foreground">{when(pr.date)}</span>
         </li>
       ))}
       {hidden > 0 && (
@@ -308,7 +308,7 @@ export function BestsList({
             <span className="text-muted-foreground">{fmtSet(m.from.loadType, m.from, units)} → </span>
             {fmtSet(m.to.loadType, m.to, units)}
           </span>
-          <span className="ml-auto w-16 shrink-0 text-right text-sm tabular-nums text-muted-foreground">
+          <span className="ml-auto w-16 shrink-0 text-right tabular-nums text-muted-foreground">
             +{Math.round(m.changePct * 10) / 10}%
           </span>
         </li>

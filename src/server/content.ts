@@ -14,7 +14,12 @@ import { getDb } from './db'
  * never overwrites a document that is already there unless asked to reset.
  */
 
-type LibraryDoc = Omit<LibraryExercise, 'id'> & { _id: string; updatedAt: string }
+type LibraryDoc = Omit<LibraryExercise, 'id'> & {
+  _id: string
+  updatedAt: string
+  /** The first bundles' single start picture, replaced by `images`; `fillLibrary` takes it off. */
+  image?: string
+}
 type SplitDoc = Omit<SplitTemplate, 'id'> & { _id: string; updatedAt: string }
 
 export interface SeedReport {
@@ -35,23 +40,26 @@ const CUT_OFF_PATTERN = '\\x{2026}$'
 /** The bundle's entries that the database holds with a gap `fillLibrary` can close. */
 const incomplete = {
   _id: { $in: LIBRARY.map((ex) => ex.id) },
-  $or: [{ sets: { $exists: false } }, { cues: { $regex: CUT_OFF_PATTERN } }],
+  $or: [{ sets: { $exists: false } }, { cues: { $regex: CUT_OFF_PATTERN } }, { images: { $exists: false } }],
 }
 
 /**
- * The usual sets and range came to the library after the first databases were seeded: an entry without them takes
- * the bundle's. The first import also cut long cues short: an entry with a cut-off cue takes the bundle's full list.
- * Only the gaps are written, so edits made in the database stay.
+ * What later bundles brought to entries the first databases were seeded with: the usual sets and range (an entry
+ * without them takes the bundle's), the full cues (the first import cut long ones short; an entry with a cut-off cue
+ * takes the bundle's list) and the end-of-movement picture (an entry with the single `image` takes the bundle's
+ * `images` pair in its place). Only the gaps are written, so edits made in the database stay.
  */
 async function fillLibrary(library: Collection<LibraryDoc>): Promise<number> {
   const bundled = new Map(LIBRARY.map((ex) => [ex.id, ex]))
-  const docs = await library.find(incomplete, { projection: { sets: 1, cues: 1 } }).toArray()
+  const docs = await library.find(incomplete, { projection: { sets: 1, cues: 1, images: 1 } }).toArray()
   const ops = docs.map((doc) => {
     const ex = must(bundled.get(doc._id), `the bundled ${doc._id}`)
     const fill: Partial<LibraryDoc> = {}
     if (doc.sets === undefined) Object.assign(fill, { sets: ex.sets, repMin: ex.repMin, repMax: ex.repMax })
     if (doc.cues?.some(cutOff)) fill.cues = ex.cues
-    return { updateOne: { filter: { _id: doc._id }, update: { $set: fill } } }
+    if (doc.images === undefined) fill.images = ex.images
+    const update = fill.images ? { $set: fill, $unset: { image: '' as const } } : { $set: fill }
+    return { updateOne: { filter: { _id: doc._id }, update } }
   })
   if (ops.length === 0) return 0
   return (await library.bulkWrite(ops, { ordered: false })).modifiedCount

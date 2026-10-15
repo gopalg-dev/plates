@@ -80,7 +80,7 @@ export function DocPage({
               key={s.id}
               href={`#${s.id}`}
               className={cn(
-                'rounded-md border px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
+                'rounded-md border px-3 py-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
                 focusRing,
               )}
             >
@@ -113,7 +113,7 @@ export function DocPage({
             {sections.map((s, i) => (
               <Fragment key={s.id}>
                 {s.part && s.part !== sections[i - 1]?.part && (
-                  <li aria-hidden className={cn('pb-1 pl-4 text-xs text-muted-foreground/80', i > 0 && 'mt-4')}>
+                  <li aria-hidden className={cn('pb-1 pl-4 text-muted-foreground/80', i > 0 && 'mt-4')}>
                     {s.part}
                   </li>
                 )}
@@ -122,7 +122,7 @@ export function DocPage({
                     href={`#${s.id}`}
                     aria-current={s.id === active ? 'location' : undefined}
                     className={cn(
-                      '-ml-px block border-l border-transparent py-1.5 pl-4 text-sm text-muted-foreground transition-colors hover:text-foreground',
+                      '-ml-px block border-l border-transparent py-1.5 pl-4 text-muted-foreground transition-colors hover:text-foreground',
                       s.id === active && 'border-foreground font-medium text-foreground',
                       focusRing,
                     )}

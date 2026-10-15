@@ -17,5 +17,5 @@ export const getPublicContentFn = createServerFn({ method: 'GET' }).handler(() =
 /** What the public guide needs: whether someone is signed in, for its header, and the library's pictures. */
 export const getGuideFn = createServerFn({ method: 'GET' }).handler(async () => {
   const [user, { library }] = await Promise.all([currentUser(), readContent()])
-  return { signedIn: Boolean(user), pictures: library.map(({ id, name, image }) => ({ id, name, image })) }
+  return { signedIn: Boolean(user), pictures: library.map(({ id, name, images }) => ({ id, name, images })) }
 })

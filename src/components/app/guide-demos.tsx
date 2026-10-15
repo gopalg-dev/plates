@@ -17,6 +17,7 @@ import {
   swapLine,
   updateExerciseIn,
 } from '#/lib/logic/day-edit'
+import { nextDayId } from '#/lib/logic/next-day'
 import type { PeriodKind } from '#/lib/logic/report'
 import { setsLeft, swapEntries } from '#/lib/logic/session-sync'
 import {
@@ -150,7 +151,7 @@ function DemoTopBar({ report, onReport, onBack }: { report: boolean; onReport: (
   return (
     <header className="flex h-12 shrink-0 items-center justify-between border-b px-4">
       {report ? (
-        <button type="button" onClick={onBack} className="-ml-1 flex items-center gap-1 py-1 pr-2 text-sm font-medium">
+        <button type="button" onClick={onBack} className="-ml-1 flex items-center gap-1 py-1 pr-2 font-medium">
           <ChevronLeft className="size-5" aria-hidden />
           Back
         </button>
@@ -161,7 +162,7 @@ function DemoTopBar({ report, onReport, onBack }: { report: boolean; onReport: (
         <button
           type="button"
           onClick={onReport}
-          className="flex items-center gap-1.5 py-1 text-sm font-medium text-muted-foreground"
+          className="flex items-center gap-1.5 py-1 font-medium text-muted-foreground"
         >
           <FileChartColumn className="size-4" aria-hidden />
           Report
@@ -500,6 +501,8 @@ function TodayDemo({
   /** The day being trained, or null on Next up. */
   const [active, setActive] = useState<PlanDay | null>(null)
   const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+  /** The day Next up last moved past, by a finished session or a skip, as the app's rolling order counts from. */
+  const [passed, setPassed] = useState<string | null>(null)
 
   if (active) {
     const leave = () => {
@@ -516,6 +519,7 @@ function TodayDemo({
         onZen={onZen}
         onFinished={(workout) => {
           onFinished(workout)
+          setPassed(workout.dayId)
           leave()
         }}
         onEmpty={leave}
@@ -524,7 +528,10 @@ function TodayDemo({
     )
   }
 
-  const day = history.days.find((d) => d.type === 'pull') ?? history.days[0]
+  // The demo opens on a pull day; from there the rolling order moves on as it does in the app.
+  const day = passed
+    ? (history.days.find((d) => d.id === nextDayId(history.days, passed)) ?? history.days[0])
+    : (history.days.find((d) => d.type === 'pull') ?? history.days[0])
   const totalSets = day.exercises.reduce((n, e) => n + plannedSetsFor(e.sets, DEMO_SETTINGS.trainingAge), 0)
   const recent = history.workouts.flatMap((w) => (w.finishedAt ? [{ dayId: w.dayId, finishedAt: w.finishedAt }] : []))
   const streak = weeklyStreakOf(
@@ -551,6 +558,14 @@ function TodayDemo({
         onAlertAction={onReport}
         onStart={(id) => setActive(history.days.find((d) => d.id === id) ?? day)}
         starting={null}
+        onSkip={
+          history.days.length > 1
+            ? (id) => {
+                toast(`Skipped ${history.days.find((d) => d.id === id)?.name ?? 'the day'}`)
+                setPassed(id)
+              }
+            : undefined
+        }
       />
     </div>
   )

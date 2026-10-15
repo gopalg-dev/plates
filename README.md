@@ -49,7 +49,8 @@ Four screens, one job each:
   for two days after a week or month ends. Share draws the week as a 1080 × 1350 PNG in any of the
   looks: the days, the sessions, and a highlight the lifter picks: a new best, how many, the streak, every session
   done, or nothing (the share sheet on phones, a download elsewhere); bodyweight only when ticked.
-- **Library**: 137 exercises with a picture, muscles, equipment, cues, and the sets and range each is usually
+- **Library**: 137 exercises with two pictures (start and end of the movement, swiped or stepped through), muscles,
+  equipment, cues, and the sets and range each is usually
   done for (heavy barbell lifts 5-8, machine and dumbbell work 8-12, small lifts 12-15, holds in seconds),
   searchable and filterable. "Pick from library" fills an exercise in, numbers included, from the plan editor
   or the import preview; a swap to a library lift takes its numbers too.

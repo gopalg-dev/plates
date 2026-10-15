@@ -227,7 +227,7 @@ export function DaySection({
           </SortableList>
         </ItemGroup>
         <div className="mt-2 flex items-center justify-between gap-3 px-2">
-          <span className="text-sm text-muted-foreground">
+          <span className="text-muted-foreground">
             {day.exercises.length} of {MAX_EXERCISES_PER_DAY} exercises
           </span>
           <Button variant="ghost" size="sm" aria-label={`Add exercise to ${day.name}`} onClick={onAdd} disabled={full}>

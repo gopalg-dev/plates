@@ -84,7 +84,7 @@ export function Ladder() {
           const jump = i > 0 && weight > LADDER[i - 1].weight
           return (
             <li key={`${weight}x${reps}`} className="flex flex-col">
-              <span className="text-sm text-muted-foreground">Session {i + 1}</span>
+              <span className="text-muted-foreground">Session {i + 1}</span>
               <span
                 className={cn(
                   'mt-1 font-condensed text-3xl font-semibold leading-none tabular-nums sm:text-4xl',
@@ -100,7 +100,7 @@ export function Ladder() {
                 className={cn('mt-2 w-full rounded-t-sm', jump ? 'bg-primary' : 'bg-muted-foreground/25')}
                 style={{ height: `${(reps / LADDER_TOP) * 4.5}rem` }}
               />
-              <span className={cn('mt-1.5 h-4 text-xs font-medium', jump ? 'text-foreground' : 'invisible')}>
+              <span className={cn('mt-1.5 h-6 font-medium', jump ? 'text-foreground' : 'invisible')}>
                 {jump ? `+${weight - LADDER[i - 1].weight} kg` : ''}
               </span>
             </li>

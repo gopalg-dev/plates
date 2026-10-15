@@ -32,12 +32,12 @@ export function SplitOptionBody({ split, template }: { split: SplitInfo; templat
     <span className="min-w-0 flex-1">
       <span className="flex items-baseline justify-between gap-3">
         <span className="font-medium">{split.name}</span>
-        <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
+        <span className="shrink-0 tabular-nums text-muted-foreground">
           {split.days} {split.days === 1 ? 'day' : 'days'}
         </span>
       </span>
       <span className="mt-0.5 block text-muted-foreground">{split.fit}</span>
-      {source && <span className="mt-0.5 block text-sm text-muted-foreground">{source}</span>}
+      {source && <span className="mt-0.5 block text-muted-foreground">{source}</span>}
       <WeekShape days={template.days} className="mt-2.5" />
     </span>
   )
@@ -76,7 +76,7 @@ export function OwnDaysEditor({
       {days.map((type, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: a row is "Day N"; kinds repeat, so the position is the identity
         <div key={i} className="flex items-center gap-2">
-          <span className="w-5 text-sm tabular-nums text-muted-foreground">{i + 1}</span>
+          <span className="w-5 tabular-nums text-muted-foreground">{i + 1}</span>
           <Select value={type} onValueChange={(v) => onChange(days.map((d, j) => (j === i ? (v as DayType) : d)))}>
             <SelectTrigger size="sm" className="flex-1" aria-label={`Day ${i + 1} type`}>
               <SelectValue />
@@ -171,7 +171,7 @@ export function SplitPicker({
             <span className="min-w-0 flex-1">
               <span className="flex items-baseline justify-between gap-3">
                 <span className="font-medium">Your own</span>
-                <span className="shrink-0 text-sm tabular-nums text-muted-foreground">
+                <span className="shrink-0 tabular-nums text-muted-foreground">
                   {keeping ? ownPlan.days : ownDays.length}{' '}
                   {(keeping ? ownPlan.days : ownDays.length) === 1 ? 'day' : 'days'}
                 </span>

@@ -95,7 +95,7 @@ export function LookRadioGroup() {
     >
       {byDeviceMode(PLAIN, deviceDark).map(item)}
       <DropdownMenuSeparator />
-      <DropdownMenuLabel inset className="text-sm text-muted-foreground">
+      <DropdownMenuLabel inset className="text-muted-foreground">
         Nature Elements
       </DropdownMenuLabel>
       {byDeviceMode(ELEMENTS, deviceDark).map(item)}

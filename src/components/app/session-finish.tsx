@@ -174,7 +174,7 @@ export function SummaryDialog({
                 <span className="min-w-0 flex-1 truncate">{l.name}</span>
                 <span className="shrink-0 tabular-nums">{l.best}</span>
                 {l.pr ? (
-                  <span className="flex shrink-0 items-center gap-1 text-sm text-success">
+                  <span className="flex shrink-0 items-center gap-1 text-success">
                     <Trophy className="size-4" aria-hidden />
                     <span className="sr-only">New</span>
                     best
@@ -182,7 +182,7 @@ export function SummaryDialog({
                 ) : l.change ? (
                   <span
                     className={cn(
-                      'shrink-0 text-sm tabular-nums',
+                      'shrink-0 tabular-nums',
                       l.change.startsWith('+') ? 'text-success' : 'text-muted-foreground',
                     )}
                   >

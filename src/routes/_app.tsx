@@ -209,14 +209,14 @@ function AccountMenu({ who, email, image }: { who: string; email: string; image:
               <Avatar className="size-8 rounded-md">
                 {/* Google's picture when there is one; the initials show until it loads, or always for a password account. */}
                 {image && <AvatarImage src={image} alt="" referrerPolicy="no-referrer" className="rounded-md" />}
-                <AvatarFallback className="rounded-md bg-primary text-xs font-semibold text-primary-foreground">
+                <AvatarFallback className="rounded-md bg-primary font-semibold text-primary-foreground">
                   {initials(who)}
                 </AvatarFallback>
               </Avatar>
               <span className="grid flex-1 text-left text-base leading-tight">
                 <span className="truncate font-medium">{who}</span>
                 {/* An account made from an emailed link has only its email: no point showing it twice. */}
-                {email !== who && <span className="truncate text-sm text-muted-foreground">{email}</span>}
+                {email !== who && <span className="truncate text-muted-foreground">{email}</span>}
               </span>
               <ChevronsUpDown className="ml-auto size-4" aria-hidden />
             </SidebarMenuButton>
@@ -230,7 +230,7 @@ function AccountMenu({ who, email, image }: { who: string; email: string; image:
           >
             <DropdownMenuLabel className="text-base font-normal">
               <span className="block truncate font-medium">{who}</span>
-              {email !== who && <span className="block truncate text-sm text-muted-foreground">{email}</span>}
+              {email !== who && <span className="block truncate text-muted-foreground">{email}</span>}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild className="text-base">

@@ -124,9 +124,9 @@ function RootError({ error }: ErrorComponentProps) {
           : 'Try again. If it keeps happening, the message below says what failed.'}
       </p>
       {dbDown ? (
-        <pre className="mt-3 overflow-x-auto rounded-lg bg-muted px-3 py-2 text-sm">bun run db:up</pre>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-muted px-3 py-2">bun run db:up</pre>
       ) : (
-        <pre className="mt-3 overflow-x-auto rounded-lg bg-muted px-3 py-2 text-sm whitespace-pre-wrap">{message}</pre>
+        <pre className="mt-3 overflow-x-auto rounded-lg bg-muted px-3 py-2 whitespace-pre-wrap">{message}</pre>
       )}
       <Button className="mt-6 self-start" onClick={() => router.invalidate()}>
         Try again

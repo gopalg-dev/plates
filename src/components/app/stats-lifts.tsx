@@ -128,9 +128,7 @@ export function LiftsTab({ lifts, prs, units, now }: { lifts: LiftData[]; prs: P
               <li key={`${pr.exerciseId}-${pr.date}`} className="flex items-baseline gap-3 py-2.5">
                 <span className="min-w-0 flex-1 truncate">{pr.name}</span>
                 <span className="tabular-nums">{fmtSet(pr.loadType, pr, units)}</span>
-                <span className="w-20 shrink-0 text-right text-sm text-muted-foreground">
-                  {relativeDay(pr.date, now)}
-                </span>
+                <span className="w-20 shrink-0 text-right text-muted-foreground">{relativeDay(pr.date, now)}</span>
               </li>
             ))}
           </ul>
@@ -197,7 +195,7 @@ function StrengthPanel({ lifts, units, now }: { lifts: LiftData[]; units: Units;
             ))}
           </SelectContent>
         </Select>
-        <span className="shrink-0 text-sm text-muted-foreground">{trendLabelOf(trends.get(selected.ex.id))}</span>
+        <span className="shrink-0 text-muted-foreground">{trendLabelOf(trends.get(selected.ex.id))}</span>
       </div>
       <LiftProgress lift={selected.ex} weeks={selected.weeks} units={units} now={now} />
     </div>

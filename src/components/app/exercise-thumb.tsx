@@ -5,7 +5,7 @@ import { imageUrl, type LibraryExercise, nameKey } from '#/lib/library'
 import { cn } from '#/lib/utils'
 
 /** What a thumb needs from the library: enough to find an exercise's picture by name and open it. */
-export type ExercisePicture = Pick<LibraryExercise, 'id' | 'name' | 'image'>
+export type ExercisePicture = Pick<LibraryExercise, 'id' | 'name' | 'images'>
 
 /** Where a tap on a thumb goes: the library's view over this page, the Library screen, or nowhere. */
 type Opens = 'here' | 'library' | null

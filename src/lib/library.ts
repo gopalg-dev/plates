@@ -37,8 +37,8 @@ export interface LibraryExercise {
   repMax: number
   level: Level
   cues: string[]
-  /** Path under the image host, like `Barbell_Squat/0.jpg`. */
-  image: string
+  /** Paths under the image host, the start and the end of the movement: `Barbell_Squat/0.jpg`, `Barbell_Squat/1.jpg`. */
+  images: string[]
 }
 
 /** The entries that ship with the app. They seed the `library` collection; the app reads from there. */
@@ -46,8 +46,17 @@ export const LIBRARY = data as LibraryExercise[]
 
 const IMAGE_BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/'
 
-export function imageUrl(ex: Pick<LibraryExercise, 'image'>): string {
-  return IMAGE_BASE + ex.image
+/** The source photographs each exercise twice: at the start of the movement and at the end, in that order. */
+export const FRAMES = ['start', 'end'] as const
+export type Frame = (typeof FRAMES)[number]
+
+export const FRAME_LABEL: Record<Frame, string> = {
+  start: 'starting position',
+  end: 'end position',
+}
+
+export function imageUrl(ex: Pick<LibraryExercise, 'images'>, frame: Frame = 'start'): string {
+  return IMAGE_BASE + ex.images[FRAMES.indexOf(frame)]
 }
 
 export interface LibraryFilter {

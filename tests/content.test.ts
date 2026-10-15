@@ -103,6 +103,24 @@ suite('content', () => {
     expect((await seedContent(db)).filled).toBe(0)
   })
 
+  it('gives an entry seeded with the single start picture the pair, and takes the old field off', async () => {
+    const db = must(client, 'the test database').db(dbName)
+    await seedContent(db)
+    const library = db.collection('library')
+    await library.updateOne(
+      { _id: 'pull-ups' as never },
+      { $set: { image: 'Pullups/0.jpg', name: 'Wide pull-ups' }, $unset: { images: '' } },
+    )
+    forgetContent()
+    const { library: read } = await readContent()
+    expect(read.find((e) => e.id === 'pull-ups')).toMatchObject({
+      name: 'Wide pull-ups',
+      images: ['Pullups/0.jpg', 'Pullups/1.jpg'],
+    })
+    expect(await library.findOne({ _id: 'pull-ups' as never, image: { $exists: true } })).toBeNull()
+    expect((await seedContent(db)).filled).toBe(0)
+  })
+
   it('leaves an entry added in the database alone, and does not keep trying to fill it', async () => {
     const db = must(client, 'the test database').db(dbName)
     await seedContent(db)
