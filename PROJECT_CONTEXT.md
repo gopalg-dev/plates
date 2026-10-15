@@ -302,6 +302,9 @@ no Inter/Geist. Checked.
       the same day), as token
       blocks keyed on `<html data-theme>`,
       picked from the account menu, kept per device, applied before paint. HANDOVER.md item 27.
+- [x] 25b. Export layouts (2026-10-15): Log (one row per set) or Tracker (a sheet per plan day, the sets
+      across, like the user's old hand-kept sheet), picked on Stats with a three-row preview of each;
+      CSV only for Log. The Excel and CSV buttons left Settings, where the zip already holds the logs.
 - [x] 26. Day glyphs: a plate-coloured tile with a lucide glyph per day type replaces the colour bar
       on days, titles and pickers (`DayIcon`). HANDOVER.md item 28.
 - [x] 27. Mail and sign-up hardening: the sign-in email in the app's look, Resend errors surfaced,

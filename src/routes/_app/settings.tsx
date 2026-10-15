@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { DownloadAllButton, ExportButtons } from '#/components/app/export-buttons'
+import { DownloadAllButton } from '#/components/app/export-buttons'
 import { ProgressionPicker } from '#/components/app/progression-picker'
 import { SectionHeading } from '#/components/app/section-heading'
 import { DEFAULT_OWN_DAYS, OWN_SPLIT, SplitPicker } from '#/components/app/split-picker'
@@ -470,11 +470,11 @@ function SettingsPage() {
             </Link>
             .
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
+          {/* The zip holds the logs as CSV too: the Excel and CSV buttons stay on Stats, with the logs. */}
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <DownloadAllButton />
-            <ExportButtons />
+            <DeleteAccountButton />
           </div>
-          <DeleteAccountButton />
         </section>
       </div>
     </div>
@@ -520,7 +520,7 @@ function DeleteAccountButton() {
       }}
     >
       <DialogTrigger asChild>
-        <Button variant="destructive" className="mt-4">
+        <Button variant="destructive" size="sm">
           Delete account
         </Button>
       </DialogTrigger>

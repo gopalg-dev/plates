@@ -1,6 +1,6 @@
 import type { BodyweightLog, MeasurementLog, Units, Workout } from '../types'
 import { EFFORT_LABEL, type Effort } from './effort'
-import { dayKey, effectiveSets, finished } from './stats'
+import { dayKey, effectiveSets, type FinishedWorkout, finished } from './stats'
 
 /**
  * Flat rows for a spreadsheet: one per logged set, oldest session first.
@@ -126,6 +126,59 @@ export function setsToRows(workouts: Workout[]): SetRow[] {
   return rows
 }
 
+/** How the logs are laid out in a spreadsheet: one row per set, or a logbook with a sheet per day. */
+export type ExportLayout = 'log' | 'tracker'
+
+/** A sheet of the tracker layout: a plan day, its headers, and a row per lift per session. */
+export type TrackerSheet = { name: string; headers: string[]; rows: (string | number)[][] }
+
+/** Excel allows 31 characters in a sheet name and none of `[ ] : * ? / \`. */
+function sheetName(name: string): string {
+  return (
+    name
+      .replace(/[[\]:*?/\\]/g, ' ')
+      .trim()
+      .slice(0, 31) || 'Day'
+  )
+}
+
+/**
+ * The tracker layout, like a paper logbook: a sheet per plan day, one row per lift per session, oldest first, the
+ * sets across. The weight is one number when every set used the same, else the weights in order; a timed hold
+ * shows its seconds; lifts with no set done are left out.
+ */
+export function trackerSheets(workouts: Workout[], units: Units): TrackerSheet[] {
+  const byDay = new Map<string, FinishedWorkout[]>()
+  for (const w of finished(workouts)) byDay.set(w.dayName, [...(byDay.get(w.dayName) ?? []), w])
+  const used = new Set<string>()
+  return [...byDay].map(([day, sessions]) => {
+    const most = Math.max(1, ...sessions.flatMap((w) => w.entries.map((e) => e.sets.filter((s) => s.done).length)))
+    const setHeads = Array.from({ length: most }, (_, i) => `Set ${i + 1}`)
+    const headers = ['Date', 'Exercise', 'Sets', `Weight (${units})`, ...setHeads, 'Total reps', 'Effort', 'Note']
+    const rows = sessions.flatMap((w) =>
+      w.entries
+        .map((entry) => ({ entry, done: entry.sets.filter((s) => s.done) }))
+        .filter(({ done }) => done.length > 0)
+        .map(({ entry, done }) => {
+          const weights = [...new Set(done.map((s) => s.weight).filter((x): x is number => x != null))]
+          const cells = Array.from({ length: most }, (_, i) => {
+            const s = done[i]
+            if (!s) return ''
+            return s.seconds != null ? `${s.seconds} s` : (s.reps ?? '')
+          })
+          const total = done.reduce((n, s) => n + (s.reps ?? 0), 0)
+          const effort = w.effort ? EFFORT_LABEL[w.effort as Effort] : ''
+          const weight = weights.length === 1 ? weights[0] : weights.join(' / ')
+          return [dayKey(w.finishedAt), entry.name, done.length, weight, ...cells, total, effort, w.note ?? '']
+        }),
+    )
+    let name = sheetName(day)
+    for (let n = 2; used.has(name); n++) name = `${sheetName(day).slice(0, 28)} ${n}`
+    used.add(name)
+    return { name, headers, rows }
+  })
+}
+
 /** Sets that count in stats: done, with reps or seconds. Same rule as the Stats page. */
 export function countedSets(workouts: Workout[]): number {
   return finished(workouts).reduce((n, w) => n + w.entries.reduce((m, e) => m + effectiveSets(e).length, 0), 0)
@@ -147,7 +200,7 @@ export function measurementsToRows(logs: MeasurementLog[]): MeasurementRow[] {
     .map((l) => ({ Date: l.day ?? dayKey(l.date), Arm: l.arm ?? '', Chest: l.chest ?? '', Waist: l.waist ?? '' }))
 }
 
-/** `plates-logs-2026-10-10.xlsx` */
-export function exportFileName(kind: 'xlsx' | 'csv', now = new Date()): string {
-  return `plates-logs-${dayKey(now)}.${kind}`
+/** `plates-logs-2026-10-10.xlsx`, or `plates-tracker-2026-10-10.xlsx` for the tracker layout. */
+export function exportFileName(kind: 'xlsx' | 'csv', now = new Date(), layout: ExportLayout = 'log'): string {
+  return `plates-${layout === 'tracker' ? 'tracker' : 'logs'}-${dayKey(now)}.${kind}`
 }

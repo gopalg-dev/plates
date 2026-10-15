@@ -1,21 +1,26 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from '#/components/ui/button'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '#/components/ui/table'
+import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { planSourceInfo, type SplitTemplate } from '#/lib/content'
 import { saveBlob } from '#/lib/download'
 import { errorMessage } from '#/lib/format'
 import {
   bodyweightsToRows,
   dataReadme,
+  type ExportLayout,
   exportFileName,
   measurementsToRows,
   setHeaders,
   setsToRows,
+  trackerSheets,
 } from '#/lib/logic/export'
 import { GUIDE_LINES } from '#/lib/logic/plan-sheet'
 import { dayKey } from '#/lib/logic/stats'
 import { planWorkbook } from '#/lib/plan-workbook'
 import { slug } from '#/lib/seed-plan'
+import type { Units, Workout } from '#/lib/types'
 import { useContent } from '#/lib/use-content'
 import { getExportFn } from '#/server/fns'
 
@@ -48,17 +53,28 @@ function logSheets(XLSX: Sheets, data: ExportData) {
   return { sets, bodyweight, tape }
 }
 
-/** The sets alone as CSV, or every log as an Excel workbook with a sheet each. */
-async function downloadLogs(kind: 'xlsx' | 'csv') {
+/**
+ * The logs as one file. The log layout: the sets alone as CSV, or every log as an Excel workbook with a sheet
+ * each. The tracker layout: Excel only, a sheet per plan day, then the weigh-ins and the tape.
+ */
+async function downloadLogs(kind: 'xlsx' | 'csv', layout: ExportLayout) {
   const [XLSX, data] = await Promise.all([import('xlsx'), getExportFn()])
   const sheets = logSheets(XLSX, data)
   const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, sheets.sets, 'Sets')
+  if (layout === 'tracker') {
+    for (const day of trackerSheets(data.workouts, data.settings.units)) {
+      const ws = XLSX.utils.aoa_to_sheet([day.headers, ...day.rows])
+      ws['!cols'] = day.headers.map((h) => ({ wch: h === 'Exercise' ? 28 : h === 'Note' ? 40 : 11 }))
+      XLSX.utils.book_append_sheet(wb, ws, day.name)
+    }
+  } else {
+    XLSX.utils.book_append_sheet(wb, sheets.sets, 'Sets')
+  }
   if (kind === 'xlsx') {
     XLSX.utils.book_append_sheet(wb, sheets.bodyweight, 'Bodyweight')
     XLSX.utils.book_append_sheet(wb, sheets.tape, 'Measurements')
   }
-  XLSX.writeFile(wb, exportFileName(kind), { bookType: kind })
+  XLSX.writeFile(wb, exportFileName(kind, new Date(), layout), { bookType: kind })
 }
 
 /**
@@ -119,17 +135,99 @@ function useExport() {
   return { exporting, run }
 }
 
-/** "Download Excel" and "Download CSV": the logs. */
-export function ExportButtons() {
-  const { exporting, run } = useExport()
+const LAYOUTS: { value: ExportLayout; label: string }[] = [
+  { value: 'log', label: 'Log' },
+  { value: 'tracker', label: 'Tracker' },
+]
+
+/** The first rows of the sheet the layout would write, from the logs on screen, so a pick is made on sight. */
+function ExportPreview({ layout, workouts, units }: { layout: ExportLayout; workouts: Workout[]; units: Units }) {
+  const { headers, rows } = useMemo(() => {
+    if (layout === 'tracker') {
+      const first = trackerSheets(workouts, units)[0]
+      return first ? { headers: first.headers, rows: first.rows.slice(0, 3) } : { headers: [], rows: [] }
+    }
+    return {
+      headers: setHeaders(units),
+      rows: setsToRows(workouts)
+        .slice(0, 3)
+        .map((r) => Object.values(r)),
+    }
+  }, [layout, workouts, units])
+  if (!headers.length) return null
   return (
-    <div className="flex flex-wrap gap-2">
-      <Button variant="outline" size="sm" onClick={() => run(() => downloadLogs('xlsx'))} disabled={exporting}>
-        Download Excel
-      </Button>
-      <Button variant="outline" size="sm" onClick={() => run(() => downloadLogs('csv'))} disabled={exporting}>
-        Download CSV
-      </Button>
+    <div className="rounded-md border">
+      <Table className="text-xs" aria-label={`${layout === 'tracker' ? 'Tracker' : 'Log'} sheet preview`}>
+        <TableHeader>
+          <TableRow>
+            {headers.map((h) => (
+              <TableHead key={h} className="h-8 text-xs">
+                {h}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map((row, i) => (
+            // Rows have no identity of their own: the preview is a fixed sample, never reordered.
+            // biome-ignore lint/suspicious/noArrayIndexKey: a static sample
+            <TableRow key={i}>
+              {row.map((cell, j) => (
+                // biome-ignore lint/suspicious/noArrayIndexKey: a static sample
+                <TableCell key={j} className="py-1.5">
+                  {cell}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
+/** The logs export: the sheet layout to write, a preview of it, and "Download Excel" or "Download CSV". */
+export function ExportButtons({ workouts, units }: { workouts: Workout[]; units: Units }) {
+  const { exporting, run } = useExport()
+  const [layout, setLayout] = useState<ExportLayout>('log')
+  return (
+    <div className="space-y-3">
+      <ToggleGroup
+        type="single"
+        variant="outline"
+        size="sm"
+        value={layout}
+        onValueChange={(v) => v && setLayout(v as ExportLayout)}
+        aria-label="Sheet layout"
+      >
+        {LAYOUTS.map((l) => (
+          <ToggleGroupItem key={l.value} value={l.value} className="px-3">
+            {l.label}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      <ExportPreview layout={layout} workouts={workouts} units={units} />
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => run(() => downloadLogs('xlsx', layout))}
+          disabled={exporting}
+        >
+          Download Excel
+        </Button>
+        {/* A CSV holds one sheet: only the log layout fits in one. */}
+        {layout === 'log' && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => run(() => downloadLogs('csv', layout))}
+            disabled={exporting}
+          >
+            Download CSV
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

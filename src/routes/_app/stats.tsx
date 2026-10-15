@@ -98,7 +98,7 @@ function StatsPage() {
               </Button>
             )
           }
-          exportButtons={<ExportButtons />}
+          exportButtons={<ExportButtons workouts={workouts} units={units} />}
         />
       )}
 

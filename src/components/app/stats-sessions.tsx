@@ -83,8 +83,9 @@ export function SessionsTab({
   const { sessions, volume, effort, totals } = weekly
   const weekName = isThisWeek ? 'this week' : `week of ${shortDate(noon(weekKey))}`
 
+  // Tracks of minmax(0, 1fr): a wide table in a section scrolls inside it instead of widening the page.
   return (
-    <div className="mt-6 grid gap-10 lg:grid-cols-2 lg:gap-x-10">
+    <div className="mt-6 grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-x-10">
       <section aria-labelledby="week-h" className="lg:col-span-2">
         <SectionHeading id="week-h" icon={CalendarDays}>
           {isThisWeek ? 'This week' : `Week of ${shortDate(noon(weekKey))}`}
