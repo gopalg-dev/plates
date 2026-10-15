@@ -684,7 +684,11 @@ test('feedback is one tap and an optional line, from the account menu', async ()
 })
 
 test('accounts stay apart: a second user starts clean and the first signs back in by username', async () => {
+  // Signing out lands on the home page, How it works, with the way back in.
   await signOut(page)
+  await expect(page).toHaveURL(/\/how-it-works$/)
+  await hydrated(page)
+  await page.getByRole('link', { name: 'Sign in', exact: true }).click()
   await expect(page).toHaveURL(/\/login$/)
   await hydrated(page)
   await snap(page, '14-login')
@@ -709,6 +713,9 @@ test('accounts stay apart: a second user starts clean and the first signs back i
   await open(page, '/stats')
   await expect(page.getByText('Nothing logged yet', { exact: false })).toBeVisible()
   await signOut(page)
+  await expect(page).toHaveURL(/\/how-it-works$/)
+  await hydrated(page)
+  await page.getByRole('link', { name: 'Sign in', exact: true }).click()
   await expect(page).toHaveURL(/\/login$/)
   await hydrated(page)
 

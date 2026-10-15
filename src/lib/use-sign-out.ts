@@ -15,7 +15,8 @@ export function useSignOut() {
     try {
       await authClient.signOut()
       await router.invalidate()
-      await navigate({ to: '/login' })
+      // The home page, which is How it works once signed out.
+      await navigate({ to: '/' })
     } catch (err) {
       toast.error(errorMessage(err, 'Could not sign out.'))
       setBusy(false)

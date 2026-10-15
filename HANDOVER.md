@@ -43,7 +43,8 @@ PROJECT_CONTEXT.md after every phase; the user asked for that explicitly.
    `context.userId`; every repo function takes `userId` first; settings and plan docs are
    `_id: userId`; log collections carry `userId` with indexes. The first account created on a
    database claims the pre-account data (`claimLegacyData`, via a Better Auth `databaseHooks`
-   user-create hook). Sign out in the sidebar footer and at the bottom of Plan.
+   user-create hook). Sign out in the sidebar footer and at the bottom of Plan; it lands on `/`,
+   which is How it works once signed out (2026-10-15, user: "after logout push to home page").
    Mail: `src/server/mail.ts` sends through Resend when `RESEND_API_KEY` is set; otherwise it logs
    the mail and stores it in the `mail_outbox` collection, which the e2e reads to follow the link.
 7. Forms use the shadcn `field` components (login, signup, exercise editor, log dialogs, setup
