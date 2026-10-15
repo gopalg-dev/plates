@@ -581,6 +581,54 @@ suite('workouts', () => {
     expect(history.workouts).toEqual([])
   })
 
+  it('skips a day on the rolling order, until a later session is finished', async () => {
+    await repo.skipDay(U, 'pull-a')
+    expect((await repo.getTodayData(U)).nextDayId).toBe('push-a')
+    await expect(repo.skipDay(U, 'not-a-day')).rejects.toThrow('Day not found')
+    await finishSession('legs-a', async (w) => {
+      await repo.saveEntrySets(U, w.id, 'barbell-squat', [{ weight: 100, reps: 5, done: true }])
+    })
+    expect((await repo.getTodayData(U)).nextDayId).toBe('pull-b')
+  })
+
+  it('drafts a session for an earlier day with targets, and logs it dated that day', async () => {
+    await finishSession('pull-a', async (w) => {
+      await repo.saveEntrySets(U, w.id, 'pull-ups', [
+        { reps: 8, done: true },
+        { reps: 8, done: true },
+        { reps: 8, done: true },
+      ])
+    })
+    const twoDaysAgo = new Date()
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
+    twoDaysAgo.setHours(12, 0, 0, 0)
+    const at = twoDaysAgo.toISOString()
+    const draft = await repo.draftWorkout(U, 'pull-a', at)
+    expect(draft.status).toBe('done')
+    expect(draft.startedAt).toBe(at)
+    expect(draft.finishedAt).toBe(at)
+    expect(draft.entries.every((e) => e.sets.every((s) => !s.done))).toBe(true)
+    expect(draft.entries.find((e) => e.exerciseId === 'pull-ups')?.suggested?.[0]?.reps).toBeDefined()
+    expect(draft.entries.some((e) => e.rampOffer)).toBe(false)
+    // Nothing is stored until the sets come back.
+    expect(await repo.listWorkouts(U)).toHaveLength(1)
+    await expect(repo.logPastWorkout(U, 'pull-a', at, [])).rejects.toThrow('Nothing is ticked')
+    const tomorrow = new Date(Date.now() + 86_400_000).toISOString()
+    await expect(repo.draftWorkout(U, 'pull-a', tomorrow)).rejects.toThrow('has not happened')
+
+    const logged = await repo.logPastWorkout(U, 'pull-a', at, [
+      { exerciseId: 'pull-ups', sets: [{ reps: 9, done: true }] },
+    ])
+    expect(logged.finishedAt).toBe(at)
+    const stored = await repo.listWorkouts(U)
+    expect(stored).toHaveLength(2)
+    // Newest first: the live session, then the one logged for two days ago.
+    expect(stored[1].id).toBe(logged.id)
+    expect(stored[1].entries.find((e) => e.exerciseId === 'pull-ups')?.sets).toEqual([{ reps: 9, done: true }])
+    // The live session is still the last one finished, so the order has not moved back.
+    expect((await repo.getTodayData(U)).nextDayId).toBe('push-a')
+  })
+
   it('tells today when the last weigh-in and tape were', async () => {
     const before = await repo.getTodayData(U)
     expect(before.lastBodyweightAt).toBeNull()

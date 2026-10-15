@@ -372,6 +372,9 @@ test('stats reflect the logged workout and bodyweight', async () => {
     .getByRole('button', { name: /, no session$/ })
     .first()
     .click()
+  // An empty earlier day also offers to log a session for it; closed, the week stays picked.
+  await expect(page.getByRole('dialog').getByText('No session')).toBeVisible()
+  await page.keyboard.press('Escape')
   await expect(page.getByRole('heading', { name: /^Week of/ })).toBeVisible()
   await expect(page.getByText('of 6 sessions').locator('..').getByText('0', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Back to this week' }).click()
@@ -666,6 +669,51 @@ test('a day on the stats calendar opens its session to fix a set or remove it', 
   await expect(page.getByText('Session removed')).toBeVisible()
   await page.getByRole('radio', { name: 'Lifts' }).click()
   await expect(page.getByText('Nothing logged yet', { exact: false })).toBeVisible()
+})
+
+test('a day trained without the app is logged from the calendar, and Today skips a day', async () => {
+  // No session is left, so the rolling order starts over at Pull A.
+  await open(page, '/')
+  await expect(page.getByRole('heading', { name: 'Pull A' })).toBeVisible()
+
+  // An empty earlier day on the Stats calendar offers the plan's days; the one picked opens with its sets to tick.
+  await open(page, '/stats?tab=sessions')
+  const twoDaysAgo = new Date(Date.now() - 2 * 86_400_000)
+  const label = twoDaysAgo.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  if (twoDaysAgo.getMonth() !== new Date().getMonth())
+    await page.getByRole('button', { name: 'Previous month' }).click()
+  await page.getByRole('button', { name: `${label}, no session` }).click()
+  await expect(page.getByText('No session')).toBeVisible()
+  await page.getByRole('button', { name: 'Log Push A' }).click()
+  const sheet = page.getByRole('dialog').filter({ hasText: 'Push A' })
+  await expect(sheet.getByRole('button', { name: 'Log session' })).toBeDisabled()
+  await sheet.getByRole('button', { name: 'Tick all' }).click()
+  await snap(page, '13b-log-earlier')
+  await sheet.getByRole('button', { name: 'Log session' }).click()
+  await expect(page.getByText(/Push A logged for/)).toBeVisible()
+  await expect(sheet).not.toBeVisible()
+  await expect(page.getByRole('button', { name: `${label}, Push A` })).toBeVisible()
+
+  // Next up follows the logged session: Legs A comes after Push A. Skip asks first, then moves on with nothing logged.
+  await open(page, '/')
+  await expect(page.getByRole('heading', { name: 'Legs A' })).toBeVisible()
+  await page.getByRole('button', { name: 'Skip or done' }).click()
+  const ask = page.getByRole('dialog', { name: 'Skip Legs A?' })
+  await expect(ask.getByText('Nothing is logged for Legs A.')).toBeVisible()
+  await expect(ask.getByText('Already did it? Log the session on Stats, under Sessions.')).toBeVisible()
+  await snap(page, '13c-skip-ask')
+  await ask.getByRole('button', { name: 'Skip Legs A' }).click()
+  await expect(page.getByText('Skipped Legs A')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Pull B' })).toBeVisible()
+
+  // The logged session goes again, so the weeks that follow start clean.
+  await open(page, '/stats?tab=sessions')
+  if (twoDaysAgo.getMonth() !== new Date().getMonth())
+    await page.getByRole('button', { name: 'Previous month' }).click()
+  await page.getByRole('button', { name: `${label}, Push A` }).click()
+  await page.getByRole('button', { name: 'Delete session' }).click()
+  await page.getByRole('button', { name: 'Delete', exact: true }).click()
+  await expect(page.getByText('Session removed')).toBeVisible()
 })
 
 test('feedback is one tap and an optional line, from the account menu', async () => {

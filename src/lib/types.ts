@@ -108,6 +108,14 @@ export interface Settings {
   nudges?: Partial<Record<NudgeKind, NudgeSnooze>>
   /** Today alerts the user dismissed, by the alert's key to the moment it was waved away. Pruned after 90 days. */
   alertsDismissed?: Record<string, string>
+  /** A day skipped on Today under the rolling schedule, and when: Next up moves past it, as if it were finished. */
+  rolledPast?: RollMark
+}
+
+/** A point in the rolling order: a plan day and the moment it was finished or skipped. */
+export interface RollMark {
+  dayId: string
+  at: string
 }
 
 /** The two reminders on Today: the scale and the tape. */

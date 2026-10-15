@@ -348,6 +348,32 @@ no Inter/Geist. Checked.
         swaps; a library entry added in the database without the new fields made the server re-run the fill-in
         on every read (only the bundle's ids count now). Known, left: "Add a day" on a plan started empty still
         brings five lifts, as there is no stored "empty" preference.
+- [x] 61. A missed log, and a skipped day (2026-10-15, user problem: "I trained Tuesday but forgot to log it, and
+      Today still shows Push with no way to fix it"). Two gaps, one cause: a session could only be born live, and
+      Next up only ever read the last finished session. Research first (Hevy backdates a session from its calendar,
+      MacroFactor and Gravl skip a workout and move the program on), then built on the user's design calls over
+      three turns: Skip lives in the Next up footer, not a `⋯` menu; logging an earlier day lives on the Stats
+      calendar only, not in Pick a day (a date row there was built and dropped: the calendar tap already is the
+      date); the footer button reads **Skip or done** (was "Skip or already done"; on phones it shares a row with
+      **Pick another day**, was "Not this one? Pick another day", both ghost (outline was tried once the row held
+      two) and as tall as Start, the labels cut to fit half a row at 360px) and asks first (`SkipDialog`, two sentences: nothing
+      is logged, and "Already did it? Log the session on Stats, under Sessions."; an alert mark with a tooltip,
+      then a longer text naming the next day and the taps, were built before it and cut on the user's word:
+      "straight to the point and don't tell what will be next"). Logging: an empty earlier
+      calendar day opens the same day dialog two sessions do, titled with the date, listing the plan days with
+      **Log**; `draftWorkoutFn` / `repo.draftWorkout` returns the day's session as it would start (targets from
+      history, blank sets, no ramp offer, `startedAt` = `finishedAt` = noon of that day, nothing stored); the
+      session editor takes it in `log` mode (`SessionEditor` prop: **Tick all** fills every set from its target
+      through `completeSet`, **Log session** is disabled until a set is ticked, no Delete) and
+      `logPastWorkoutFn` / `repo.logPastWorkout` stores it, refusing nothing ticked. `components/app/log-past-
+      session.tsx` holds the pair (`useDraftSession`, `PastSessionEditor`). Every reader of `finishedAt` (streak,
+      week count, calendar, body map, progression history, export, Next up) takes the backfilled session as is.
+      Skip: `skipDayFn` / `repo.skipDay` stores `settings.rolledPast = { dayId, at }`, and `rollingCursor` in
+      next-day.ts counts from whichever is later, the last finished session or the skip, so a skip is forgotten
+      once a later session is finished and a session logged for an earlier day never undoes it. Rolling order
+      only (by weekday the calendar decides); hidden on a one-day plan. The skipped day is not carried (item 54
+      stands). Tests: `rollingCursor` cases, repo tests for skip / draft / log, an app e2e flow; the guide's
+      session and Stats sections and the README say it.
 - [x] 60. The interactive demo mirrors the app, and SEO groundwork (2026-10-14, user request). The live phone on
       How it works now runs the same flow as the app: Today opens on **Next up** (the day the plan says is next, its
       lifts, the week streak and a review alert), and only Start — or a day from Pick a day — begins the session;

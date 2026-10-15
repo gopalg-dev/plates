@@ -1,8 +1,17 @@
 import { Link } from '@tanstack/react-router'
-import { Flame } from 'lucide-react'
+import { Flame, SkipForward } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { Button } from '#/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '#/components/ui/dialog'
 import {
   Drawer,
   DrawerContent,
@@ -36,8 +45,8 @@ import { ExerciseThumb } from './exercise-thumb'
 
 /*
  * The Today "Next up" screen, shared by the Today route and the demo on How it works: the day the plan says is
- * next, its lifts, the week streak, the alerts, and the Start / Pick a day controls. The route wires it to the
- * server; the demo starts a made-up session. Change it here and both follow.
+ * next, its lifts, the week streak, the alerts, and the Start / Pick a day / Skip controls. The route wires it to
+ * the server; the demo starts a made-up session. Change it here and both follow.
  */
 
 /** The week streak, top right of Today: a flame and a big number of weeks. Muted until the first streak week. */
@@ -59,6 +68,76 @@ export function Streak({ weeks }: { weeks: number }) {
   )
 }
 
+/** The Pick a day drawer: every plan day with Start on each, under the Next up buttons. */
+function PickDayDrawer({
+  open,
+  onOpenChange,
+  trigger,
+  days,
+  byWeekday,
+  recent,
+  now,
+  starting,
+  onStart,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  trigger: ReactNode
+  days: PlanDay[]
+  byWeekday: boolean
+  recent: Finished[]
+  now: Date
+  starting: string | null
+  onStart: (dayId: string) => void
+}) {
+  const pick = (dayId: string) => {
+    onOpenChange(false)
+    onStart(dayId)
+  }
+  return (
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+      <DrawerContent className="max-h-[92dvh]">
+        <DrawerHeader>
+          <DrawerTitle>Pick a day</DrawerTitle>
+          <DrawerDescription className="sr-only">Start a different day.</DrawerDescription>
+        </DrawerHeader>
+        <ItemGroup className="px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
+          {days.map((d) => {
+            const doneAt = lastDoneAt(d.id, recent)
+            // The day's weekday (or its size), and when it was last done, so a day just trained stands out.
+            const detail = [
+              byWeekday && d.weekday !== undefined ? WEEKDAY_SHORT[d.weekday] : `${d.exercises.length} exercises`,
+              doneAt ? `Done ${relativeDay(doneAt, now)}` : null,
+            ]
+            return (
+              <Item key={d.id} size="sm" className="cursor-pointer px-2" onClick={rowTap(() => pick(d.id)).onClick}>
+                <ItemMedia>
+                  <DayIcon type={d.type} className="size-8 rounded-md" />
+                </ItemMedia>
+                <ItemContent>
+                  <ItemTitle className="text-base">{d.name}</ItemTitle>
+                  <ItemDescription>{detail.filter(Boolean).join(' · ')}</ItemDescription>
+                </ItemContent>
+                <ItemActions>
+                  <Button
+                    size="sm"
+                    aria-label={`Start ${d.name}`}
+                    onClick={() => pick(d.id)}
+                    disabled={starting !== null || d.exercises.length === 0}
+                  >
+                    Start
+                  </Button>
+                </ItemActions>
+              </Item>
+            )
+          })}
+        </ItemGroup>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
 export function NextUpView({
   day,
   days,
@@ -75,6 +154,7 @@ export function NextUpView({
   onAlertAction,
   onStart,
   starting,
+  onSkip,
   nudge,
 }: {
   /** The day the plan says is next, or null on a rest day / once today's is done. */
@@ -98,14 +178,12 @@ export function NextUpView({
   onStart: (dayId: string) => void
   /** The day id being started, or null; disables the buttons while a start is in flight. */
   starting: string | null
+  /** Given, the footer offers to skip the day shown: Next up moves on without a session (rolling order). */
+  onSkip?: (dayId: string) => void
   /** The weigh-in / tape reminder, rendered by the caller (the route only). */
   nudge?: ReactNode
 }) {
   const [pickerOpen, setPickerOpen] = useState(false)
-  const start = (dayId: string) => {
-    setPickerOpen(false)
-    onStart(dayId)
-  }
 
   return (
     <div>
@@ -148,7 +226,7 @@ export function NextUpView({
         </ItemGroup>
       )}
 
-      <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:items-center">
+      <div className="mt-8 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
         {/* A day with no lifts cannot start: it waits on Plan to be filled. */}
         {day &&
           (day.exercises.length === 0 ? (
@@ -156,66 +234,76 @@ export function NextUpView({
               <Link to="/plan">Add lifts on Plan</Link>
             </Button>
           ) : (
-            <Button size="lg" className="h-12 text-base" onClick={() => start(day.id)} disabled={starting !== null}>
+            <Button size="lg" className="h-12 text-base" onClick={() => onStart(day.id)} disabled={starting !== null}>
               Start {day.name}
             </Button>
           ))}
-        <Drawer open={pickerOpen} onOpenChange={setPickerOpen}>
-          <DrawerTrigger asChild>
-            {day ? (
-              <Button variant="ghost" size="lg">
-                Not this one? Pick another day
+        {/* Under Start, the two quiet choices share a row on phones; the wrapper dissolves into the row from 640px. */}
+        <div className="grid grid-cols-2 gap-2 sm:contents">
+          <PickDayDrawer
+            open={pickerOpen}
+            onOpenChange={setPickerOpen}
+            trigger={
+              day ? (
+                <Button variant="ghost" size="lg" className="h-12 px-4 text-base">
+                  Pick another day
+                </Button>
+              ) : (
+                <Button size="lg" className="col-span-2 h-12 text-base">
+                  Pick a day
+                </Button>
+              )
+            }
+            days={days}
+            byWeekday={byWeekday}
+            recent={recent}
+            now={now}
+            starting={starting}
+            onStart={onStart}
+          />
+          {/* Next up moves past this day with nothing logged, for a day done without the app or not at all. */}
+          {day && onSkip && (
+            <SkipDialog day={day} onSkip={onSkip}>
+              <Button variant="ghost" size="lg" className="h-12 px-4 text-base" disabled={starting !== null}>
+                <SkipForward aria-hidden />
+                Skip or done
               </Button>
-            ) : (
-              <Button size="lg" className="h-12 text-base">
-                Pick a day
-              </Button>
-            )}
-          </DrawerTrigger>
-          <DrawerContent className="max-h-[92dvh]">
-            <DrawerHeader>
-              <DrawerTitle>Pick a day</DrawerTitle>
-              <DrawerDescription className="sr-only">Start a different day.</DrawerDescription>
-            </DrawerHeader>
-            <ItemGroup className="px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
-              {days.map((d) => {
-                const doneAt = lastDoneAt(d.id, recent)
-                // The day's weekday (or its size), and when it was last done, so a day just trained stands out.
-                const detail = [
-                  byWeekday && d.weekday !== undefined ? WEEKDAY_SHORT[d.weekday] : `${d.exercises.length} exercises`,
-                  doneAt ? `Done ${relativeDay(doneAt, now)}` : null,
-                ]
-                return (
-                  <Item
-                    key={d.id}
-                    size="sm"
-                    className="cursor-pointer px-2"
-                    onClick={rowTap(() => start(d.id)).onClick}
-                  >
-                    <ItemMedia>
-                      <DayIcon type={d.type} className="size-8 rounded-md" />
-                    </ItemMedia>
-                    <ItemContent>
-                      <ItemTitle className="text-base">{d.name}</ItemTitle>
-                      <ItemDescription>{detail.filter(Boolean).join(' · ')}</ItemDescription>
-                    </ItemContent>
-                    <ItemActions>
-                      <Button
-                        size="sm"
-                        aria-label={`Start ${d.name}`}
-                        onClick={() => start(d.id)}
-                        disabled={starting !== null || d.exercises.length === 0}
-                      >
-                        Start
-                      </Button>
-                    </ItemActions>
-                  </Item>
-                )
-              })}
-            </ItemGroup>
-          </DrawerContent>
-        </Drawer>
+            </SkipDialog>
+          )}
+        </div>
       </div>
     </div>
+  )
+}
+
+/** Confirms a skip: nothing is logged, and a session done without the app is logged on Stats. */
+function SkipDialog({ day, onSkip, children }: { day: PlanDay; onSkip: (dayId: string) => void; children: ReactNode }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Skip {day.name}?</DialogTitle>
+          <DialogDescription className="flex flex-col gap-1.5">
+            <span>Nothing is logged for {day.name}.</span>
+            <span>Already did it? Log the session on Stats, under Sessions.</span>
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              setOpen(false)
+              onSkip(day.id)
+            }}
+          >
+            Skip {day.name}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

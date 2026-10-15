@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { LogBodyweightDialog, LogMeasurementsDialog, TapeDialog, WeighInDialog } from '#/components/app/body-dialogs'
 import { DayIcon } from '#/components/app/day-mark'
 import { ExportButtons } from '#/components/app/export-buttons'
+import { PastSessionEditor, useDraftSession } from '#/components/app/log-past-session'
 import { SessionEditor, sessionSummary } from '#/components/app/session-editor'
 import { BodyTab } from '#/components/app/stats-body'
 import { LiftsTab, liftsFrom } from '#/components/app/stats-lifts'
@@ -38,9 +39,13 @@ function StatsPage() {
   const lengthUnit = units === 'kg' ? 'cm' : 'in'
   const [picked, setPicked] = useState<BodyweightLog | null>(null)
   const [pickedTape, setPickedTape] = useState<MeasurementLog | null>(null)
-  /** The session open for editing, and the day whose sessions are listed when there is more than one. */
+  /**
+   * The session open for editing, and the day whose sessions are listed when there is more than one, or whose
+   * plan days are offered when there is none. A plan day picked there opens a draft to log.
+   */
   const [editing, setEditing] = useState<Workout | null>(null)
   const [dayOpen, setDayOpen] = useState<string | null>(null)
+  const drafts = useDraftSession()
   const refresh = () => router.invalidate()
   /** Lifts the set ramp has raised above the plan's own number. The deload card offers to drop them back. */
   const ramped = plan.days.reduce((n, d) => n + d.exercises.filter((e) => e.ramp).length, 0)
@@ -67,11 +72,14 @@ function StatsPage() {
   const { now, prs, bw, lifts } = derived
   const daySessions = dayOpen ? workouts.filter((w) => w.finishedAt && dayKey(w.finishedAt) === dayOpen) : []
 
-  /** A tapped calendar day: its week drives the numbers, and its session opens. Two sessions give a choice. */
+  /**
+   * A tapped calendar day: its week drives the numbers, and its session opens. Two sessions give a choice; an
+   * earlier day with none offers the plan's days, to log one for that date.
+   */
   function openDay(date: string) {
     const found = workouts.filter((w) => w.status === 'done' && w.finishedAt && dayKey(w.finishedAt) === date)
     if (found.length === 1) setEditing(found[0])
-    else if (found.length > 1) setDayOpen(date)
+    else if (found.length > 1 || date < dayKey(now)) setDayOpen(date)
   }
 
   return (
@@ -129,49 +137,80 @@ function StatsPage() {
           await refresh()
         }}
       />
+      <PastSessionEditor
+        draft={drafts.draft}
+        units={units}
+        steps={stepsOf(settings)}
+        onClose={drafts.close}
+        onLogged={async () => {
+          drafts.close()
+          await refresh()
+        }}
+      />
       <Dialog open={dayOpen !== null} onOpenChange={(o) => !o && setDayOpen(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{dayOpen ? longDate(noon(dayOpen)) : ''}</DialogTitle>
             <DialogDescription>
-              {daySessions.length} {daySessions.length === 1 ? 'session' : 'sessions'}
+              {daySessions.length === 0
+                ? 'No session'
+                : `${daySessions.length} ${daySessions.length === 1 ? 'session' : 'sessions'}`}
             </DialogDescription>
           </DialogHeader>
           <ItemGroup className="border-y">
-            {daySessions.map((w) => (
-              <Item
-                key={w.id}
-                size="sm"
-                className="cursor-pointer px-2"
-                onClick={
-                  rowTap(() => {
+            {daySessions.length > 0
+              ? daySessions.map((w) => {
+                  const openIt = () => {
                     setDayOpen(null)
                     setEditing(w)
-                  }).onClick
-                }
-              >
-                <ItemMedia>
-                  <DayIcon type={w.dayType} className="size-8 rounded-md" />
-                </ItemMedia>
-                <ItemContent>
-                  <ItemTitle className="text-base">{w.dayName}</ItemTitle>
-                  <ItemDescription>{sessionSummary(w)}</ItemDescription>
-                </ItemContent>
-                <ItemActions>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    aria-label={`Open ${w.dayName}`}
-                    onClick={() => {
-                      setDayOpen(null)
-                      setEditing(w)
-                    }}
-                  >
-                    Open
-                  </Button>
-                </ItemActions>
-              </Item>
-            ))}
+                  }
+                  return (
+                    <Item key={w.id} size="sm" className="cursor-pointer px-2" onClick={rowTap(openIt).onClick}>
+                      <ItemMedia>
+                        <DayIcon type={w.dayType} className="size-8 rounded-md" />
+                      </ItemMedia>
+                      <ItemContent>
+                        <ItemTitle className="text-base">{w.dayName}</ItemTitle>
+                        <ItemDescription>{sessionSummary(w)}</ItemDescription>
+                      </ItemContent>
+                      <ItemActions>
+                        <Button variant="outline" size="sm" aria-label={`Open ${w.dayName}`} onClick={openIt}>
+                          Open
+                        </Button>
+                      </ItemActions>
+                    </Item>
+                  )
+                })
+              : // A day trained without the app: pick which plan day it was, and its sets open to fill in.
+                plan.days.map((d) => {
+                  const logIt = () => {
+                    if (!dayOpen) return
+                    setDayOpen(null)
+                    void drafts.open(d.id, dayOpen)
+                  }
+                  return (
+                    <Item key={d.id} size="sm" className="cursor-pointer px-2" onClick={rowTap(logIt).onClick}>
+                      <ItemMedia>
+                        <DayIcon type={d.type} className="size-8 rounded-md" />
+                      </ItemMedia>
+                      <ItemContent>
+                        <ItemTitle className="text-base">{d.name}</ItemTitle>
+                        <ItemDescription>{d.exercises.length} exercises</ItemDescription>
+                      </ItemContent>
+                      <ItemActions>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          aria-label={`Log ${d.name}`}
+                          onClick={logIt}
+                          disabled={d.exercises.length === 0}
+                        >
+                          Log
+                        </Button>
+                      </ItemActions>
+                    </Item>
+                  )
+                })}
           </ItemGroup>
         </DialogContent>
       </Dialog>

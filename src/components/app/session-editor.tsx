@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '#/components/ui/dialog'
-import { errorMessage, shortDate } from '#/lib/format'
+import { errorMessage, longDate, shortDate } from '#/lib/format'
 import { EFFORT_LABEL, type Effort } from '#/lib/logic/effort'
 import type { Steps } from '#/lib/logic/progression'
 import { activeMinutes } from '#/lib/logic/session-time'
@@ -38,16 +38,30 @@ export function sessionSummary(w: Workout): string {
   return parts.join(', ')
 }
 
+/** One lift's sets as the editor leaves them. */
+export interface SetChange {
+  exerciseId: string
+  sets: LoggedSet[]
+}
+
 interface EditorProps {
   workout: Workout | null
   units: Units
   steps?: Steps
   onClose: () => void
   onSaved: () => void | Promise<void>
+  /**
+   * Given, the session is a draft for an earlier day, not stored yet: Save hands the sets here instead of updating
+   * a stored session, there is nothing to delete, and Tick all fills every set from its target.
+   */
+  log?: { onSave: (changes: SetChange[]) => Promise<void> }
 }
 
-/** A finished session: fix a set, add or drop one, or remove the session. Opened from the Stats calendar. */
-export function SessionEditor({ workout, units, steps, onClose, onSaved }: EditorProps) {
+/**
+ * A finished session: fix a set, add or drop one, or remove the session. Opened from the Stats calendar. With `log`,
+ * a session being written after the fact (see `PastSessionEditor`).
+ */
+export function SessionEditor({ workout, units, steps, onClose, onSaved, log }: EditorProps) {
   // Keep the last session while the panel animates closed, so the title does not blink away.
   const shown = useRef(workout)
   if (workout) shown.current = workout
@@ -77,7 +91,13 @@ export function SessionEditor({ workout, units, steps, onClose, onSaved }: Edito
           ''
         )
       }
-      description={current ? `${sessionSummary(current)}${current.note ? `. ${current.note}` : ''}` : ''}
+      description={
+        current
+          ? log
+            ? longDate(current.startedAt)
+            : `${sessionSummary(current)}${current.note ? `. ${current.note}` : ''}`
+          : ''
+      }
     >
       {workout && (
         <EditorBody
@@ -91,6 +111,7 @@ export function SessionEditor({ workout, units, steps, onClose, onSaved }: Edito
           steps={steps}
           onClose={onClose}
           onSaved={onSaved}
+          log={log}
         />
       )}
     </EditorPanel>
@@ -107,6 +128,7 @@ function EditorBody({
   steps,
   onClose,
   onSaved,
+  log,
 }: EditorProps & {
   workout: Workout
   entries: WorkoutEntry[]
@@ -116,21 +138,36 @@ function EditorBody({
 }) {
   const [busy, setBusy] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const ticked = entries.some((e) => e.sets.some((s) => s.done))
 
   function updateSets(exerciseId: string, mutate: (sets: LoggedSet[]) => LoggedSet[]) {
     // From the latest state, so two quick changes both land.
     setEntries((current) => current.map((e) => (e.exerciseId === exerciseId ? { ...e, sets: mutate(e.sets) } : e)))
   }
 
+  /** Every set of every lift done, each filled from its target: the session went as planned. */
+  function tickAll() {
+    setEntries((current) =>
+      current.map((e) => ({
+        ...e,
+        sets: e.sets.reduce((sets, s, i) => (s.done ? sets : completeSet(e, sets, i)), e.sets),
+      })),
+    )
+  }
+
   async function save() {
     setBusy(true)
     try {
-      await updateWorkoutFn({
-        data: { workoutId: workout.id, changes: entries.map((e) => ({ exerciseId: e.exerciseId, sets: e.sets })) },
-      })
-      // The page reloads its data before the toast, so what follows the toast sees the change.
-      await onSaved()
-      toast.success('Session updated')
+      const changes = entries.map((e) => ({ exerciseId: e.exerciseId, sets: e.sets }))
+      if (log) {
+        await log.onSave(changes)
+        await onSaved()
+      } else {
+        await updateWorkoutFn({ data: { workoutId: workout.id, changes } })
+        // The page reloads its data before the toast, so what follows the toast sees the change.
+        await onSaved()
+        toast.success('Session updated')
+      }
     } catch (err) {
       toast.error(errorMessage(err, 'Could not save.'))
       setBusy(false)
@@ -182,33 +219,40 @@ function EditorBody({
       </Accordion>
 
       <PanelFooter>
-        <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-          <DialogTrigger asChild>
-            <Button variant="ghost" className="text-destructive hover:text-destructive">
-              Delete session
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Remove this session?</DialogTitle>
-              <DialogDescription>Its sets leave your stats. This cannot be undone.</DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => setDeleteOpen(false)}>
-                Keep it
+        {log ? (
+          <Button variant="ghost" onClick={tickAll} disabled={busy}>
+            Tick all
+          </Button>
+        ) : (
+          <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" className="text-destructive hover:text-destructive">
+                Delete session
               </Button>
-              <Button variant="destructive" onClick={remove} disabled={busy}>
-                Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Remove this session?</DialogTitle>
+                <DialogDescription>Its sets leave your stats. This cannot be undone.</DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setDeleteOpen(false)}>
+                  Keep it
+                </Button>
+                <Button variant="destructive" onClick={remove} disabled={busy}>
+                  Delete
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
         <div className="ml-auto flex gap-2">
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={save} disabled={busy}>
-            Save changes
+          {/* A session with nothing ticked would hold nothing: logging waits for the first tick. */}
+          <Button onClick={save} disabled={busy || (log !== undefined && !ticked)}>
+            {log ? 'Log session' : 'Save changes'}
           </Button>
         </div>
       </PanelFooter>

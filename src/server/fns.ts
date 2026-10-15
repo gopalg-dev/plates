@@ -29,6 +29,9 @@ const loggedSet = z.object({
   done: z.boolean(),
 })
 
+/** The sets a change to a session carries: one entry per lift, the lift's sets in full. */
+const setChanges = z.array(z.object({ exerciseId: z.string().min(1), sets: z.array(loggedSet).max(10) })).max(30)
+
 // ---- shell ----
 
 /** Which sign-in options are configured, for the sign-in page. */
@@ -351,12 +354,7 @@ export const finishWorkoutFn = createServerFn({ method: 'POST' })
 
 export const updateWorkoutFn = createServerFn({ method: 'POST' })
   .middleware([authed])
-  .validator(
-    z.object({
-      workoutId: z.string().length(24),
-      changes: z.array(z.object({ exerciseId: z.string().min(1), sets: z.array(loggedSet).max(10) })).max(30),
-    }),
-  )
+  .validator(z.object({ workoutId: z.string().length(24), changes: setChanges }))
   .handler(({ data, context }) => repo.updateWorkoutSets(context.userId, data.workoutId, data.changes))
 
 export const deleteWorkoutFn = createServerFn({ method: 'POST' })
@@ -372,6 +370,24 @@ export const discardWorkoutFn = createServerFn({ method: 'POST' })
   .middleware([authed])
   .validator(z.object({ workoutId: z.string().length(24) }))
   .handler(({ data, context }) => repo.discardWorkout(context.userId, data.workoutId))
+
+/** Today moves past a day of the rolling order without a session. */
+export const skipDayFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(z.object({ dayId: z.string().min(1) }))
+  .handler(({ data, context }) => repo.skipDay(context.userId, data.dayId))
+
+/** A session for a plan day on an earlier date, with targets and blank sets, to fill in and log. Nothing is saved. */
+export const draftWorkoutFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(z.object({ dayId: z.string().min(1), at: z.string().datetime() }))
+  .handler(({ data, context }) => repo.draftWorkout(context.userId, data.dayId, data.at))
+
+/** Stores a session for an earlier date, as the draft was filled in. */
+export const logPastWorkoutFn = createServerFn({ method: 'POST' })
+  .middleware([authed])
+  .validator(z.object({ dayId: z.string().min(1), at: z.string().datetime(), changes: setChanges }))
+  .handler(({ data, context }) => repo.logPastWorkout(context.userId, data.dayId, data.at, data.changes))
 
 // ---- stats / body ----
 

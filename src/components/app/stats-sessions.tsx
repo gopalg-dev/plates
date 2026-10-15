@@ -35,7 +35,7 @@ interface SessionsTabProps {
   joinedAt: string | undefined
   units: Units
   now: Date
-  /** A day tapped on the calendar: its session opens. */
+  /** A day tapped on the calendar: its session opens, or an earlier day with none offers to log one. */
   onOpenDay: (date: string) => void
   /** Under the deload card: the button that drops the ramp's extra sets, when there are some. */
   dropRamp?: ReactNode
@@ -178,11 +178,11 @@ interface CalendarProps {
   /** Monday key of the highlighted week. */
   selected: string
   onSelect: (monday: string) => void
-  /** A tapped day with a session on it. */
+  /** A tapped day, with a session on it or not. */
   onOpenDay: (date: string) => void
 }
 
-/** One month of sessions as a calendar. Tap a day: its week drives the numbers, and its session opens. */
+/** One month of sessions as a calendar. Tap a day: its week drives the numbers, and the day opens. */
 function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenDay }: CalendarProps) {
   const [offset, setOffset] = useState(0)
   const [jumpOpen, setJumpOpen] = useState(false)
@@ -311,7 +311,7 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
                     aria-label={`${shortDate(d.iso)}, ${on.length > 0 ? on.join(' and ') : 'no session'}`}
                     onClick={() => {
                       onSelect(week.start)
-                      if (on.length > 0) onOpenDay(d.date)
+                      onOpenDay(d.date)
                     }}
                     className={cn(
                       'flex aspect-square items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default',

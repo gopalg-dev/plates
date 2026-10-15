@@ -235,7 +235,7 @@ test('a week later the targets follow the last session and the method', async ()
   await backdateJoin(60)
   await open('/')
   await expect(page.getByLabel('1 week streak')).toBeVisible()
-  await page.getByRole('button', { name: /Pick another day/ }).click()
+  await page.getByRole('button', { name: 'Pick another day' }).click()
   await page.getByRole('button', { name: 'Start Push' }).click()
   const bench = page.getByRole('region', { name: /Barbell Bench Press/ })
   // Three reps to spare last time: every set a step up, at the bottom of the range.
@@ -263,7 +263,7 @@ test('a week later the targets follow the last session and the method', async ()
   await page.getByRole('radio', { name: /Last set all out/ }).click()
   await expect(page.getByText('Progression: Last set all out')).toBeVisible()
   await open('/')
-  await page.getByRole('button', { name: /Pick another day/ }).click()
+  await page.getByRole('button', { name: 'Pick another day' }).click()
   await page.getByRole('button', { name: 'Start Push' }).click()
   // Last set 65 × 8 at the top of the range: one 5 kg barbell step, and no more on a step that size.
   await expect(page.getByText('Last set 65 kg × 8. Try 70 kg; last set as many as you can.')).toBeVisible()
@@ -416,7 +416,7 @@ test('weight every session: a completed session earns a step on every set', asyn
   await page.getByRole('radio', { name: /Weight every session/ }).click()
   await expect(page.getByText('Progression: Weight every session')).toBeVisible()
   await open('/')
-  await page.getByRole('button', { name: /Pick another day/ }).click()
+  await page.getByRole('button', { name: 'Pick another day' }).click()
   await page.getByRole('button', { name: 'Start Push' }).click()
   const bench = page.getByRole('region', { name: /Barbell Bench Press/ })
   // Last time 60, 60, 65, 65 with every set at or above 5 reps: the top weight plus a 5 kg barbell step.
@@ -452,7 +452,7 @@ test('weight every session: a completed session earns a step on every set', asyn
 test('the fifth session brings the feedback prompt, once', async () => {
   // Four finished sessions so far: the real one and three planted. The next one is the fifth.
   await open('/')
-  await page.getByRole('button', { name: /Pick another day/ }).click()
+  await page.getByRole('button', { name: 'Pick another day' }).click()
   await page.getByRole('button', { name: 'Start Push' }).click()
   await page
     .getByRole('region', { name: /Barbell Bench Press/ })
@@ -475,7 +475,7 @@ test('the fifth session brings the feedback prompt, once', async () => {
   expect(stored).toHaveLength(1)
   expect(stored[0]).toMatchObject({ mood: 3, trigger: 'summary', route: '/' })
   // Straight after, no second prompt.
-  await page.getByRole('button', { name: /Pick another day/ }).click()
+  await page.getByRole('button', { name: 'Pick another day' }).click()
   await page.getByRole('button', { name: 'Start Pull' }).click()
   await page
     .getByRole('region', { name: /Pull-ups/ })
@@ -514,7 +514,7 @@ test('an alternate swaps in on the plan and shows up on Today', async () => {
   await expect(page.getByText('Switched to Lat Pulldown')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Edit Lat Pulldown' })).toBeVisible()
   await open('/')
-  await page.getByRole('button', { name: /Pick another day/ }).click()
+  await page.getByRole('button', { name: 'Pick another day' }).click()
   await page.getByRole('button', { name: 'Start Pull' }).click()
   await expect(page.getByRole('button', { name: /^Lat Pulldown/ })).toBeVisible()
   await page.getByRole('button', { name: 'Session options' }).click()
@@ -546,7 +546,7 @@ test('under a year, the logger itself caps the sets', async () => {
   await open('/settings')
   await page.getByRole('radio', { name: /Under a year/ }).click()
   await open('/')
-  await page.getByRole('button', { name: /Pick another day/ }).click()
+  await page.getByRole('button', { name: 'Pick another day' }).click()
   await page.getByRole('button', { name: 'Start Push' }).click()
   await expect(page.getByText('0 of 15 sets done')).toBeVisible()
   await expect(

@@ -34,6 +34,7 @@ import {
   getTodayFn,
   pauseWorkoutFn,
   saveSetsFn,
+  skipDayFn,
   startWorkoutFn,
   swapSessionExerciseFn,
 } from '#/server/fns'
@@ -140,6 +141,17 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
     }
   }
 
+  /** Next up moves past the day shown without a session. Rolling order only: by weekday, the calendar decides. */
+  async function skip(dayId: string) {
+    try {
+      await skipDayFn({ data: { dayId } })
+      toast(`Skipped ${plan.days.find((d) => d.id === dayId)?.name ?? 'the day'}`)
+      onChanged()
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not skip it.'))
+    }
+  }
+
   // The weigh-in / tape reminder: the one app-specific slot the shared view does not carry.
   const reminder =
     nudge && nudge.kind !== waved ? (
@@ -182,6 +194,7 @@ function NextUp({ data, onChanged }: { data: TodayData; onChanged: () => void })
       onDismissAlert={dismissAlert}
       onStart={start}
       starting={starting}
+      onSkip={!byWeekday && plan.days.length > 1 ? skip : undefined}
       nudge={reminder}
     />
   )

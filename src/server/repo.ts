@@ -14,7 +14,7 @@ import {
   updateExerciseIn,
 } from '#/lib/logic/day-edit'
 import { type FeedbackTrigger, feedbackDue, type Mood } from '#/lib/logic/feedback'
-import { nextDayId } from '#/lib/logic/next-day'
+import { nextDayId, rollingCursor } from '#/lib/logic/next-day'
 import { type PastEntry, progressionOf, STALL_SESSIONS, stepsOf, suggestNext } from '#/lib/logic/progression'
 import { rampOffer } from '#/lib/logic/ramp'
 import { assignWeekdays, type Finished } from '#/lib/logic/schedule'
@@ -657,6 +657,61 @@ export async function discardWorkout(userId: string, workoutId: string): Promise
   await workouts.deleteOne({ _id: oid(workoutId), userId, status: 'in_progress' })
 }
 
+/** Today moves past `dayId` on the rolling schedule without a session: Next up becomes the day after it. */
+export async function skipDay(userId: string, dayId: string): Promise<void> {
+  const plan = await getPlan(userId)
+  if (!plan.days.some((d) => d.id === dayId)) throw new Error('Day not found')
+  await saveSettings(userId, { rolledPast: { dayId, at: new Date().toISOString() } })
+}
+
+/**
+ * A session for a plan day as one would start, dated `at`, not saved: its lifts with their targets and blank sets.
+ * The editor fills it in for a day trained without the app, and `logPastWorkout` stores the result.
+ */
+export async function draftWorkout(userId: string, dayId: string, at: string): Promise<Workout> {
+  if (new Date(at) > new Date()) throw new Error('That day has not happened yet.')
+  const [plan, settings] = await Promise.all([getPlan(userId), getSettings(userId)])
+  const day = plan.days.find((d) => d.id === dayId)
+  if (!day) throw new Error('Day not found')
+  if (day.exercises.length === 0) throw new Error(`${day.name} has no lifts yet. Add some on Plan first.`)
+  const entries = await sessionEntries(userId, plan, settings, day.id, day.exercises)
+  return {
+    id: `draft-${day.id}`,
+    dayId: day.id,
+    dayName: day.name,
+    dayType: day.type,
+    startedAt: at,
+    finishedAt: at,
+    status: 'done',
+    // The ramp's offer is for a session in progress; a session written after the fact takes no extra set.
+    entries: entries.map(({ rampOffer: _offer, ...e }) => e),
+  }
+}
+
+/**
+ * Stores a session logged after the fact: the draft's lifts with the sets as ticked, started and finished at `at`
+ * (so it has no minutes). Refused with nothing ticked, like a live finish.
+ */
+export async function logPastWorkout(
+  userId: string,
+  dayId: string,
+  at: string,
+  changes: { exerciseId: string; sets: LoggedSet[] }[],
+): Promise<Workout> {
+  const draft = await draftWorkout(userId, dayId, at)
+  const byId = new Map(changes.map((c) => [c.exerciseId, c.sets]))
+  const entries = draft.entries.map((e) => {
+    const sets = byId.get(e.exerciseId)
+    return sets ? { ...e, sets } : e
+  })
+  if (!entries.some((e) => e.sets.some((s) => s.done))) throw new Error('Nothing is ticked.')
+  const { workouts } = await cols()
+  const { id: _draftId, ...rest } = draft
+  const doc: WorkoutDoc = { _id: new ObjectId(), userId, ...rest, entries }
+  await workouts.insertOne(doc)
+  return toWorkout(doc)
+}
+
 /** Replaces the sets of the named exercises in a finished session. Unknown exercises are ignored. */
 export async function updateWorkoutSets(
   userId: string,
@@ -1001,7 +1056,10 @@ export async function getTodayData(userId: string): Promise<TodayData> {
     settings,
     plan,
     active,
-    nextDayId: nextDayId(plan.days, last?.dayId),
+    nextDayId: nextDayId(
+      plan.days,
+      rollingCursor(last?.finishedAt ? { dayId: last.dayId, at: last.finishedAt } : null, settings.rolledPast),
+    ),
     lastFinished: last?.finishedAt ? { dayName: last.dayName, finishedAt: last.finishedAt } : null,
     recent: recent.flatMap((w) => (w.finishedAt ? [{ dayId: w.dayId, finishedAt: w.finishedAt }] : [])),
     lastBodyweightAt: bodyweights.at(-1)?.date ?? null,

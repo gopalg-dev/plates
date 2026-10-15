@@ -17,7 +17,8 @@ Four screens, one job each:
   every lift's best set, new bests, the week's count. Lifts that stopped moving, a scale that is not moving and
   a finished week's report show up here as a card deck: one card at a time, swipe or arrow between them, each
   with its own action (see the report, go to Plan, see your weight) and a dismiss that is remembered. The
-  header's menu switches the day or discards the session.
+  header's menu switches the day or discards the session. "Skip or done" under Next up asks, then moves the
+  rolling order past the day shown with nothing logged.
   The title counts the minutes since the start, with a pause button whose time stays out of the session's minutes.
   Swap under a lift's sets puts another lift in its place for today (an alternate or any library lift, with its
   own targets and range; ticked sets stay), or on the plan too when ticked.
@@ -32,7 +33,8 @@ Four screens, one job each:
   pick a lift and see it week by week, the latest best set, a
   chart of each week's best set, a table reading "this week 62.5 kg × 7, last week 60 kg × 8,
   +2.5 kg", and recent bests. Sessions: the week's count, streak, hard sets, weight lifted and
-  minutes, a month calendar where tapping a day opens that session to fix a set or remove it,
+  minutes, a month calendar where tapping a day opens that session to fix a set or remove it (an earlier day
+  with no session offers the plan's days, to log a session done without the app, dated that day),
   a body map (front and back, each muscle grey, red or green by the week's hard sets against the
   plan, tap one for the number) over the hard sets per muscle, and the Excel / CSV export. Pull-ups and other bodyweight
   work count at your logged bodyweight in the weight lifted and in new bests. Body: bodyweight chart (tap
