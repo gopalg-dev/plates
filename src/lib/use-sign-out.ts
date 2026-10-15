@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { errorMessage } from '#/lib/format'
 import { authClient } from './auth-client'
+import { forgetShell } from './shell'
 
 /** Ends the session and returns to the sign-in page. */
 export function useSignOut() {
@@ -14,6 +15,7 @@ export function useSignOut() {
     setBusy(true)
     try {
       await authClient.signOut()
+      forgetShell()
       await router.invalidate()
       // The home page, which is How it works once signed out.
       await navigate({ to: '/' })

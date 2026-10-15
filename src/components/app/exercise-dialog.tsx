@@ -1,6 +1,6 @@
 import { useLocation, useNavigate, useSearch } from '@tanstack/react-router'
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react'
-import { findLibrary, type LibraryExercise } from '#/lib/library'
+import { findLibrary, type LibraryRow } from '#/lib/library'
 import { useContent } from '#/lib/use-content'
 import { LibraryDetail } from './library-list'
 
@@ -13,17 +13,17 @@ declare module '@tanstack/react-router' {
 
 /** The list the view steps through with Previous and Next. A page publishes its own while it is open. */
 const ListContext = createContext<{
-  among: LibraryExercise[] | null
-  setAmong: (list: LibraryExercise[] | null) => void
+  among: LibraryRow[] | null
+  setAmong: (list: LibraryRow[] | null) => void
 }>({ among: null, setAmong: () => {} })
 
 export function ExerciseListProvider({ children }: { children: ReactNode }) {
-  const [among, setAmong] = useState<LibraryExercise[] | null>(null)
+  const [among, setAmong] = useState<LibraryRow[] | null>(null)
   return <ListContext.Provider value={{ among, setAmong }}>{children}</ListContext.Provider>
 }
 
 /** For a page that lists exercises: the view then has Previous and Next through `list`, until the page leaves. */
-export function useExerciseList(list: LibraryExercise[]) {
+export function useExerciseList(list: LibraryRow[]) {
   const { setAmong } = useContext(ListContext)
   useEffect(() => {
     setAmong(list)
@@ -51,7 +51,7 @@ export function ExerciseDialog() {
     else void navigate({ to: '.', search: (prev) => ({ ...prev, exercise: undefined }), replace: true })
   }
   // Previous and Next swap the id in place, so stepping through a list does not grow the history.
-  const step = (next: LibraryExercise) =>
+  const step = (next: LibraryRow) =>
     void navigate({ to: '.', search: (prev) => ({ ...prev, exercise: next.id }), replace: true })
   return <LibraryDetail exercise={ex ?? null} among={among ?? undefined} onStep={step} onClose={close} />
 }

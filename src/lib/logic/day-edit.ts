@@ -1,4 +1,4 @@
-import { findLibraryByName, type LibraryExercise, nameKey } from '../library'
+import { findLibraryByName, type LibraryRow, nameKey } from '../library'
 import { slug } from '../seed-plan'
 import { type Exercise, MAX_EXERCISES_PER_DAY, type PlanDay, type WorkoutEntry } from '../types'
 import { guessLoad } from './plan-sheet'
@@ -72,7 +72,7 @@ export function removeExerciseFrom(day: PlanDay, exerciseId: string): PlanDay {
 }
 
 /** Replaces an exercise with one of its alternates. The old one becomes an alternate, so you can swap back. */
-export function swapExerciseIn(day: PlanDay, exerciseId: string, newName: string, library: LibraryExercise[]): PlanDay {
+export function swapExerciseIn(day: PlanDay, exerciseId: string, newName: string, library: LibraryRow[]): PlanDay {
   const next = structuredClone(day)
   const at = next.exercises.findIndex((e) => e.id === exerciseId)
   if (at < 0) throw new Error('Exercise not found')
@@ -91,7 +91,7 @@ export function swapExerciseIn(day: PlanDay, exerciseId: string, newName: string
  * muscle, and its usual sets and range (a hack squat is not done for a squat's 5-8). Unknown names keep the line's
  * numbers and have their load type guessed. `taken` holds the ids the new one must not clash with.
  */
-export function swapLine(line: Exercise, newName: string, library: LibraryExercise[], taken: string[]): Exercise {
+export function swapLine(line: Exercise, newName: string, library: LibraryRow[], taken: string[]): Exercise {
   const ex = structuredClone(line)
   const name = newName.trim()
   if (!name) throw new Error('Name is empty')

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LIBRARY } from '#/lib/library'
+import { LIBRARY } from '#/lib/library-data'
 import { lineOf, removeExerciseFrom, swapExerciseIn, swapLine } from '#/lib/logic/day-edit'
 import type { Exercise, PlanDay } from '#/lib/types'
 

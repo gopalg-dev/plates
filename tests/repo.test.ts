@@ -577,8 +577,7 @@ suite('workouts', () => {
     await repo.finishWorkout(U, w.id)
     await repo.deleteWorkout(U, w.id)
     expect(await repo.listWorkouts(U)).toHaveLength(0)
-    const history = await repo.getHistoryData(U)
-    expect(history.workouts).toEqual([])
+    expect((await repo.getTodayData(U)).lastFinished).toBeNull()
   })
 
   it('skips a day on the rolling order, until a later session is finished', async () => {

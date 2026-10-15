@@ -58,17 +58,34 @@ const DEFAULT_SETTINGS: Settings = { units: 'kg', trainingAge: 'over1', setupDon
 
 const indexed = new WeakSet<Db>()
 
-/** Indexes for the per-user queries. Created once per process, in the background. */
+/**
+ * One index per shape of query the server makes, so no read walks a user's whole log. Created once per process, in
+ * the background; creating an index that exists is a no-op. The last group is Better Auth's: it looks a session up
+ * by token on every signed-in request and does not index its collections itself.
+ */
 function ensureIndexes(db: Db) {
   if (indexed.has(db)) return
   indexed.add(db)
   void Promise.all([
+    // A plan per split; every plan of a user.
     db.collection('plans').createIndexes([{ key: { userId: 1, split: 1 }, unique: true }]),
-    db
-      .collection('workouts')
-      .createIndexes([{ key: { userId: 1, status: 1, finishedAt: -1 } }, { key: { userId: 1, startedAt: -1 } }]),
+    db.collection('workouts').createIndexes([
+      // The finished log newest first, the last finished session, the session count.
+      { key: { userId: 1, status: 1, finishedAt: -1 } },
+      // A lift's recent sessions on its own plan day first.
+      { key: { userId: 1, status: 1, dayId: 1, finishedAt: -1 } },
+      // The session in progress.
+      { key: { userId: 1, status: 1, startedAt: -1 } },
+    ]),
+    // The log newest first, and the one entry of a day.
     db.collection('bodyweights').createIndexes([{ key: { userId: 1, date: -1 } }, { key: { userId: 1, day: 1 } }]),
     db.collection('measurements').createIndexes([{ key: { userId: 1, date: -1 } }, { key: { userId: 1, day: 1 } }]),
+    // What an account sent, oldest first, for the export.
+    db.collection('feedback').createIndexes([{ key: { userId: 1, at: 1 } }]),
+    db.collection('session').createIndexes([{ key: { token: 1 } }, { key: { userId: 1 } }]),
+    db.collection('account').createIndexes([{ key: { userId: 1 } }, { key: { providerId: 1, accountId: 1 } }]),
+    db.collection('user').createIndexes([{ key: { email: 1 } }, { key: { username: 1 } }]),
+    db.collection('verification').createIndexes([{ key: { identifier: 1 } }]),
   ]).catch((err: unknown) => {
     indexed.delete(db)
     console.warn('Could not create indexes', err)
@@ -224,11 +241,15 @@ export async function applySplit(userId: string, split: SplitId, { empty = false
   return existing ? toPlan(existing) : savePlanFor(userId, split, template)
 }
 
-/** Every split the user has a plan for, with its day count. */
+/** Every split the user has a plan for, with its day count. The days are counted in the database, not fetched. */
 export async function planSlots(userId: string): Promise<{ split: PlanSource; days: number }[]> {
   const { plans } = await cols()
-  const docs = await plans.find({ userId }, { projection: { split: 1, days: 1 } }).toArray()
-  return docs.map((d) => ({ split: d.split, days: d.days.length }))
+  return plans
+    .aggregate<{ split: PlanSource; days: number }>([
+      { $match: { userId } },
+      { $project: { _id: 0, split: 1, days: { $size: '$days' } } },
+    ])
+    .toArray()
 }
 
 /** Rolling or by weekday. Going by weekday gives every day without one a sensible weekday. */
@@ -367,10 +388,25 @@ export async function getActiveWorkout(userId: string): Promise<Workout | null> 
   return doc ? toWorkout(doc) : null
 }
 
-export async function lastFinishedWorkout(userId: string): Promise<Workout | null> {
+/** The plan day of the session in progress, if any: what Plan needs to ask whether an edit should follow today. */
+export async function activeDayId(userId: string): Promise<string | null> {
   const { workouts } = await cols()
-  const doc = await workouts.findOne({ userId, status: 'done' }, { sort: { finishedAt: -1 } })
-  return doc ? toWorkout(doc) : null
+  const doc = await workouts.findOne<Pick<WorkoutDoc, 'dayId'>>(
+    { userId, status: 'in_progress' },
+    { sort: { startedAt: -1 }, projection: { _id: 0, dayId: 1 } },
+  )
+  return doc?.dayId ?? null
+}
+
+/** The last finished session as the rolling order and Today's footer read it: its day and when it ended. */
+export async function lastFinishedMark(
+  userId: string,
+): Promise<Pick<Workout, 'dayId' | 'dayName' | 'finishedAt'> | null> {
+  const { workouts } = await cols()
+  return workouts.findOne<Pick<WorkoutDoc, 'dayId' | 'dayName' | 'finishedAt'>>(
+    { userId, status: 'done' },
+    { sort: { finishedAt: -1 }, projection: { _id: 0, dayId: 1, dayName: 1, finishedAt: 1 } },
+  )
 }
 
 /**
@@ -386,22 +422,18 @@ export async function recentEntries(
 ): Promise<PastEntry[]> {
   const { workouts } = await cols()
   const match = { userId, status: 'done' as const, entries: { $elemMatch: { exerciseId, 'sets.done': true } } }
-  let docs = await workouts.find({ ...match, dayId }, { sort: { finishedAt: -1 }, limit }).toArray()
-  if (docs.length === 0) docs = await workouts.find(match, { sort: { finishedAt: -1 }, limit }).toArray()
+  // Only the lift's own entry comes back from each session, not the whole session.
+  const options = {
+    sort: { finishedAt: -1 as const },
+    limit,
+    projection: { _id: 0, effort: 1, entries: { $elemMatch: { exerciseId } } },
+  }
+  let docs = await workouts.find<Pick<WorkoutDoc, 'effort' | 'entries'>>({ ...match, dayId }, options).toArray()
+  if (docs.length === 0) docs = await workouts.find<Pick<WorkoutDoc, 'effort' | 'entries'>>(match, options).toArray()
   return docs.flatMap((doc) => {
-    const entry = toWorkout(doc).entries.find((e) => e.exerciseId === exerciseId)
-    return entry ? [{ entry, effort: doc.effort }] : []
+    const entry = doc.entries[0]
+    return entry ? [{ entry: { ...entry, sets: entry.sets.map(cleanSet) }, effort: doc.effort }] : []
   })
-}
-
-/** The last finished session of an exercise, on any day. */
-export async function lastFinishedEntry(userId: string, exerciseId: string): Promise<WorkoutEntry | undefined> {
-  const { workouts } = await cols()
-  const doc = await workouts.findOne(
-    { userId, status: 'done', entries: { $elemMatch: { exerciseId, 'sets.done': true } } },
-    { sort: { finishedAt: -1 } },
-  )
-  return doc?.entries.find((e) => e.exerciseId === exerciseId)
 }
 
 /**
@@ -773,7 +805,7 @@ function definedOnly<T extends object>(obj: T): Partial<T> {
 /** Settings carry the most recent weigh-in, so a backfilled older entry never overwrites it. */
 async function syncSettingsWeight(userId: string): Promise<void> {
   const { bodyweights } = await cols()
-  const latest = await bodyweights.findOne({ userId }, { sort: { date: -1 } })
+  const latest = await bodyweights.findOne({ userId }, { sort: { date: -1 }, projection: { _id: 0, weight: 1 } })
   if (latest) await saveSettings(userId, { bodyweight: latest.weight })
 }
 
@@ -789,7 +821,7 @@ export async function logBodyweight(
 ): Promise<BodyweightLog & { replaced: boolean }> {
   const { bodyweights } = await cols()
   const key = day ?? localDay(date)
-  const existing = await bodyweights.findOne({ userId, day: key })
+  const existing = await bodyweights.findOne({ userId, day: key }, { projection: { _id: 1 } })
   if (existing) {
     await bodyweights.updateOne({ _id: existing._id }, { $set: { weight, date: date.toISOString() } })
     await syncSettingsWeight(userId)
@@ -815,8 +847,12 @@ export async function deleteBodyweight(userId: string, id: string): Promise<void
 
 export async function listBodyweights(userId: string, limit = 120): Promise<BodyweightLog[]> {
   const { bodyweights } = await cols()
-  const docs = await bodyweights.find({ userId }).sort({ date: -1 }).limit(limit).toArray()
-  return docs.map(({ _id, userId: _owner, ...rest }) => ({ id: _id.toHexString(), ...rest })).reverse()
+  const docs = await bodyweights
+    .find<Omit<BodyweightDoc, 'userId'>>({ userId }, { projection: { userId: 0 } })
+    .sort({ date: -1 })
+    .limit(limit)
+    .toArray()
+  return docs.map(({ _id, ...rest }) => ({ id: _id.toHexString(), ...rest })).reverse()
 }
 
 /** One tape entry per calendar day. Logging again the same day merges into it. */
@@ -854,8 +890,19 @@ export async function deleteMeasurement(userId: string, id: string): Promise<voi
 
 export async function listMeasurements(userId: string, limit = 24): Promise<MeasurementLog[]> {
   const { measurements } = await cols()
-  const docs = await measurements.find({ userId }).sort({ date: -1 }).limit(limit).toArray()
-  return docs.map(({ _id, userId: _owner, ...rest }) => ({ id: _id.toHexString(), ...rest })).reverse()
+  const docs = await measurements
+    .find<Omit<MeasurementDoc, 'userId'>>({ userId }, { projection: { userId: 0 } })
+    .sort({ date: -1 })
+    .limit(limit)
+    .toArray()
+  return docs.map(({ _id, ...rest }) => ({ id: _id.toHexString(), ...rest })).reverse()
+}
+
+/** When the tape was last used, for the reminder and Today; nothing else of the entry. */
+async function lastMeasurementAt(userId: string): Promise<string | null> {
+  const { measurements } = await cols()
+  const last = await measurements.findOne({ userId }, { sort: { date: -1 }, projection: { _id: 0, date: 1 } })
+  return last?.date ?? null
 }
 
 /** Wipes this user's plans, settings and every log. The account itself stays; setup runs again. */
@@ -893,13 +940,12 @@ export async function addFeedback(userId: string, input: FeedbackInput): Promise
  * before the thing is logged (`snoozeDays` in `lib/logic/nudges.ts`). A log in between starts the count over.
  */
 export async function dismissNudge(userId: string, kind: NudgeKind): Promise<void> {
-  const { measurements } = await cols()
   const [settings, bodyweights, lastMeasure] = await Promise.all([
     getSettings(userId),
     listBodyweights(userId, 1),
-    measurements.findOne({ userId }, { sort: { date: -1 } }),
+    lastMeasurementAt(userId),
   ])
-  const lastLog = kind === 'weight' ? (bodyweights.at(-1)?.date ?? null) : (lastMeasure?.date ?? null)
+  const lastLog = kind === 'weight' ? (bodyweights.at(-1)?.date ?? null) : lastMeasure
   const prev = settings.nudges?.[kind]
   const times = prev && (!lastLog || prev.at > lastLog) ? prev.times + 1 : 1
   await saveSettings(userId, { nudges: { ...settings.nudges, [kind]: { at: new Date().toISOString(), times } } })
@@ -950,7 +996,7 @@ function userIdsOf(userId: string): (string | ObjectId)[] {
 export async function deleteAccount(userId: string): Promise<void> {
   const { db, settings, plan, plans, workouts, bodyweights, measurements } = await cols()
   const ids = userIdsOf(userId)
-  const user = await db.collection('user').findOne({ _id: { $in: ids } as never })
+  const user = await db.collection('user').findOne({ _id: { $in: ids } as never }, { projection: { email: 1 } })
   const email = typeof user?.email === 'string' ? user.email.toLowerCase() : ''
   const [sessions, joined] = await Promise.all([
     workouts.countDocuments({ userId, status: 'done' }),
@@ -1032,16 +1078,15 @@ export interface TodayData {
 }
 
 export async function getTodayData(userId: string): Promise<TodayData> {
-  const { measurements } = await cols()
   const now = new Date()
-  const [settings, plan, active, last, recent, bodyweights, lastMeasure] = await Promise.all([
+  const [settings, plan, active, last, recent, bodyweights, lastMeasurementDate] = await Promise.all([
     getSettings(userId),
     getPlan(userId),
     getActiveWorkout(userId),
-    lastFinishedWorkout(userId),
+    lastFinishedMark(userId),
     listWorkouts(userId, { sinceDays: 365 }),
     listBodyweights(userId, 60),
-    measurements.findOne({ userId }, { sort: { date: -1 } }),
+    lastMeasurementAt(userId),
   ])
   const alerts = shownAlerts(
     [
@@ -1063,19 +1108,9 @@ export async function getTodayData(userId: string): Promise<TodayData> {
     lastFinished: last?.finishedAt ? { dayName: last.dayName, finishedAt: last.finishedAt } : null,
     recent: recent.flatMap((w) => (w.finishedAt ? [{ dayId: w.dayId, finishedAt: w.finishedAt }] : [])),
     lastBodyweightAt: bodyweights.at(-1)?.date ?? null,
-    lastMeasurementAt: lastMeasure?.date ?? null,
+    lastMeasurementAt: lastMeasurementDate,
     alerts,
   }
-}
-
-export interface HistoryData {
-  settings: Settings
-  workouts: Workout[]
-}
-
-export async function getHistoryData(userId: string): Promise<HistoryData> {
-  const [settings, workouts] = await Promise.all([getSettings(userId), listWorkouts(userId, { limit: 100 })])
-  return { settings, workouts }
 }
 
 /** One piece of feedback as the account sent it, without the ids it is stored under. */
@@ -1104,7 +1139,9 @@ export interface ExportData {
 export async function getExportData(userId: string): Promise<ExportData> {
   const db = await getDb()
   const [user, settings, plan, workouts, bodyweights, measurements, feedback] = await Promise.all([
-    db.collection('user').findOne({ _id: { $in: userIdsOf(userId) } as never }),
+    db
+      .collection('user')
+      .findOne({ _id: { $in: userIdsOf(userId) } as never }, { projection: { _id: 0, username: 1, email: 1 } }),
     getSettings(userId),
     getPlan(userId),
     listWorkouts(userId, { limit: 5000 }),

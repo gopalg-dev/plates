@@ -14,12 +14,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '#/components/ui/dialog'
+import { Skeleton } from '#/components/ui/skeleton'
 import { errorMessage, longDate, shortDate } from '#/lib/format'
 import { EFFORT_LABEL, type Effort } from '#/lib/logic/effort'
 import type { Steps } from '#/lib/logic/progression'
 import { activeMinutes } from '#/lib/logic/session-time'
 import { effectiveSets } from '#/lib/logic/stats'
-import type { LoggedSet, Units, Workout, WorkoutEntry } from '#/lib/types'
+import type { DayType, LoggedSet, Units, Workout, WorkoutEntry } from '#/lib/types'
 import { deleteWorkoutFn, updateWorkoutFn } from '#/server/fns'
 
 function minutesOf(w: Workout): number | null {
@@ -55,17 +56,43 @@ interface EditorProps {
    * a stored session, there is nothing to delete, and Tick all fills every set from its target.
    */
   log?: { onSave: (changes: SetChange[]) => Promise<void> }
+  /** A draft on its way from the server: the panel opens on the day's name and date, with the rows' bones. */
+  pending?: { dayName: string; dayType: DayType; at: string } | null
+}
+
+/** The bones of a session's rows and footer while a draft is fetched. */
+function PendingBody() {
+  return (
+    <div aria-busy="true" aria-live="polite">
+      <div className="divide-y border-t px-4">
+        {Array.from({ length: 4 }, (_, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: identical placeholders with no identity of their own
+          <div key={i} className="flex items-center gap-3 py-3">
+            <Skeleton className="size-10 shrink-0 rounded-md" />
+            <Skeleton className="h-5 w-2/5 max-w-44" />
+            <Skeleton className="ml-auto h-4 w-16" />
+            <Skeleton className="size-5 rounded" />
+          </div>
+        ))}
+      </div>
+      <PanelFooter>
+        <Skeleton className="h-9 w-24 rounded-md" />
+        <Skeleton className="ml-auto h-9 w-28 rounded-md" />
+      </PanelFooter>
+    </div>
+  )
 }
 
 /**
  * A finished session: fix a set, add or drop one, or remove the session. Opened from the Stats calendar. With `log`,
  * a session being written after the fact (see `PastSessionEditor`).
  */
-export function SessionEditor({ workout, units, steps, onClose, onSaved, log }: EditorProps) {
+export function SessionEditor({ workout, units, steps, onClose, onSaved, log, pending }: EditorProps) {
   // Keep the last session while the panel animates closed, so the title does not blink away.
   const shown = useRef(workout)
   if (workout) shown.current = workout
-  const current = workout ?? shown.current
+  // What the header names: the session, the draft on its way, or the last session while the panel closes.
+  const head = workout ?? (pending ? { ...pending, startedAt: pending.at, note: undefined } : shown.current)
   // The edits live here, above the panel: the panel swaps between a drawer and a dialog when the
   // viewport crosses 768px, which remounts its content, and a typed change must survive that.
   const [forId, setForId] = useState<string | null>(null)
@@ -78,27 +105,28 @@ export function SessionEditor({ workout, units, steps, onClose, onSaved, log }: 
   }
   return (
     <EditorPanel
-      open={workout !== null}
+      open={workout !== null || Boolean(pending)}
       onClose={onClose}
       width="lg"
       title={
-        current ? (
+        head ? (
           <>
-            <DayIcon type={current.dayType} className="size-6 rounded-md" />
-            {current.dayName}
+            <DayIcon type={head.dayType} className="size-6 rounded-md" />
+            {head.dayName}
           </>
         ) : (
           ''
         )
       }
       description={
-        current
-          ? log
-            ? longDate(current.startedAt)
-            : `${sessionSummary(current)}${current.note ? `. ${current.note}` : ''}`
+        head
+          ? log || !('entries' in head)
+            ? longDate(head.startedAt)
+            : `${sessionSummary(head)}${head.note ? `. ${head.note}` : ''}`
           : ''
       }
     >
+      {!workout && pending && <PendingBody />}
       {workout && (
         <EditorBody
           key={workout.id}

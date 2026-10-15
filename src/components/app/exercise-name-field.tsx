@@ -2,7 +2,7 @@ import { useCommandState } from 'cmdk'
 import { type ComponentProps, useEffect, useMemo, useRef, useState } from 'react'
 import { Command, CommandGroup, CommandItem, CommandList } from '#/components/ui/command'
 import { Input } from '#/components/ui/input'
-import { EQUIPMENT_LABEL, imageUrl, type LibraryExercise, searchLibrary } from '#/lib/library'
+import { EQUIPMENT_LABEL, imageUrl, type LibraryRow, searchLibrary } from '#/lib/library'
 import { MUSCLE_LABEL } from '#/lib/logic/stats'
 import { useContent } from '#/lib/use-content'
 import { cn } from '#/lib/utils'
@@ -14,7 +14,7 @@ interface Props extends Omit<ComponentProps<typeof Input>, 'value' | 'onChange'>
   value: string
   onChange: (name: string) => void
   /** A suggestion was taken: the caller fills in what the library knows about it. */
-  onPick: (exercise: LibraryExercise) => void
+  onPick: (exercise: LibraryRow) => void
 }
 
 /**
@@ -37,7 +37,7 @@ export function ExerciseNameField({ value, onChange, onPick, ...input }: Props) 
   const query = value.trim().toLowerCase()
   const matches = useMemo(() => {
     if (query.length < 2) return []
-    const rank = (ex: LibraryExercise) => {
+    const rank = (ex: LibraryRow) => {
       const name = ex.name.toLowerCase()
       return name.startsWith(query) ? 0 : name.includes(query) ? 1 : 2
     }
@@ -55,7 +55,7 @@ export function ExerciseNameField({ value, onChange, onPick, ...input }: Props) 
     arrowed.current = false
   }
 
-  function take(ex: LibraryExercise) {
+  function take(ex: LibraryRow) {
     onChange(ex.name)
     onPick(ex)
     forget()

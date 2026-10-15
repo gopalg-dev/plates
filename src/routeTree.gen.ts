@@ -17,6 +17,7 @@ import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as SetupRouteImport } from './routes/setup'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SwDotjsRouteImport } from './routes/sw[.]js'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppLibraryRouteImport } from './routes/_app/library'
 import { Route as AppPlanRouteImport } from './routes/_app/plan'
@@ -64,6 +65,11 @@ const SignupRoute = SignupRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SwDotjsRoute = SwDotjsRouteImport.update({
+  id: '/sw.js',
+  path: '/sw.js',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sw.js': typeof SwDotjsRoute
   '/library': typeof AppLibraryRoute
   '/plan': typeof AppPlanRoute
   '/report': typeof AppReportRoute
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sw.js': typeof SwDotjsRoute
   '/library': typeof AppLibraryRoute
   '/plan': typeof AppPlanRoute
   '/report': typeof AppReportRoute
@@ -158,6 +166,7 @@ export interface FileRoutesById {
   '/setup': typeof SetupRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/sw.js': typeof SwDotjsRoute
   '/_app/library': typeof AppLibraryRoute
   '/_app/plan': typeof AppPlanRoute
   '/_app/report': typeof AppReportRoute
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/signup'
     | '/sitemap.xml'
+    | '/sw.js'
     | '/library'
     | '/plan'
     | '/report'
@@ -196,6 +206,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/signup'
     | '/sitemap.xml'
+    | '/sw.js'
     | '/library'
     | '/plan'
     | '/report'
@@ -215,6 +226,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/signup'
     | '/sitemap.xml'
+    | '/sw.js'
     | '/_app/library'
     | '/_app/plan'
     | '/_app/report'
@@ -235,6 +247,7 @@ export interface RootRouteChildren {
   SetupRoute: typeof SetupRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SwDotjsRoute: typeof SwDotjsRoute
   DemoScreenRoute: typeof DemoScreenRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -295,6 +308,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sw.js': {
+      id: '/sw.js'
+      path: '/sw.js'
+      fullPath: '/sw.js'
+      preLoaderRoute: typeof SwDotjsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/': {
@@ -394,6 +414,7 @@ const rootRouteChildren: RootRouteChildren = {
   SetupRoute: SetupRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SwDotjsRoute: SwDotjsRoute,
   DemoScreenRoute: DemoScreenRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

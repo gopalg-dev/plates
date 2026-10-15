@@ -2746,5 +2746,363 @@
       "Repeat the movement for the prescribed amount of repetitions."
     ],
     "images": ["Ab_Crunch_Machine/0.jpg", "Ab_Crunch_Machine/1.jpg"]
+  },
+  {
+    "id": "alternating-kettlebell-press",
+    "name": "Alternating Kettlebell Press",
+    "muscle": "shoulders",
+    "muscles": ["shoulders", "triceps"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
+    "level": "intermediate",
+    "cues": [
+      "Clean two kettlebells to your shoulders. Clean the kettlebells to your shoulders by extending through the legs and hips as you pull the kettlebells towards your shoulders. Rotate your wrists as you do so.",
+      "Press one directly overhead by extending through the elbow, turning it so the palm faces forward while holding the other kettlebell stationary .",
+      "Lower the pressed kettlebell to the starting position and immediately press with your other arm."
+    ],
+    "images": ["Alternating_Kettlebell_Press/0.jpg", "Alternating_Kettlebell_Press/1.jpg"]
+  },
+  {
+    "id": "kettlebell-arnold-press",
+    "name": "Kettlebell Arnold Press",
+    "muscle": "shoulders",
+    "muscles": ["shoulders", "triceps"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
+    "level": "intermediate",
+    "cues": [
+      "Clean a kettlebell to your shoulder. Clean the kettlebell to your shoulder by extending through the legs and hips as you raise the kettlebell towards your shoulder. The palm should be facing inward.",
+      "Looking straight ahead, press the kettlebell out and overhead, rotating your wrist so that your palm faces forward at the top of the motion.",
+      "Return the kettlebell to the starting position, with the palm facing in."
+    ],
+    "images": ["Kettlebell_Arnold_Press/0.jpg", "Kettlebell_Arnold_Press/1.jpg"]
+  },
+  {
+    "id": "kettlebell-seated-press",
+    "name": "Kettlebell Seated Press",
+    "muscle": "shoulders",
+    "muscles": ["shoulders", "triceps"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
+    "level": "intermediate",
+    "cues": [
+      "Sit on the floor and spread your legs out comfortably.",
+      "Clean one kettlebell to your shoulder.",
+      "Press the kettlebell up and out until it is locked out overhead. Return to the starting position."
+    ],
+    "images": ["Kettlebell_Seated_Press/0.jpg", "Kettlebell_Seated_Press/1.jpg"]
+  },
+  {
+    "id": "kettlebell-seesaw-press",
+    "name": "Kettlebell Seesaw Press",
+    "muscle": "shoulders",
+    "muscles": ["shoulders", "triceps"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
+    "level": "intermediate",
+    "cues": [
+      "Clean two kettlebells two your shoulders.",
+      "Press one kettlebell.",
+      "Lower the kettlebell and immediately press the other kettlebell. Make sure to do the same amount of reps on both sides."
+    ],
+    "images": ["Kettlebell_Seesaw_Press/0.jpg", "Kettlebell_Seesaw_Press/1.jpg"]
+  },
+  {
+    "id": "two-arm-kettlebell-military-press",
+    "name": "Two-Arm Kettlebell Military Press",
+    "muscle": "shoulders",
+    "muscles": ["shoulders", "triceps"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
+    "level": "intermediate",
+    "cues": [
+      "Clean two kettlebells to your shoulders. Clean the kettlebells to your shoulders by extending through the legs and hips as you swing the kettlebells towards your shoulders. Rotate your wrists as you do so, so that the palms face forward.",
+      "Press the kettlebells up and out. As the kettlebells pass your head, lean into the weights so that the kettlebells are racked behind your head. Make sure to contract your lats, butt, and stomach for added stability."
+    ],
+    "images": ["Two-Arm_Kettlebell_Military_Press/0.jpg", "Two-Arm_Kettlebell_Military_Press/1.jpg"]
+  },
+  {
+    "id": "double-kettlebell-push-press",
+    "name": "Double Kettlebell Push Press",
+    "muscle": "shoulders",
+    "muscles": ["shoulders", "calves", "quadriceps", "triceps"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 6,
+    "repMax": 10,
+    "level": "intermediate",
+    "cues": [
+      "Clean two kettlebells to your shoulders.",
+      "Squat down a few inches and reverse the motion rapidly. Use the momentum from the legs to drive the kettlebells overhead.",
+      "Once the kettlebells are locked out, lower the kettlebells to your shoulders and repeat."
+    ],
+    "images": ["Double_Kettlebell_Push_Press/0.jpg", "Double_Kettlebell_Push_Press/1.jpg"]
+  },
+  {
+    "id": "one-arm-kettlebell-push-press",
+    "name": "One-Arm Kettlebell Push Press",
+    "muscle": "shoulders",
+    "muscles": ["shoulders", "calves", "quadriceps", "triceps"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 6,
+    "repMax": 10,
+    "level": "intermediate",
+    "cues": [
+      "Hold a kettlebell by the handle. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulder. Rotate your wrist as you do so, so that the palm faces forward. This will be your starting position.",
+      "Dip your body by bending the knees, keeping your torso upright.",
+      "Immediately reverse direction, driving through the heels, in essence jumping to create momentum. As you do so, press the kettlebell overhead to lockout by extending the arms, using your body's momentum to move the weight. Lower the weight to perform the next repetition."
+    ],
+    "images": ["One-Arm_Kettlebell_Push_Press/0.jpg", "One-Arm_Kettlebell_Push_Press/1.jpg"]
+  },
+  {
+    "id": "kettlebell-thruster",
+    "name": "Kettlebell Thruster",
+    "muscle": "shoulders",
+    "muscles": ["shoulders", "quadriceps", "triceps"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
+    "level": "intermediate",
+    "cues": [
+      "Clean two kettlebells to your shoulders. Clean the kettlebells to your shoulders by extending through the legs and hips as you pull the kettlebells towards your shoulders. Rotate your wrists as you do so. This will be your starting position.",
+      "Begin to squat by flexing your hips and knees, lowering your hips between your legs. Maintain an upright, straight back as you descend as low as you can.",
+      "At the bottom, reverse direction and squat by extending your knees and hips, driving through your heels. As you do so, press both kettlebells overhead by extending your arms straight up, using the momentum from the squat to help drive the weights upward.",
+      "As you begin the next repetition, return the weights to the shoulders."
+    ],
+    "images": ["Kettlebell_Thruster/0.jpg", "Kettlebell_Thruster/1.jpg"]
+  },
+  {
+    "id": "kettlebell-sumo-high-pull",
+    "name": "Kettlebell Sumo High Pull",
+    "muscle": "shoulders",
+    "muscles": ["traps", "adductors", "glutes", "hamstrings", "quadriceps", "shoulders"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 12,
+    "level": "intermediate",
+    "cues": [
+      "Place a kettlebell on the ground between your feet. Position your feet in a wide stance, and grasp the kettlebell with two hands. Set your hips back as far as possible, with your knees bent. Keep your chest and head up. This will be your starting position.",
+      "Begin by extending the hips and knees, simultaneously pulling the kettlebell to your shoulders, raising your elbows as you do so. Reverse the motion to return to the starting position."
+    ],
+    "images": ["Kettlebell_Sumo_High_Pull/0.jpg", "Kettlebell_Sumo_High_Pull/1.jpg"]
+  },
+  {
+    "id": "alternating-kettlebell-row",
+    "name": "Alternating Kettlebell Row",
+    "muscle": "back",
+    "muscles": ["middle back", "biceps", "lats"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
+    "level": "intermediate",
+    "cues": [
+      "Place two kettlebells in front of your feet. Bend your knees slightly and push your butt out as much as possible. As you bend over to get into the starting position grab both kettlebells by the handles.",
+      "Pull one kettlebell off of the floor while holding on to the other kettlebell. Retract the shoulder blade of the working side, as you flex the elbow, drawing the kettlebell towards your stomach or rib cage.",
+      "Lower the kettlebell in the working arm and repeat with your other arm."
+    ],
+    "images": ["Alternating_Kettlebell_Row/0.jpg", "Alternating_Kettlebell_Row/1.jpg"]
+  },
+  {
+    "id": "one-arm-kettlebell-row",
+    "name": "One-Arm Kettlebell Row",
+    "muscle": "back",
+    "muscles": ["middle back", "biceps", "lats"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
+    "level": "intermediate",
+    "cues": [
+      "Place a kettlebell in front of your feet. Bend your knees slightly and then push your butt out as much as possible as you bend over to get in the starting position. Grab the kettlebell and pull it to your stomach, retracting your shoulder blade and flexing the elbow. Keep your back straight. Lower and repeat."
+    ],
+    "images": ["One-Arm_Kettlebell_Row/0.jpg", "One-Arm_Kettlebell_Row/1.jpg"]
+  },
+  {
+    "id": "two-arm-kettlebell-row",
+    "name": "Two-Arm Kettlebell Row",
+    "muscle": "back",
+    "muscles": ["middle back", "biceps", "lats"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
+    "level": "intermediate",
+    "cues": [
+      "Place two kettlebells in front of your feet. Bend your knees slightly and then push your butt out as much as possible as you bend over to get in the starting position.",
+      "Grab both kettlebells and pull them to your stomach, retracting your shoulder blades and flexing the elbows. Keep your back straight. Lower and repeat."
+    ],
+    "images": ["Two-Arm_Kettlebell_Row/0.jpg", "Two-Arm_Kettlebell_Row/1.jpg"]
+  },
+  {
+    "id": "alternating-renegade-row",
+    "name": "Alternating Renegade Row",
+    "muscle": "back",
+    "muscles": ["middle back", "abdominals", "biceps", "chest", "lats", "triceps"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 6,
+    "repMax": 10,
+    "level": "expert",
+    "cues": [
+      "Place two kettlebells on the floor about shoulder width apart. Position yourself on your toes and your hands as though you were doing a pushup, with the body straight and extended. Use the handles of the kettlebells to support your upper body. You may need to position your feet wide for support.",
+      "Push one kettlebell into the floor and row the other kettlebell, retracting the shoulder blade of the working side as you flex the elbow, pulling it to your side.",
+      "Then lower the kettlebell to the floor and begin the kettlebell in the opposite hand. Repeat for several reps."
+    ],
+    "images": ["Alternating_Renegade_Row/0.jpg", "Alternating_Renegade_Row/1.jpg"]
+  },
+  {
+    "id": "alternating-kettlebell-floor-press",
+    "name": "Alternating Kettlebell Floor Press",
+    "muscle": "chest",
+    "muscles": ["chest", "abdominals", "shoulders", "triceps"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
+    "level": "beginner",
+    "cues": [
+      "Lie on the floor with two kettlebells next to your shoulders.",
+      "Position one in place on your chest and then the other, gripping the kettlebells on the handle with the palms facing forward.",
+      "Extend both arms, so that the kettlebells are being held above your chest. Lower one kettlebell, bringing it to your chest and turn the wrist in the direction of the locked out kettlebell.",
+      "Raise the kettlebell and repeat on the opposite side."
+    ],
+    "images": ["Alternating_Floor_Press/0.jpg", "Alternating_Floor_Press/1.jpg"]
+  },
+  {
+    "id": "one-arm-kettlebell-floor-press",
+    "name": "One-Arm Kettlebell Floor Press",
+    "muscle": "chest",
+    "muscles": ["chest", "triceps"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
+    "level": "intermediate",
+    "cues": [
+      "Lie on the floor holding a kettlebell with one hand, with your upper arm supported by the floor. The palm should be facing in.",
+      "Press the kettlebell straight up toward the ceiling, rotating your wrist.",
+      "Lower the kettlebell back to the starting position and repeat."
+    ],
+    "images": ["One-Arm_Kettlebell_Floor_Press/0.jpg", "One-Arm_Kettlebell_Floor_Press/1.jpg"]
+  },
+  {
+    "id": "goblet-squat",
+    "name": "Goblet Squat",
+    "muscle": "quads",
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings", "shoulders"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 10,
+    "repMax": 15,
+    "level": "beginner",
+    "cues": [
+      "Stand holding a light kettlebell by the horns close to your chest. This will be your starting position.",
+      "Squat down between your legs until your hamstrings are on your calves. Keep your chest and head up and your back straight.",
+      "At the bottom position, pause and use your elbows to push your knees out. Return to the starting position, and repeat for 10-20 repetitions."
+    ],
+    "images": ["Goblet_Squat/0.jpg", "Goblet_Squat/1.jpg"]
+  },
+  {
+    "id": "double-kettlebell-front-squat",
+    "name": "Double Kettlebell Front Squat",
+    "muscle": "quads",
+    "muscles": ["quadriceps", "calves", "glutes"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
+    "level": "intermediate",
+    "cues": [
+      "Clean two kettlebells to your shoulders. Clean the kettlebells to your shoulders by extending through the legs and hips as you pull the kettlebells towards your shoulders. Rotate your wrists as you do so.",
+      "Looking straight ahead at all times, squat as low as you can and pause at the bottom. As you squat down, push your knees out. You should squat between your legs, keeping an upright torso, with your head and chest up.",
+      "Rise back up by driving through your heels and repeat."
+    ],
+    "images": ["Front_Squats_With_Two_Kettlebells/0.jpg", "Front_Squats_With_Two_Kettlebells/1.jpg"]
+  },
+  {
+    "id": "kettlebell-pistol-squat",
+    "name": "Kettlebell Pistol Squat",
+    "muscle": "quads",
+    "muscles": ["quadriceps", "calves", "glutes", "hamstrings", "shoulders"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 6,
+    "repMax": 10,
+    "level": "expert",
+    "cues": [
+      "Pick up a kettlebell with two hands and hold it by the horns. Hold one leg off of the floor and squat down on the other.",
+      "Squat down by flexing the knee and sitting back with the hips, holding the kettlebell up in front of you.",
+      "Hold the bottom position for a second and then reverse the motion, driving through the heel and keeping your head and chest up.",
+      "Lower yourself again and repeat."
+    ],
+    "images": ["Kettlebell_Pistol_Squat/0.jpg", "Kettlebell_Pistol_Squat/1.jpg"]
+  },
+  {
+    "id": "kettlebell-one-legged-deadlift",
+    "name": "Kettlebell One-Legged Deadlift",
+    "muscle": "hamstrings",
+    "muscles": ["hamstrings", "glutes", "lower back"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 8,
+    "repMax": 12,
+    "level": "intermediate",
+    "cues": [
+      "Hold a kettlebell by the handle in one hand. Stand on one leg, on the same side that you hold the kettlebell.",
+      "Keeping that knee slightly bent, perform a stiff legged deadlift by bending at the hip, extending your free leg behind you for balance.",
+      "Continue lowering the kettlebell until you are parallel to the ground, and then return to the upright position."
+    ],
+    "images": ["Kettlebell_One-Legged_Deadlift/0.jpg", "Kettlebell_One-Legged_Deadlift/1.jpg"]
+  },
+  {
+    "id": "kettlebell-windmill",
+    "name": "Kettlebell Windmill",
+    "muscle": "abs",
+    "muscles": ["abdominals", "glutes", "hamstrings", "shoulders", "triceps"],
+    "equipment": "kettlebell",
+    "loadType": "weight",
+    "sets": 3,
+    "repMin": 6,
+    "repMax": 10,
+    "level": "intermediate",
+    "cues": [
+      "Place a kettlebell in front of your lead foot and clean and press it overhead with your opposite arm. Clean the kettlebell to your shoulder by extending through the legs and hips as you pull the kettlebell towards your shoulders. Rotate your wrist as you do so, so that the palm faces forward. Press it overhead by extending the elbow.",
+      "Keeping the kettlebell locked out at all times, push your butt out in the direction of the locked out kettlebell. Turn your feet out at a forty-five degree angle from the arm with the locked out kettlebell. Bending at the hip to one side, sticking your butt out, slowly lean until you can touch the floor with your free hand. Keep your eyes on the kettlebell that you hold over your head at all times.",
+      "Pause for a second after reaching the ground and reverse the motion back to the starting position."
+    ],
+    "images": ["Kettlebell_Windmill/0.jpg", "Kettlebell_Windmill/1.jpg"]
   }
 ]

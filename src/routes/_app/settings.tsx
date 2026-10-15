@@ -15,6 +15,7 @@ import {
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { DownloadAllButton } from '#/components/app/export-buttons'
+import { PendingPage } from '#/components/app/page-skeletons'
 import { ProgressionPicker } from '#/components/app/progression-picker'
 import { SectionHeading } from '#/components/app/section-heading'
 import { DEFAULT_OWN_DAYS, OWN_SPLIT, SplitPicker } from '#/components/app/split-picker'
@@ -42,6 +43,7 @@ import { GOAL_DONE, GOAL_OPTIONS } from '#/lib/logic/goal'
 import { PROGRESSION_LABEL, progressionOf, STEP_OPTIONS, type StepKind, stepsOf } from '#/lib/logic/progression'
 import { fmtWeight } from '#/lib/logic/units'
 import { pageTitle } from '#/lib/page-title'
+import { forgetShell } from '#/lib/shell'
 import type { DayType, Goal, Schedule, SplitId, TrainingAge, Units } from '#/lib/types'
 import { useContent } from '#/lib/use-content'
 import { cn } from '#/lib/utils'
@@ -63,6 +65,7 @@ export const Route = createFileRoute('/_app/settings')({
     return { settings, slots }
   },
   component: SettingsPage,
+  pendingComponent: PendingPage,
 })
 
 /** One row of weight steps: the kind, the setting it saves to, and what the toast says for a value. */
@@ -150,11 +153,13 @@ function SettingsPage() {
     }
   }
 
+  // The toast comes once the screen shows the saved value: a toggle tapped on the toast's cue then compares against
+  // the new value, not the old one, so a quick second tap is never taken for "no change".
   async function save(patch: Parameters<typeof saveSettingsFn>[0]['data'], done = 'Saved') {
     try {
       await saveSettingsFn({ data: patch })
-      toast.success(done)
       await router.invalidate()
+      toast.success(done)
     } catch (err) {
       toast.error(errorMessage(err, 'Could not save.'))
     }
@@ -164,8 +169,8 @@ function SettingsPage() {
     if (next === schedule) return
     try {
       await setScheduleFn({ data: { schedule: next } })
-      toast.success(next === 'weekday' ? 'Each day is on its weekday now' : 'Back to the rolling order')
       await router.invalidate()
+      toast.success(next === 'weekday' ? 'Each day is on its weekday now' : 'Back to the rolling order')
     } catch (err) {
       toast.error(errorMessage(err, 'Could not change the schedule.'))
     }
@@ -502,6 +507,7 @@ function DeleteAccountButton() {
       await deleteAccountFn()
       // The session is gone with the account; signing out just clears the cookie, so a failure here is fine.
       await authClient.signOut().catch(() => undefined)
+      forgetShell()
       setOpen(false)
       await router.invalidate()
       await navigate({ to: '/login', search: { deleted: true } })
@@ -578,6 +584,7 @@ function StartFreshButton() {
     setBusy(true)
     try {
       await startFreshFn()
+      forgetShell()
       toast.success('Everything is wiped. Setup runs again.')
       setOpen(false)
       await router.invalidate()

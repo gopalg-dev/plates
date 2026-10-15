@@ -1,14 +1,15 @@
 import { createRouter as createTanStackRouter } from '@tanstack/react-router'
-import { Skeleton } from './components/ui/skeleton'
+import { PageSkeleton } from './components/app/page-skeletons'
 import { routeTree } from './routeTree.gen'
 
-/** Shown when a page's data takes longer than a blink, in the page's own shape. */
+/**
+ * Shown when a page outside the app's layout takes longer than a blink to load: a title and a block in the page
+ * column. The app's pages each have their own bones (page-skeletons.tsx), set on their routes.
+ */
 function Pending() {
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 pt-5 md:px-8 md:pt-8" aria-busy="true" aria-live="polite">
-      <Skeleton className="h-9 w-32" />
-      <Skeleton className="mt-6 h-5 w-64" />
-      <Skeleton className="mt-8 h-40 w-full" />
+    <div className="mx-auto w-full max-w-2xl px-4 pt-5 md:px-8 md:pt-8">
+      <PageSkeleton path="" />
     </div>
   )
 }

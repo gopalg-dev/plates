@@ -348,6 +348,91 @@ no Inter/Geist. Checked.
         swaps; a library entry added in the database without the new fields made the server re-run the fill-in
         on every read (only the bundle's ids count now). Known, left: "Add a day" on a plan started empty still
         brings five lifts, as there is no stored "empty" preference.
+- [x] 67. Each page waits in its own shape (2026-10-16, user: "add a proper loading skeleton by verifying all the
+      pages", "the skeletons should not be generic, it should be based on each page real loading content
+      structure", "is it possible to show skeleton on server api call files as well, for example library page").
+      `src/components/app/page-skeletons.tsx`: one set of bones per page, drawn from its real markup (Today's date
+      line, icon title and streak, summary, alert card, rows and Start; Plan's day rows and Add a day; Stats' tabs,
+      section and chart; Report's title menu, period controls, the big number and its blocks; Library's search, pill
+      rows, count and rows; Settings' sections; the import page's back link, title, lines and controls), picked by
+      path. `PendingPage` reads the location, so every app route sets it as `pendingComponent`, and the layout route
+      too: the Library page has no loader of its own and rides on the layout's content load, so the layout's pending
+      view draws the Library bones when that is where the visit is going. The router's default stays for the
+      public pages. Calls a component makes on its own show their bones in place: the detail's cues (item 65) and
+      now the past-session draft on Stats, whose editor opens at once on the day's name and date with four row
+      bones and a footer (`pending` on `SessionEditor`, `opening` from `useDraftSession`). Also seen in the user's
+      screenshot: the Library's "157 exercises" over an empty list for a moment on a cold load, the virtualizer's
+      first frame (the server cannot measure a scroll box). The list now draws its first twelve rows plainly until
+      the scroll parent is known and the virtualizer has measured, so the server's HTML and the first frame show
+      rows. Found while timing the bones with server calls slowed: the layout's `beforeLoad` fetched the shell
+      (who is signed in, their settings) on every move between screens, and the router shows no pending view
+      during `beforeLoad`, so the old page sat for a round trip before any bones could show. `src/lib/shell.ts`
+      keeps the shell on the client for five minutes: `beforeLoad` reads it through `readShell` and keeps a shell
+      only once its checks pass (`rememberShell`; the first cut kept every answer, so the not-set-up shell seen
+      right after sign-up sent a finished setup back to setup, caught by the e2e), the layout hands over the
+      server-rendered visit's shell on hydration (it rides in the route context), and sign-out, delete account
+      and start fresh call `forgetShell` before they invalidate, so the redirects that follow see the truth. Every page's own server function checks the session regardless. Measured: bones
+      within 200 ms of a tap on every move, where before they came only after the shell round trip.
+- [x] 66. Every read fetches what its caller uses, and every query shape has an index (2026-10-16, user: "on all
+      the api calls, try to add db projection on every db call based on what is really needed in the UI and as well
+      in the api", "add proper indexing on the db based on api requirement"). Projections in server/repo.ts and
+      content.ts: `lastFinishedMark` (day id, day name, finished at) replaces `lastFinishedWorkout` for Today's
+      rolling cursor and footer; `recentEntries` takes one lift's entry per session by `$elemMatch` projection plus
+      `effort`, not whole sessions, for every lift of a day at session start; `activeDayId` (day id only) replaces
+      the whole in-progress session on Plan; `planSlots` counts days with `$size` instead of fetching them; the
+      latest weigh-in reads `weight`, a day's weigh-in `_id`, the latest tape entry `date` (`lastMeasurementAt`,
+      shared by Today and the reminder); the account's `email` (deletion log) and `username`+`email` (export); the
+      body logs leave `userId` behind in the database; the library and splits leave `updatedAt` and the old `image`
+      there. Removed as unused: `lastFinishedEntry` and `getHistoryData`. Reads that stay whole, on purpose: the
+      session in progress and a session being edited (their entries change), the finished log for Stats, Report,
+      alerts and export (sets are the data), settings and plans (small, all used). Indexes (`ensureIndexes`, one per
+      query shape): workouts gained `userId+status+dayId+finishedAt` (a lift's history on its own day) and
+      `userId+status+startedAt` (the session in progress; the older `userId+startedAt` is no longer created and can
+      be dropped by hand in Atlas), `feedback` `userId+at`, and Better Auth's collections, which it does not index
+      itself: `session` token and userId, `account` userId and providerId+accountId, `user` email and username,
+      `verification` identifier; none unique, so an index can never refuse a row Better Auth accepts.
+- [x] 65. Kettlebells, a lighter library, and rows drawn on demand (2026-10-16, user: "kettlebells" → "add it";
+      "shall we add the infinite scroll on the library and pick from library"; "i don't want to fetch 157 at one
+      shot"; "virtualization is good add that as well"). Twenty kettlebell lifts from free-exercise-db, the ones
+      that log as sets and reps (presses, rows, floor presses, goblet and double front squat, pistol, one-legged
+      deadlift, windmill, sumo high pull, thruster), under a sixth equipment kind, `kettlebell`, with its own filter
+      chip; a kettlebell steps like a dumbbell (`stepKind`). 157 entries. The cleans, jerks, snatches and swings
+      stayed out (ballistic, or no steps or pictures in the source). The user's dev server, on the production
+      database, showed the Kettlebell chip empty: a read seeded only an empty library, and the twenty waited for
+      `bun run db:seed`. A read now also adds the bundle entries the database lacks (a count of the bundle's ids
+      against the bundle's length, each refresh), adding only, so edits made in the database stay. Measured before
+      choosing how to load: the whole
+      library is 28 KB gzipped, of which the cues are 22 KB and the rows 4.6 KB, so server pages of rows would save
+      almost nothing while the app needs every row anyway (thumbs on Plan and Today, name matching in Swap, the
+      import and the editor). Chosen (user, from three options): rows up front, cues on open. `Content.library` is
+      now `LibraryRow[]` (`LibraryExercise` without `cues`); `rowsOf` in server/content.ts strips them for
+      `getContentFn` and `getPublicContentFn`; `getCuesFn` (public-fns, zod-checked id) returns one entry's cues
+      through `cuesOf`; `useCues` (src/lib/use-cues.ts) fetches them as the detail opens, keeps them for the visit,
+      and the detail shows skeleton lines meanwhile. The search, find and name helpers took generics so the server
+      keeps whole entries. The rows are virtualized with @tanstack/react-virtual (`Rows` in library-list.tsx): only
+      rows in view are drawn, 81px each with the real height measured; the list finds its scroll parent once
+      mounted (the page on Library, the panel in Pick from library and Swap) and picks the window or the element
+      virtualizer; `scrollMargin` is the list's offset below the search box, tags and count. The "load more as you
+      scroll" window was not built: with every row already on the client it adds nothing over virtualization. Found
+      while measuring: the browser had been carrying the whole bundled `library.json` all along, because
+      `src/lib/library.ts` (the helpers every screen imports) imported it for `LIBRARY`; the bundle, not the server
+      call, was the 28 KB. `LIBRARY` moved to `src/lib/library-data.ts`, imported by the server, the scripts and
+      the tests only; a page load now carries no cue text (checked: the Library page's HTML and every response on
+      the way hold none; opening a detail fetches 1.1 KB).
+- [x] 64. The offline page in the saved look (2026-10-15, user, with a screenshot of a black Try again button on the
+      dark page: "fix the color", "based on theme", "and fonts as well"). The button painted itself `currentColor`,
+      which a button does not inherit, so it was black in both modes and its dark-mode text was black too. The
+      worker moved from `public/sw.js` to the server route `src/routes/sw[.]js.ts`, so its page can carry the app's
+      own `THEME_SCRIPT` instead of a copy. The worker now keeps one thing, the look: the built stylesheet and the
+      font files under `/assets/` (hashed names, so never stale; a new stylesheet replaces the old), kept as pages
+      request them and served from the copy when offline. The offline page links that stylesheet, so it comes in the
+      saved look (data-theme and `.dark` set by the script before paint) and in Barlow, drawn from the app's own
+      tokens (`--background`, `--primary`, `--radius`, `--app-font-sans`…); with nothing cached yet (first visit;
+      dev, where Vite injects CSS by script) it falls back to the slate values by `prefers-color-scheme`. Pages and
+      data still never come from a cache. `cache-control: no-cache` on the worker, so an update is seen at once.
+      Found by the e2e on a loaded machine and fixed on the way: a Settings toggle tapped right after the previous
+      save's toast could be dropped, since the toast came before the loader refreshed and the toggle compared the
+      tap against the old value; `save` and `changeSchedule` now refresh first, then toast.
 - [x] 63. Both source pictures, and the base text size (2026-10-15, user: "seems like there are two images", "add the
       end image as well, in the details panel option to go next like a carousel by touch and cursor"; and "remove the
       text-sm manually added in places so it will automatically take the base variant", then text-xs too). The

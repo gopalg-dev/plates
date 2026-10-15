@@ -5,6 +5,7 @@ import { LogBodyweightDialog, LogMeasurementsDialog, TapeDialog, WeighInDialog }
 import { DayIcon } from '#/components/app/day-mark'
 import { ExportButtons } from '#/components/app/export-buttons'
 import { PastSessionEditor, useDraftSession } from '#/components/app/log-past-session'
+import { PendingPage } from '#/components/app/page-skeletons'
 import { SessionEditor, sessionSummary } from '#/components/app/session-editor'
 import { BodyTab } from '#/components/app/stats-body'
 import { LiftsTab, liftsFrom } from '#/components/app/stats-lifts'
@@ -28,6 +29,7 @@ export const Route = createFileRoute('/_app/stats')({
     TABS.includes(search.tab as StatsTab) ? { tab: search.tab as StatsTab } : {},
   loader: () => getStatsFn(),
   component: StatsPage,
+  pendingComponent: PendingPage,
 })
 
 function StatsPage() {
@@ -139,6 +141,7 @@ function StatsPage() {
       />
       <PastSessionEditor
         draft={drafts.draft}
+        opening={drafts.opening}
         units={units}
         steps={stepsOf(settings)}
         onClose={drafts.close}
@@ -186,7 +189,7 @@ function StatsPage() {
                   const logIt = () => {
                     if (!dayOpen) return
                     setDayOpen(null)
-                    void drafts.open(d.id, dayOpen)
+                    void drafts.open(d, dayOpen)
                   }
                   return (
                     <Item key={d.id} size="sm" className="cursor-pointer px-2" onClick={rowTap(logIt).onClick}>

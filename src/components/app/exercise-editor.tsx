@@ -16,7 +16,7 @@ import { Input } from '#/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import { Textarea } from '#/components/ui/textarea'
 import { errorMessage } from '#/lib/format'
-import { findLibraryByName, type LibraryExercise } from '#/lib/library'
+import { findLibraryByName, type LibraryRow } from '#/lib/library'
 import { MUSCLE_BY_DAY } from '#/lib/logic/plan-sheet'
 import { MUSCLE_LABEL, MUSCLES, plannedSetsFor } from '#/lib/logic/stats'
 import type { Exercise, LoadType, Muscle, PlanDay, TrainingAge } from '#/lib/types'
@@ -169,7 +169,7 @@ function EditorForm({ day, exercise, trainingAge, actions, onClose, onSaved }: F
   const unit = loadType === 'time' ? 'seconds' : 'reps'
 
   /** A lift taken from the library brings its muscle, its type, and the sets and range it is usually done for. */
-  function takeFromLibrary(lib: LibraryExercise) {
+  function takeFromLibrary(lib: LibraryRow) {
     setMuscle(lib.muscle)
     setLoadType(lib.loadType)
     setSets(lib.sets)

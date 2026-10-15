@@ -17,6 +17,7 @@ import { ExercisePictures } from '#/components/app/exercise-thumb'
 import { FeedbackDialog } from '#/components/app/feedback-form'
 import { InstallDialog } from '#/components/app/install-dialog'
 import { LookRadioGroup } from '#/components/app/look-menu'
+import { PendingPage } from '#/components/app/page-skeletons'
 import { PRIMARY_TABS, TabBar } from '#/components/app/tab-bar'
 import { Avatar, AvatarFallback, AvatarImage } from '#/components/ui/avatar'
 import {
@@ -47,19 +48,20 @@ import {
 } from '#/components/ui/sidebar'
 import { accountName } from '#/lib/format'
 import { useInstallApp } from '#/lib/install-app'
+import { readShell, rememberShell } from '#/lib/shell'
 import { ContentProvider } from '#/lib/use-content'
 import { usePageHydrated } from '#/lib/use-page-hydrated'
 import { useSignOut } from '#/lib/use-sign-out'
-import { getContentFn, getShellFn } from '#/server/fns'
+import { getContentFn } from '#/server/fns'
 
 export const Route = createFileRoute('/_app')({
   // ?exercise=<library id> opens the library's view of that exercise over any screen; see ExerciseDialog.
   validateSearch: (search: Record<string, unknown>): { exercise?: string } =>
     typeof search.exercise === 'string' && search.exercise ? { exercise: search.exercise } : {},
   // Signed out: the home page is How it works, any other screen asks to sign in first.
-  // Signed in but not set up: three questions first.
+  // Signed in but not set up: three questions first. The shell is kept a while on the client (lib/shell.ts).
   beforeLoad: async ({ location }) => {
-    const shell = await getShellFn()
+    const shell = await readShell()
     if (!shell) {
       // A failed sign-in link can land on the home page with ?error=…; carry the reason to the sign-in page.
       const error = new URLSearchParams(location.searchStr).get('error')
@@ -67,13 +69,27 @@ export const Route = createFileRoute('/_app')({
       throw redirect({ to: location.pathname === '/' ? '/how-it-works' : '/login' })
     }
     if (!shell.settings.setupDone) throw redirect({ to: '/setup' })
-    return { user: shell.user }
+    rememberShell(shell)
+    return { user: shell.user, shell }
   },
   // The split templates and the exercise library, once per visit; the layout provides them to useContent().
   loader: () => getContentFn(),
   staleTime: 60 * 60 * 1000,
   component: AppLayout,
+  pendingComponent: AppPending,
 })
+
+/** The page column of the layout below, for what stands in while the layout's own data loads. */
+const PAGE_COLUMN = 'mx-auto w-full max-w-2xl px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-16'
+
+/** While the content loads: the page column with the bones of the page being gone to; the frame follows. */
+function AppPending() {
+  return (
+    <main className={PAGE_COLUMN}>
+      <PendingPage />
+    </main>
+  )
+}
 
 const secondary = [
   { to: '/report', label: 'Report', icon: FileChartColumn, exact: false },
@@ -97,9 +113,11 @@ function initials(who: string): string {
 
 function AppLayout() {
   const { pathname } = useLocation()
-  const { user } = Route.useRouteContext()
+  const { user, shell } = Route.useRouteContext()
   const content = Route.useLoaderData()
   usePageHydrated()
+  // The shell this visit was rendered with, kept for the moves that follow.
+  useEffect(() => rememberShell(shell), [shell])
   const who = accountName(user)
   return (
     <ContentProvider content={content}>
@@ -154,7 +172,7 @@ function AppLayout() {
                   <Wordmark />
                 </Link>
               </header>
-              <main className="mx-auto w-full max-w-2xl px-4 pt-5 pb-28 md:px-8 md:pt-8 md:pb-16">
+              <main className={PAGE_COLUMN}>
                 <Outlet />
               </main>
               <ExerciseDialog />

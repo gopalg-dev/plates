@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { DayIcon } from '#/components/app/day-mark'
 import { ExerciseEditor, type ExerciseEditorActions } from '#/components/app/exercise-editor'
+import { PendingPage } from '#/components/app/page-skeletons'
 import { DayDialog, DaySection, PlanTitle } from '#/components/app/plan-view'
 import { Accordion } from '#/components/ui/accordion'
 import { Button } from '#/components/ui/button'
@@ -43,6 +44,7 @@ export const Route = createFileRoute('/_app/plan')({
   head: () => ({ meta: [{ title: pageTitle('Plan') }] }),
   loader: () => getPlanFn(),
   component: PlanPage,
+  pendingComponent: PendingPage,
 })
 
 const rules = [

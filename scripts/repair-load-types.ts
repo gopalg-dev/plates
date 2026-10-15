@@ -13,7 +13,8 @@
  * Reads MONGODB_URI and MONGODB_DB from .env like the app. Never prints the connection string.
  */
 import { type Collection, type Document, MongoClient } from 'mongodb'
-import { findLibraryByName, LIBRARY } from '../src/lib/library'
+import { findLibraryByName } from '../src/lib/library'
+import { LIBRARY } from '../src/lib/library-data'
 import type { LoadType, LoggedSet } from '../src/lib/types'
 
 const args = process.argv.slice(2)

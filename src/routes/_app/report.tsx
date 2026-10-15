@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMemo } from 'react'
+import { PendingPage } from '#/components/app/page-skeletons'
 import { ReportView } from '#/components/app/report-view'
 import { accountName } from '#/lib/format'
 import { lastFinished, PERIOD_KINDS, type PeriodKind } from '#/lib/logic/report'
@@ -23,6 +24,7 @@ export const Route = createFileRoute('/_app/report')({
   // The same year of sessions and weigh-ins as Stats; the report is worked out from it in the browser.
   loader: () => getStatsFn(),
   component: ReportPage,
+  pendingComponent: PendingPage,
 })
 
 function ReportPage() {

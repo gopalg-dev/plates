@@ -1,6 +1,7 @@
 import { type Collection, type Db, MongoBulkWriteError } from 'mongodb'
 import type { Content, SplitTemplate } from '#/lib/content'
-import { LIBRARY, type LibraryExercise } from '#/lib/library'
+import { findLibrary, type LibraryExercise } from '#/lib/library'
+import { LIBRARY } from '#/lib/library-data'
 import { must } from '#/lib/must'
 import { BUNDLED_SPLITS } from '#/lib/splits'
 import type { PlanDay, SplitId } from '#/lib/types'
@@ -9,9 +10,9 @@ import { getDb } from './db'
 /**
  * Reference content in the database: `library` (one document per exercise, `_id` is the exercise
  * id) and `splits` (one per template, `_id` is the split id). Seeded from the bundled copies when a
- * collection is empty, so a fresh database works at once; `bun run db:seed` does the same by hand
- * and can add what a newer bundle brings or reset to it. Edits made in the database stay: a seed
- * never overwrites a document that is already there unless asked to reset.
+ * collection is empty, so a fresh database works at once; a read also adds library entries a newer
+ * bundle brings, and `bun run db:seed` does the same by hand or resets to the bundle. Edits made in
+ * the database stay: a seed never overwrites a document that is already there unless asked to reset.
  */
 
 type LibraryDoc = Omit<LibraryExercise, 'id'> & {
@@ -106,34 +107,61 @@ export async function seedContent(db: Db, { reset = false } = {}): Promise<SeedR
   return { library: newLibrary.length, splits: newSplits.length, filled }
 }
 
+/** What the server holds: every entry whole. The app gets `rowsOf` it, and one entry's cues through `cuesOf`. */
+export interface FullContent {
+  library: LibraryExercise[]
+  splits: SplitTemplate[]
+}
+
 const CACHE_MS = 60_000
-let cache: { at: number; content: Content } | undefined
-let reading: Promise<Content> | undefined
+let cache: { at: number; content: FullContent } | undefined
+let reading: Promise<FullContent> | undefined
 
 /** Both lists, read at most once a minute per server process; an empty collection is seeded first. */
-export async function readContent(): Promise<Content> {
+export async function readContent(): Promise<FullContent> {
   if (cache && Date.now() - cache.at < CACHE_MS) return cache.content
   // One read at a time: concurrent first requests would each try to seed.
   if (!reading) reading = readFresh().finally(() => (reading = undefined))
   return reading
 }
 
-async function readFresh(): Promise<Content> {
+/** The content as the app receives it: the library without its cues, most of the weight. */
+export function rowsOf({ library, splits }: FullContent): Content {
+  return { splits, library: library.map(({ cues: _cues, ...row }) => row) }
+}
+
+/** One entry's cues, for its detail; null for an id the library does not know. */
+export async function cuesOf(id: string): Promise<string[] | null> {
+  const { library } = await readContent()
+  return findLibrary(library, id)?.cues ?? null
+}
+
+async function readFresh(): Promise<FullContent> {
   const db = await getDb()
-  const [libraryCount, splitCount, unfilled] = await Promise.all([
-    db.collection('library').countDocuments({}, { limit: 1 }),
+  const [bundled, splitCount, unfilled] = await Promise.all([
+    // A newer bundle's entries, missing here, are added; nothing already here is touched.
+    db.collection<LibraryDoc>('library').countDocuments({ _id: { $in: LIBRARY.map((ex) => ex.id) } }),
     db.collection('splits').countDocuments({}, { limit: 1 }),
     // Only the bundle's own entries can be filled in; one added to the database is its editor's to complete.
     db.collection<LibraryDoc>('library').countDocuments(incomplete, { limit: 1 }),
   ])
-  if (libraryCount === 0 || splitCount === 0 || unfilled > 0) await seedContent(db)
+  if (bundled < LIBRARY.length || splitCount === 0 || unfilled > 0) await seedContent(db)
+  // The edit stamp stays in the database; the old single picture, where it lingers, too.
   const [libraryDocs, splitDocs] = await Promise.all([
-    db.collection<LibraryDoc>('library').find().sort({ name: 1 }).toArray(),
-    db.collection<SplitDoc>('splits').find().sort({ order: 1 }).toArray(),
+    db
+      .collection<LibraryDoc>('library')
+      .find<Omit<LibraryDoc, 'updatedAt' | 'image'>>({}, { projection: { updatedAt: 0, image: 0 } })
+      .sort({ name: 1 })
+      .toArray(),
+    db
+      .collection<SplitDoc>('splits')
+      .find<Omit<SplitDoc, 'updatedAt'>>({}, { projection: { updatedAt: 0 } })
+      .sort({ order: 1 })
+      .toArray(),
   ])
-  const content: Content = {
-    library: libraryDocs.map(({ _id, updatedAt: _u, ...rest }) => ({ id: _id, ...rest })),
-    splits: splitDocs.map(({ _id, updatedAt: _u, ...rest }) => ({ id: _id, ...rest })),
+  const content: FullContent = {
+    library: libraryDocs.map(({ _id, ...rest }) => ({ id: _id, ...rest })),
+    splits: splitDocs.map(({ _id, ...rest }) => ({ id: _id, ...rest })),
   }
   cache = { at: Date.now(), content }
   return content

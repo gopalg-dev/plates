@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { DAY_LABEL, DayIcon } from '#/components/app/day-mark'
 import { LibraryPicker } from '#/components/app/library-list'
+import { PendingPage } from '#/components/app/page-skeletons'
 import { Button } from '#/components/ui/button'
 import {
   Dialog,
@@ -39,6 +40,7 @@ export const Route = createFileRoute('/_app/plan_/import')({
   head: () => ({ meta: [{ title: pageTitle('Bring your own plan') }] }),
   loader: () => getPlanFn(),
   component: ImportPage,
+  pendingComponent: PendingPage,
 })
 
 const LOAD_LABEL: Record<LoadType, string> = { weight: 'Weighted', bodyweight: 'Bodyweight', time: 'Timed hold' }

@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { MOOD_LABEL } from '#/lib/logic/feedback'
 import { DAY_TYPES, GOALS, MAX_DAYS, MAX_EXERCISES_PER_DAY, PROGRESSIONS } from '#/lib/types'
 import { authOptions, currentUser } from './auth'
-import { readContent } from './content'
+import { readContent, rowsOf } from './content'
 import { sendMail } from './mail'
 import * as repo from './repo'
 import { authed } from './session'
@@ -46,10 +46,13 @@ export const getShellFn = createServerFn({ method: 'GET' }).handler(async () => 
 
 // ---- settings ----
 
-/** The split templates and the exercise library, from the database (seeded from the bundle when empty). */
+/**
+ * The split templates and the exercise library, from the database (seeded from the bundle when empty). The library
+ * comes as rows; an entry's cues come through `getCuesFn` when its detail opens.
+ */
 export const getContentFn = createServerFn({ method: 'GET' })
   .middleware([authed])
-  .handler(() => readContent())
+  .handler(async () => rowsOf(await readContent()))
 
 export const getSettingsFn = createServerFn({ method: 'GET' })
   .middleware([authed])
@@ -191,13 +194,13 @@ export const createCustomPlanFn = createServerFn({ method: 'POST' })
 export const getPlanFn = createServerFn({ method: 'GET' })
   .middleware([authed])
   .handler(async ({ context }) => {
-    const [plan, settings, active] = await Promise.all([
+    const [plan, settings, activeDayId] = await Promise.all([
       repo.getPlan(context.userId),
       repo.getSettings(context.userId),
-      repo.getActiveWorkout(context.userId),
+      repo.activeDayId(context.userId),
     ])
     // The day of a session in progress: editing it asks whether today's session should follow.
-    return { plan, settings, activeDayId: active?.dayId ?? null }
+    return { plan, settings, activeDayId }
   })
 
 /** Brings the session in progress up to its plan day, keeping what is logged (see repo.syncSession). */

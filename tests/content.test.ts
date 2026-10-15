@@ -1,9 +1,9 @@
 import { MongoClient } from 'mongodb'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { LIBRARY } from '#/lib/library'
+import { LIBRARY } from '#/lib/library-data'
 import { must } from '#/lib/must'
 import { BUNDLED_SPLITS } from '#/lib/splits'
-import { forgetContent, readContent, seedContent, splitTemplate } from '#/server/content'
+import { cuesOf, forgetContent, readContent, rowsOf, seedContent, splitTemplate } from '#/server/content'
 import { setDbForTests } from '#/server/db'
 
 const uri = process.env.MONGODB_URI ?? 'mongodb://localhost:27017'
@@ -39,6 +39,21 @@ suite('content', () => {
     expect(content.library).toHaveLength(LIBRARY.length)
     expect(content.splits.map((s) => s.id)).toEqual(BUNDLED_SPLITS.map((s) => s.id))
     expect(content.splits[0].days[0].exercises.length).toBeGreaterThan(0)
+  })
+
+  it('hands the app rows without the cues, and one entry’s cues on request', async () => {
+    await seedContent(must(client, 'the test database').db(dbName))
+    const rows = rowsOf(await readContent())
+    expect(rows.library).toHaveLength(LIBRARY.length)
+    expect(rows.library.some((e) => 'cues' in e)).toBe(false)
+    expect(rows.library.find((e) => e.id === 'barbell-squat')?.images).toHaveLength(2)
+    expect(await cuesOf('barbell-squat')).toEqual(
+      must(
+        LIBRARY.find((e) => e.id === 'barbell-squat'),
+        'the squat',
+      ).cues,
+    )
+    expect(await cuesOf('nope')).toBeNull()
   })
 
   it('reads a fresh database by seeding it first', async () => {
@@ -119,6 +134,17 @@ suite('content', () => {
     })
     expect(await library.findOne({ _id: 'pull-ups' as never, image: { $exists: true } })).toBeNull()
     expect((await seedContent(db)).filled).toBe(0)
+  })
+
+  it('adds entries a newer bundle brings on a read, and leaves the rest as they are', async () => {
+    const db = must(client, 'the test database').db(dbName)
+    await seedContent(db)
+    await db.collection('library').deleteOne({ _id: 'goblet-squat' as never })
+    await db.collection('library').updateOne({ _id: 'pull-ups' as never }, { $set: { name: 'Wide pull-ups' } })
+    forgetContent()
+    const { library } = await readContent()
+    expect(library.find((e) => e.id === 'goblet-squat')?.name).toBe('Goblet Squat')
+    expect(library.find((e) => e.id === 'pull-ups')?.name).toBe('Wide pull-ups')
   })
 
   it('leaves an entry added in the database alone, and does not keep trying to fill it', async () => {

@@ -40,10 +40,13 @@ export function stepsOf(settings: StepSettings): Steps {
   return { plates, dumbbell: read('dumbbell', settings.dumbbellStep), stack: read('stack', settings.stackStep) }
 }
 
-/** Which kind of weight a lift steps by. A lift the library does not know steps like a stack. */
+/**
+ * Which kind of weight a lift steps by. Kettlebells come in fixed sizes like dumbbells. A lift the library does not
+ * know steps like a stack.
+ */
 export function stepKind(equipment?: Equipment, plateLoaded?: boolean): StepKind {
   if (equipment === 'barbell' || plateLoaded) return 'plates'
-  if (equipment === 'dumbbell') return 'dumbbell'
+  if (equipment === 'dumbbell' || equipment === 'kettlebell') return 'dumbbell'
   return 'stack'
 }
 

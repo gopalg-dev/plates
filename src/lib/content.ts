@@ -1,11 +1,11 @@
-import type { LibraryExercise } from './library'
+import type { LibraryRow } from './library'
 import type { PlanDay, PlanSource, SplitId } from './types'
 
 /**
  * Reference content: the split templates and the exercise library. It lives in the database
  * (`splits`, `library`), seeded from the bundled copies in `splits.ts` and `library.json`, and the
- * app receives it once per visit through the shell route. These helpers are pure: they take the
- * lists they work on.
+ * app receives it once per visit through the shell route, the library as rows (an entry's cues come
+ * when its detail opens). These helpers are pure: they take the lists they work on.
  */
 
 export interface SplitTemplate {
@@ -29,7 +29,7 @@ export interface SplitInfo {
 }
 
 export interface Content {
-  library: LibraryExercise[]
+  library: LibraryRow[]
   splits: SplitTemplate[]
 }
 

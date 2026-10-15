@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildCustomDays, buildDay, DAY_BLOCKS, DAY_LABEL } from '#/lib/day-blocks'
-import { LIBRARY } from '#/lib/library'
+import { LIBRARY } from '#/lib/library-data'
 import { DAY_TYPES, MAX_EXERCISES_PER_DAY } from '#/lib/types'
 
 describe('day blocks', () => {

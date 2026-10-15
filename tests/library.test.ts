@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { EQUIPMENT, findLibrary, imageUrl, LIBRARY, searchLibrary } from '#/lib/library'
+import { EQUIPMENT, findLibrary, imageUrl, searchLibrary } from '#/lib/library'
+import { LIBRARY } from '#/lib/library-data'
 import { MUSCLES } from '#/lib/logic/stats'
 
 describe('exercise library', () => {

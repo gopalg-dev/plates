@@ -49,7 +49,7 @@ Four screens, one job each:
   for two days after a week or month ends. Share draws the week as a 1080 × 1350 PNG in any of the
   looks: the days, the sessions, and a highlight the lifter picks: a new best, how many, the streak, every session
   done, or nothing (the share sheet on phones, a download elsewhere); bodyweight only when ticked.
-- **Library**: 137 exercises with two pictures (start and end of the movement, swiped or stepped through), muscles,
+- **Library**: 157 exercises with two pictures (start and end of the movement, swiped or stepped through), muscles,
   equipment, cues, and the sets and range each is usually
   done for (heavy barbell lifts 5-8, machine and dumbbell work 8-12, small lifts 12-15, holds in seconds),
   searchable and filterable. "Pick from library" fills an exercise in, numbers included, from the plan editor
@@ -96,7 +96,7 @@ To use a hosted MongoDB instead, set `MONGODB_URI` and `MONGODB_DB` in `.env`.
 The nine split templates and the exercise library live in the database (`splits`, `library`), so
 they can be edited there without a deploy. The copies in the code (`src/lib/splits.ts`,
 `src/lib/library.json`) are the seed: an empty database fills itself from them on the first request,
-and `bun run db:seed` does the same by hand.
+a read adds library entries a newer bundle brings, and `bun run db:seed` does the same by hand.
 
 ```sh
 bun run db:seed                 # adds whatever the bundle has that the database lacks; edits stay
@@ -113,7 +113,8 @@ bun run db:seed -- --demo       # also a demo account with eight weeks of logs; 
 
 The seed refuses a database that is not on localhost unless `--yes`. The app reads both collections
 once per visit and caches them for an hour in the browser and a minute on the server, so an edit
-shows up within that.
+shows up within that. The library travels without its cues, most of its weight: an exercise's cues
+are fetched when its detail opens, and kept for the visit.
 
 ## Deploy to Vercel
 

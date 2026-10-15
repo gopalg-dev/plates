@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import { LogBodyweightDialog, LogMeasurementsDialog } from '#/components/app/body-dialogs'
 import { DayIcon } from '#/components/app/day-mark'
 import { NextUpView } from '#/components/app/next-up'
+import { PendingPage } from '#/components/app/page-skeletons'
 import { DiscardDialog, FinishCheckIn, SummaryDialog } from '#/components/app/session-finish'
 import { SessionExercises, SessionFooter, SessionTitle, ZenButton } from '#/components/app/session-view'
 import { SwapLiftPanel } from '#/components/app/swap-lift'
@@ -46,6 +47,7 @@ export const Route = createFileRoute('/_app/')({
   validateSearch: (search: Record<string, unknown>): { zen?: true } => (search.zen ? { zen: true } : {}),
   loader: () => getTodayFn(),
   component: TodayPage,
+  pendingComponent: PendingPage,
 })
 
 /** Drawer headers centre their text on bottom drawers by default. The app reads left to right. */

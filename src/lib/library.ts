@@ -1,15 +1,17 @@
-import data from './library.json'
 import type { LoadType, Muscle } from './types'
 
 // A curated subset of free-exercise-db (https://github.com/yuhonas/free-exercise-db, Unlicense).
-// Names follow the app's own vocabulary; pictures stay on the project's GitHub raw host.
+// Names follow the app's own vocabulary; pictures stay on the project's GitHub raw host. The entries themselves are in
+// `library-data.ts`, for the server, the scripts and the tests: this module is what the browser imports, and it must
+// not carry the whole library, cues and all, in the bundle.
 
-export const EQUIPMENT = ['barbell', 'dumbbell', 'cable', 'machine', 'bodyweight'] as const
+export const EQUIPMENT = ['barbell', 'dumbbell', 'kettlebell', 'cable', 'machine', 'bodyweight'] as const
 export type Equipment = (typeof EQUIPMENT)[number]
 
 export const EQUIPMENT_LABEL: Record<Equipment, string> = {
   barbell: 'Barbell',
   dumbbell: 'Dumbbell',
+  kettlebell: 'Kettlebell',
   cable: 'Cable',
   machine: 'Machine',
   bodyweight: 'Bodyweight',
@@ -41,8 +43,11 @@ export interface LibraryExercise {
   images: string[]
 }
 
-/** The entries that ship with the app. They seed the `library` collection; the app reads from there. */
-export const LIBRARY = data as LibraryExercise[]
+/**
+ * An entry as the app holds it: everything but the cues, which are most of the library's weight and come on their
+ * own when an exercise's detail opens. The helpers below take rows, so they serve the server's whole entries too.
+ */
+export type LibraryRow = Omit<LibraryExercise, 'cues'>
 
 const IMAGE_BASE = 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/'
 
@@ -66,7 +71,7 @@ export interface LibraryFilter {
 }
 
 /** Every word typed must appear in the name, the muscles or the equipment. Filters narrow further. */
-export function searchLibrary(filter: LibraryFilter, items: LibraryExercise[]): LibraryExercise[] {
+export function searchLibrary<T extends LibraryRow>(filter: LibraryFilter, items: T[]): T[] {
   const tokens = (filter.query ?? '').toLowerCase().split(/\s+/).filter(Boolean)
   return items.filter((ex) => {
     if (filter.muscle && ex.muscle !== filter.muscle) return false
@@ -77,21 +82,22 @@ export function searchLibrary(filter: LibraryFilter, items: LibraryExercise[]): 
   })
 }
 
-export function findLibrary(items: LibraryExercise[], id: string): LibraryExercise | undefined {
+export function findLibrary<T extends LibraryRow>(items: T[], id: string): T | undefined {
   return items.find((ex) => ex.id === id)
 }
 
 /** An exercise name as the library matches it: case, spaces and punctuation ignored ("Pullups" is "Pull-ups"). */
 export const nameKey = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '')
 /** One name index per list, built the first time a list is searched by name. */
-const indexes = new WeakMap<LibraryExercise[], Map<string, LibraryExercise>>()
+const indexes = new WeakMap<LibraryRow[], Map<string, LibraryRow>>()
 
 /** The library entry for an exercise name, matched by `nameKey`. */
-export function findLibraryByName(items: LibraryExercise[], name: string): LibraryExercise | undefined {
+export function findLibraryByName<T extends LibraryRow>(items: T[], name: string): T | undefined {
   let index = indexes.get(items)
   if (!index) {
     index = new Map(items.map((ex) => [nameKey(ex.name), ex]))
     indexes.set(items, index)
   }
-  return index.get(nameKey(name))
+  // The index was built from `items`, so what it holds is one of them.
+  return index.get(nameKey(name)) as T | undefined
 }
