@@ -1,4 +1,4 @@
-import { dayColourVar } from '#/components/app/day-mark'
+import { dayColourVar, SAME_KIND_WASH, SPLIT_WEDGE } from '#/components/app/day-mark'
 import type { PeriodKind, Tone } from './logic/report'
 import type { ShareCardContent } from './logic/share-card'
 import { THEME_OPTIONS } from './theme'
@@ -18,6 +18,8 @@ const TOKENS = [
   '--card',
   '--background',
   '--foreground',
+  /** Not drawn on the card: the look's accent, for the swatch that picks it. */
+  '--primary',
   '--muted',
   '--muted-foreground',
   '--border',
@@ -85,9 +87,13 @@ function resolve(cssVar: string, tokens: CardTheme['tokens']): { fill: string; i
   return { fill: tokens['--muted-foreground'], ink: tokens['--background'] }
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+function roundRectPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath()
   ctx.roundRect(x, y, w, h, r)
+}
+
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  roundRectPath(ctx, x, y, w, h, r)
   ctx.fill()
 }
 
@@ -177,6 +183,22 @@ export async function drawShareCard(content: ShareCardContent, kind: PeriodKind,
     const paint = d.dayType ? resolve(dayColourVar(d.dayType), t) : { fill: t['--muted'], ink: t['--muted-foreground'] }
     ctx.fillStyle = paint.fill
     roundRect(ctx, x, top, cell, tall, week ? 20 : 14)
+    // A second session that day: its colour as a bottom-right wedge, the same cut as the calendars on screen; the
+    // same kind twice, a light wash over the corner instead.
+    if (d.dayTypes.length > 1) {
+      const second = dayColourVar(d.dayTypes[1])
+      ctx.save()
+      roundRectPath(ctx, x, top, cell, tall, week ? 20 : 14)
+      ctx.clip()
+      ctx.fillStyle = second === dayColourVar(d.dayTypes[0]) ? SAME_KIND_WASH : resolve(second, t).fill
+      ctx.beginPath()
+      ctx.moveTo(x + cell, top + tall)
+      ctx.lineTo(x + cell * (1 - 2 * SPLIT_WEDGE), top + tall)
+      ctx.lineTo(x + cell, top + tall * (1 - 2 * SPLIT_WEDGE))
+      ctx.closePath()
+      ctx.fill()
+      ctx.restore()
+    }
     ctx.fillStyle = paint.ink
     ctx.font = `600 ${week ? 52 : 34}px ${condensed}`
     ctx.fillText(String(d.date.getDate()), x + cell / 2, top + tall / 2 + (week ? 18 : 12))

@@ -1,7 +1,6 @@
-import { MoreVertical, Share2 } from 'lucide-react'
+import { Share } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Button } from '#/components/ui/button'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '#/components/ui/dropdown-menu'
 import { longDate } from '#/lib/format'
 import {
   beforeLabel,
@@ -65,20 +64,17 @@ export function ReportView({
     <div>
       <div className="flex items-center justify-between gap-4">
         <h1 className="font-condensed text-4xl font-semibold leading-none">Report</h1>
+        {/* Share sits beside the title on its own: the one thing to do with a finished period. */}
         {shareable && (
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon-sm" className="pointer-coarse:size-11" aria-label="Report options">
-                <MoreVertical aria-hidden />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-48">
-              <DropdownMenuItem onSelect={() => setShareOpen(true)}>
-                <Share2 aria-hidden />
-                Share…
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="pointer-coarse:size-11"
+            aria-label={`Share this ${unit}`}
+            onClick={() => setShareOpen(true)}
+          >
+            <Share aria-hidden />
+          </Button>
         )}
       </div>
       {shareable && (

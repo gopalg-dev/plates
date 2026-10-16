@@ -12,6 +12,7 @@ import {
   Target,
   Triangle,
 } from 'lucide-react'
+import type { CSSProperties } from 'react'
 import type { DayType } from '#/lib/types'
 import { cn } from '#/lib/utils'
 
@@ -112,4 +113,25 @@ export function dayColourVar(type: DayType): string {
 /** Text colour that stays readable on top of the matching plate colour. */
 export function dayInkClass(type: DayType): string {
   return ink[family[type]]
+}
+
+/**
+ * How far along the diagonal, from the bottom-right corner, a second session's wedge reaches: a corner of the cell
+ * in its colour, the first session's colour and ink keeping the number. The card draws the same wedge.
+ */
+export const SPLIT_WEDGE = 0.32
+
+/** The wash over a second session's wedge when it is the same kind as the first: the same colour, a shade lighter. */
+export const SAME_KIND_WASH = 'rgb(255 255 255 / 0.3)'
+
+/**
+ * The background of a day cell with two sessions: the second's colour as a bottom-right wedge over the first's. Two
+ * of the same kind would paint one colour twice, so then the wedge is that colour under a light wash.
+ */
+export function daySplitStyle(types: DayType[]): CSSProperties | undefined {
+  if (types.length < 2) return undefined
+  const [first, second] = types
+  const cut = `${SPLIT_WEDGE * 100}%`
+  const wedge = dayColourVar(second) === dayColourVar(first) ? SAME_KIND_WASH : dayColourVar(second)
+  return { background: `linear-gradient(to top left, ${wedge} 0 ${cut}, transparent ${cut}), ${dayColourVar(first)}` }
 }

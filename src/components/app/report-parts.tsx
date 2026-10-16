@@ -21,7 +21,7 @@ import { addDays, MUSCLE_LABEL } from '#/lib/logic/stats'
 import { fmtSet } from '#/lib/logic/units'
 import type { DayType, Units } from '#/lib/types'
 import { cn } from '#/lib/utils'
-import { DAY_LABEL, dayColourClass, dayInkClass } from './day-mark'
+import { DAY_LABEL, dayColourClass, dayInkClass, daySplitStyle } from './day-mark'
 
 /*
  * The pieces the report's looks share: the period row, the period as a calendar, the comparison words, the lists
@@ -195,8 +195,9 @@ function DayKey({ types, rest }: { types: DayType[]; rest: boolean }) {
  * The same colours as the Stats calendar, so the two read alike.
  */
 export function PeriodCalendar({ days, kind, className }: { days: PeriodDay[]; kind: PeriodKind; className?: string }) {
-  const types = [...new Set(days.flatMap((d) => (d.dayType ? [d.dayType] : [])))]
+  const types = [...new Set(days.flatMap((d) => d.dayTypes))]
   const rest = days.some((d) => !d.dayType)
+  const sessions = days.reduce((n, d) => n + d.dayTypes.length, 0)
   const lead = kind === 'month' ? (days[0].date.getDay() + 6) % 7 : 0
   const label = (d: PeriodDay) =>
     `${d.date.toLocaleDateString('en-US', { weekday: 'short' })} ${shortDate(d.date.toISOString())}, ${d.dayName ?? 'no session'}`
@@ -205,7 +206,7 @@ export function PeriodCalendar({ days, kind, className }: { days: PeriodDay[]; k
       <div
         className={cn('grid grid-cols-7 text-center', kind === 'week' ? 'gap-1.5' : 'gap-1')}
         role="img"
-        aria-label={`${days.filter((d) => d.dayType).length} sessions: ${days
+        aria-label={`${sessions} sessions: ${days
           .filter((d) => d.dayType)
           .map((d) => label(d))
           .join('; ')}`}
@@ -223,6 +224,7 @@ export function PeriodCalendar({ days, kind, className }: { days: PeriodDay[]; k
         {days.map((d) => (
           <span
             key={d.key}
+            style={daySplitStyle(d.dayTypes)}
             className={cn(
               'flex items-center justify-center rounded-md tabular-nums',
               // A week's days are squares; a month's rows are wider than tall, so six rows stay short.

@@ -160,7 +160,7 @@ function StatsPage() {
                 : `${daySessions.length} ${daySessions.length === 1 ? 'session' : 'sessions'}`}
             </DialogDescription>
           </DialogHeader>
-          <ItemGroup className="border-y">
+          <ItemGroup className="border-t">
             {daySessions.length > 0
               ? daySessions.map((w) => {
                   const openIt = () => {

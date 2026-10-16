@@ -7,6 +7,7 @@ import { monthYear, shortDate } from '#/lib/format'
 import { deloadHint, effortLabel, effortThisWeek } from '#/lib/logic/effort'
 import {
   dayKey,
+  finished,
   monthCalendar,
   noon,
   plannedVolumeByMuscle,
@@ -19,7 +20,7 @@ import {
 import type { Muscle, Plan, TrainingAge, Units, Workout } from '#/lib/types'
 import { cn } from '#/lib/utils'
 import { BodyMap, BodyMapLegend } from './body-map'
-import { dayColourClass, dayInkClass } from './day-mark'
+import { dayColourClass, dayInkClass, daySplitStyle } from './day-mark'
 import { SectionHeading } from './section-heading'
 
 /*
@@ -188,11 +189,10 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
   const [jumpOpen, setJumpOpen] = useState(false)
   const month = useMemo(() => new Date(now.getFullYear(), now.getMonth() + offset, 1), [now, offset])
   const weeks = useMemo(() => monthCalendar(workouts, now, month, joinedAt), [workouts, now, month, joinedAt])
-  // Session names per day, for the day buttons' labels.
+  // Session names per day, for the day buttons' labels, in the order they were done, as the cell is painted.
   const names = useMemo(() => {
     const m = new Map<string, string[]>()
-    for (const w of workouts) {
-      if (w.status !== 'done' || !w.finishedAt) continue
+    for (const w of finished(workouts)) {
       const key = dayKey(w.finishedAt)
       m.set(key, [...(m.get(key) ?? []), w.dayName])
     }
@@ -203,7 +203,7 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
   const joined = joinedAt ? new Date(joinedAt) : null
   const atFirstMonth =
     joined !== null && month.getTime() <= new Date(joined.getFullYear(), joined.getMonth(), 1).getTime()
-  const sessions = weeks.flatMap((w) => w.days).filter((d) => d?.type).length
+  const sessions = weeks.flatMap((w) => w.days).reduce((n, d) => n + (d?.types.length ?? 0), 0)
   const title = monthYear(month)
 
   // Months are counted from year zero so a span across years compares as one number.
@@ -307,6 +307,7 @@ function ActivityCalendar({ workouts, now, joinedAt, selected, onSelect, onOpenD
                       onSelect(week.start)
                       onOpenDay(d.date)
                     }}
+                    style={daySplitStyle(d.types)}
                     className={cn(
                       'flex aspect-square items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default',
                       d.type

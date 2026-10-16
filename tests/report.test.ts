@@ -219,9 +219,18 @@ describe('charts and calendar', () => {
   it("lists the period's days with what was trained on each", () => {
     const week = daysOf(finishedPeriod('week', on(8, 7), now), data.workouts)
     expect(week).toHaveLength(7)
-    expect(week[0]).toMatchObject({ key: '2026-09-07', dayType: 'push', dayName: 'push A' })
-    expect(week[1]).toMatchObject({ key: '2026-09-08', dayType: null })
+    expect(week[0]).toMatchObject({ key: '2026-09-07', dayType: 'push', dayTypes: ['push'], dayName: 'push A' })
+    expect(week[1]).toMatchObject({ key: '2026-09-08', dayType: null, dayTypes: [] })
     expect(daysOf(finishedPeriod('month', on(8, 15), now), data.workouts).filter((d) => d.dayType)).toHaveLength(3)
+    // A second session the same day, done later: the first keeps the cell, both are listed in order.
+    const later = session(new Date(2026, 8, 7, 19), 'pull', [])
+    const doubled = daysOf(finishedPeriod('week', on(8, 7), now), [...data.workouts, later])
+    expect(doubled[0]).toMatchObject({
+      key: '2026-09-07',
+      dayType: 'push',
+      dayTypes: ['push', 'pull'],
+      dayName: 'push A',
+    })
   })
 })
 

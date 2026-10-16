@@ -348,6 +348,45 @@ no Inter/Geist. Checked.
         swaps; a library entry added in the database without the new fields made the server re-run the fill-in
         on every read (only the bundle's ids count now). Known, left: "Add a day" on a plan started empty still
         brings five lifts, as there is no stored "empty" preference.
+- [x] 69. Two sessions on one day show as a split cell (2026-10-16, user: "on my 6 days plan, i already did 5 days,
+      and now i want to do the 6 day session also on the same day of 5, what will happen", then "fix it, split cell
+      in calendar, report and card"). Traced first: both sessions were stored and counted everywhere that counts
+      sessions (streak, finish summary, Report numbers, lift history, export, the calendar's day dialog), but the
+      Stats calendar painted a day in its last session's colour and counted coloured days as sessions (one short),
+      while the Report strip and the card painted the first session's; the two disagreed. Now `CalendarDay.types`
+      and `PeriodDay.dayTypes` list every session of a day in the order they were done (`type`/`dayType` stay the
+      first's, what the cell is painted in), the month's count sums them, and a second session shows as a wedge of
+      its colour in the cell's bottom-right corner, the number staying on the first colour and ink:
+      `daySplitStyle` (day-mark.tsx, a two-stop gradient to the top left, `SPLIT_WEDGE` 0.32 of the diagonal) on
+      the Stats calendar and the Report strip, and the same triangle clipped to the rounded cell on the drawn card.
+      Two test sessions were put on the user's own local account (Sun 11 Oct, the join day, Pull A then Push A) to
+      see it. Then (user: "12 - 2 sessions unable to identify"): two of the same kind painted one colour twice, so
+      the wedge is that colour under a light wash (`SAME_KIND_WASH`, white at 30%) when the second's colour is the
+      first's, on screen and on the card. The day dialog's list lost its bottom line, which sat on the dialog's edge
+      (user, screenshot). Two Pull A on one day is allowed on purpose: Pick a day already says "Done today" on that
+      row, and a second session can be real; a one-line ask before a same-day repeat was offered, not built.
+- [x] 68. The share sheet fits a phone (2026-10-16, user, with a screenshot of the demo phone: "the share card is
+      overflowing", then "ensure it fits into the view", "not removing the scrollbar", "make the look theme options
+      in a single row with scrollable"). The ten Look swatches sat on one unwrapping line wider than a phone, which
+      pushed the sheet's column wide and clipped the card at its right edge; the sheet was also taller than the
+      screen, so it scrolled inside. Now the swatches are one line that scrolls sideways past the sheet's edges
+      (`ScrollArea`, as the library's tag rows; `min-w-0` so the grid item cannot grow), the picked look's name
+      under them; on phones the sheet takes the screen's height and the card takes the height the choices leave, at
+      its own 4:5 (the sheet needs a set height there, or the card's `max-h-full` has nothing to resolve against and
+      the card overflows its box; the card is centred in normal flow, since as a flex item its width and height were
+      capped apart and it letterboxed). The scrollbar track stays (the user's call); it just has nothing to do now.
+      Measured at 360×740, 393×852, 768×1024 and 1024×768: no sideways scroll of page or sheet, no inner scroll, the
+      sheet's bottom inside the screen, the card at 4:5. Tablets and up keep the two-column sheet. Then (user:
+      "those looks options are not what we have on the current theme, ensure these options are always up to date
+      with the current themes"): the list already came from `THEME_OPTIONS` with each look's tokens read live from
+      the stylesheet as the sheet opens, so it cannot drift; what misled was the swatch, the card colour ringed in the
+      foreground, which made every dark look the same black circle. Chosen from three options: the ring is now the
+      look's accent (`--primary`, added to the card tokens read per look), so Lime reads lime, Fire orange, Water
+      teal, Forest green, Dracula purple. Then (user: "instead of putting the share inside menu, replace the more
+      menu and directly add the share, use different share icon"): the Report title's `⋮` menu, which held only
+      Share, is a Share button (`aria-label` "Share this week/month", lucide `Share`, the square with the arrow
+      rising out of it; the user floated `SquareArrowUpRight`, which most apps use for "opens in a new tab", and
+      took the recommendation). The e2e, the exploration spec and the guide's Stats facts follow.
 - [x] 67. Each page waits in its own shape (2026-10-16, user: "add a proper loading skeleton by verifying all the
       pages", "the skeletons should not be generic, it should be based on each page real loading content
       structure", "is it possible to show skeleton on server api call files as well, for example library page").

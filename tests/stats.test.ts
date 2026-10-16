@@ -94,8 +94,11 @@ describe('consistency', () => {
     expect(weeks[0].days.slice(0, 3)).toEqual([null, null, null])
     expect(weeks[0].days[3]).toMatchObject({ date: '2026-10-01', dayOfMonth: 1, future: false })
     expect(new Date(must(weeks[0].days[3], 'the first of the month').iso).getDate()).toBe(1)
-    expect(weeks[1].days[2]).toMatchObject({ date: '2026-10-07', type: 'pull' })
+    expect(weeks[1].days[2]).toMatchObject({ date: '2026-10-07', type: 'pull', types: ['pull'] })
     expect(weeks[1].days[5]).toMatchObject({ date: '2026-10-10', type: 'legs', future: false })
+    // Two sessions on one day: both listed in the order they were done, the first painting the cell.
+    const doubled = monthCalendar([...ws, workout(new Date(2026, 9, 7, 19), 'push')], now, new Date(2026, 9, 1))
+    expect(doubled[1].days[2]).toMatchObject({ date: '2026-10-07', type: 'pull', types: ['pull', 'push'] })
     expect(weeks[1].days[6]).toMatchObject({ date: '2026-10-11', type: null, future: true })
     expect(weeks[4].days[5]).toMatchObject({ dayOfMonth: 31 })
     expect(weeks[4].days[6]).toBeNull()

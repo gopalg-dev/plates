@@ -640,8 +640,7 @@ test('the report reads last week, picks a week from a calendar, and shares it as
   await expect(page.getByLabel('Choose the Month')).toBeVisible()
   await page.keyboard.press('Escape')
   // The card: every look, the one on screen first, with the image drawn in the browser.
-  await page.getByRole('button', { name: 'Report options' }).click()
-  await page.getByRole('menuitem', { name: 'Share…' }).click()
+  await page.getByRole('button', { name: 'Share this week' }).click()
   const dialog = page.getByRole('dialog', { name: 'Share this week' })
   await expect(dialog).toBeVisible()
   await expect(dialog.getByRole('img', { name: 'week in review card' })).toBeVisible()

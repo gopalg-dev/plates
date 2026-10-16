@@ -394,26 +394,41 @@ export function history(data: Pick<ReportData, 'workouts' | 'bodyweights'>, peri
   return out
 }
 
-/** One day of the period: the session trained on it, if any (the first, when there were two). */
+/**
+ * One day of the period: the sessions trained on it, in the order they were done. `dayType` and `dayName` are the
+ * first's, what the cell is painted in; `dayTypes` holds every one, so two sessions make a split cell.
+ */
 export interface PeriodDay {
   date: Date
   key: string
   dayType: DayType | null
+  dayTypes: DayType[]
   dayName?: string
 }
 
 /** Every day of the period in order, with what was trained on it. */
 export function daysOf(period: Period, workouts: Workout[]): PeriodDay[] {
-  const trained = new Map<string, { dayType: DayType; dayName: string }>()
-  for (const w of between(workouts, period.start, period.end)) {
+  const trained = new Map<string, { dayTypes: DayType[]; dayName: string }>()
+  const inPeriod = [...between(workouts, period.start, period.end)].sort(
+    (a, b) => new Date(a.finishedAt).getTime() - new Date(b.finishedAt).getTime(),
+  )
+  for (const w of inPeriod) {
     const key = dayKey(w.finishedAt)
-    if (!trained.has(key)) trained.set(key, { dayType: w.dayType, dayName: w.dayName })
+    const on = trained.get(key)
+    if (on) on.dayTypes.push(w.dayType)
+    else trained.set(key, { dayTypes: [w.dayType], dayName: w.dayName })
   }
   const out: PeriodDay[] = []
   for (let d = period.start; d.getTime() < period.end.getTime(); d = addDays(d, 1)) {
     const key = dayKey(d)
     const on = trained.get(key)
-    out.push({ date: d, key, dayType: on?.dayType ?? null, ...(on ? { dayName: on.dayName } : {}) })
+    out.push({
+      date: d,
+      key,
+      dayType: on?.dayTypes[0] ?? null,
+      dayTypes: on?.dayTypes ?? [],
+      ...(on ? { dayName: on.dayName } : {}),
+    })
   }
   return out
 }

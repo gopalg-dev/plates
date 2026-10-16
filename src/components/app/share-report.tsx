@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '#/components/ui/dialog'
 import { Label } from '#/components/ui/label'
+import { ScrollArea, ScrollBar } from '#/components/ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '#/components/ui/select'
 import { ToggleGroup, ToggleGroupItem } from '#/components/ui/toggle-group'
 import { saveBlob } from '#/lib/download'
@@ -110,25 +111,38 @@ export function ShareReportDialog({
       {/* Taller than a short window, so it scrolls inside instead of losing its title and footer. */}
       {/*
        * A share sheet: the card on the left at a fixed width, the choices as a form on the right, the buttons at the
-       * foot of that column, level with the card's bottom edge. On a phone the two stack. Taller than a short
-       * window, it scrolls inside instead of losing its title and footer.
+       * foot of that column, level with the card's bottom edge. On a phone the two stack, the sheet takes the screen's
+       * height (a set height, so the card's cap below can resolve) and the card gives up height before anything
+       * scrolls; should it still not fit, the sheet scrolls inside instead of losing its title and footer.
        */}
-      <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="flex max-h-[calc(100dvh-2rem)] flex-col overflow-y-auto max-sm:h-[calc(100dvh-2rem)] sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Share this {unit}</DialogTitle>
           <DialogDescription className="sr-only">
             The {unit}'s highlights as an image, in a look of your choice.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-6 sm:grid-cols-[20rem_1fr]">
-          <div className="aspect-[4/5] w-full shrink-0 overflow-hidden rounded-lg border bg-muted">
-            {card && <img src={card.url} alt={`${unit} in review card`} className="size-full object-cover" />}
+        <div className="flex min-h-0 flex-1 flex-col gap-6 sm:grid sm:grid-cols-[20rem_1fr]">
+          {/* On a phone the card takes the height the choices leave, at its own 4:5, so the whole sheet is in view. */}
+          <div className="min-h-0 flex-1 text-center sm:aspect-[4/5] sm:w-full sm:text-left">
+            {card ? (
+              <img
+                src={card.url}
+                alt={`${unit} in review card`}
+                className="inline-block max-h-full max-w-full rounded-lg border object-contain sm:size-full sm:object-cover"
+              />
+            ) : (
+              <div className="mx-auto aspect-[4/5] h-full max-w-full rounded-lg border bg-muted sm:mx-0 sm:size-full" />
+            )}
           </div>
-          <div className="flex flex-col gap-5">
+          <div className="flex min-w-0 flex-col gap-5">
             <div className="grid gap-2">
               <Label id="share-look">Look</Label>
-              {/* One swatch per look, in the look's own card colour; the name of the picked one beside them. */}
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              {/* One swatch per look: its card colour ringed in its accent, so Lime reads lime and Fire orange, read
+                  live from the stylesheet with the card's own tokens. One line that scrolls sideways past the sheet's
+                  edges, as the library's tag rows do; the picked one's name under it. min-w-0: a grid item would
+                  otherwise grow to the line's full width and push the sheet wide. */}
+              <ScrollArea className="-mx-6 min-w-0">
                 <ToggleGroup
                   type="single"
                   size="sm"
@@ -136,6 +150,7 @@ export function ShareReportDialog({
                   value={picked}
                   onValueChange={(v) => v && setPicked(v)}
                   aria-labelledby="share-look"
+                  className="w-max px-6 py-0.5"
                 >
                   {themes.map((look) => (
                     <ToggleGroupItem
@@ -146,14 +161,15 @@ export function ShareReportDialog({
                     >
                       <span
                         aria-hidden
-                        className="size-6 rounded-full border-2"
-                        style={{ background: look.tokens['--card'], borderColor: look.tokens['--foreground'] }}
+                        className="size-6 rounded-full border-[3px]"
+                        style={{ background: look.tokens['--card'], borderColor: look.tokens['--primary'] }}
                       />
                     </ToggleGroupItem>
                   ))}
                 </ToggleGroup>
-                <span className="text-muted-foreground">{themes.find((l) => l.id === picked)?.label}</span>
-              </div>
+                <ScrollBar orientation="horizontal" className="mx-6 h-2" />
+              </ScrollArea>
+              <span className="text-muted-foreground">{themes.find((l) => l.id === picked)?.label}</span>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="share-highlight">Highlight</Label>

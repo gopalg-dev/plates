@@ -538,8 +538,8 @@ test('the report waits for a finished week, and is reached from the sidebar', as
   if ((page.viewportSize()?.width ?? 0) < 768) await page.getByRole('button', { name: 'Open menu' }).click()
   await page.getByRole('listitem').filter({ hasText: 'Report' }).getByRole('link').click()
   await expect(page.getByRole('heading', { name: 'Report' })).toBeVisible()
-  // With only this week's session there is no report yet, so nothing to share: no options menu either.
-  await expect(page.getByRole('button', { name: 'Report options' })).toHaveCount(0)
+  // With only this week's session there is no report yet, so nothing to share: no Share button either.
+  await expect(page.getByRole('button', { name: /^Share this/ })).toHaveCount(0)
 })
 
 test('keyboard focus is visible and the tab bar switches screens', async () => {

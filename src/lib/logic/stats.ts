@@ -132,7 +132,10 @@ export function sessionsInWeek(ws: Workout[], now: Date): number {
 export interface CalendarDay {
   /** Local calendar day, YYYY-MM-DD. */
   date: string
+  /** The first session's kind, or null on a day without one: what the cell is painted in. */
   type: DayType | null
+  /** Every session's kind that day, in the order they were finished: two make a split cell. */
+  types: DayType[]
   /** Local midnight of the day as an ISO string, for display formatting. */
   iso: string
   dayOfMonth: number
@@ -154,8 +157,12 @@ export interface CalendarWeek {
  * `joinedAt` marks days before the user joined, so the UI can keep them out of reach.
  */
 export function monthCalendar(ws: Workout[], now: Date, month: Date, joinedAt?: string): CalendarWeek[] {
-  const byDay = new Map<string, DayType>()
-  for (const w of finished(ws)) byDay.set(dayKey(w.finishedAt), w.dayType)
+  // Oldest first, so a day with two sessions lists them in the order they were done.
+  const byDay = new Map<string, DayType[]>()
+  for (const w of finished(ws)) {
+    const key = dayKey(w.finishedAt)
+    byDay.set(key, [...(byDay.get(key) ?? []), w.dayType])
+  }
   const todayKey = dayKey(now)
   const joinedKey = joinedAt ? dayKey(new Date(joinedAt)) : undefined
   const y = month.getFullYear()
@@ -168,9 +175,11 @@ export function monthCalendar(ws: Workout[], now: Date, month: Date, joinedAt?: 
   for (let day = 1; day <= daysInMonth; day++) {
     const d = new Date(y, m, day)
     const key = dayKey(d)
+    const types = byDay.get(key) ?? []
     days.push({
       date: key,
-      type: byDay.get(key) ?? null,
+      type: types[0] ?? null,
+      types,
       iso: d.toISOString(),
       dayOfMonth: day,
       future: key > todayKey,
